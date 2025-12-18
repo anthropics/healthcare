@@ -1,0 +1,8 @@
+# Clinical Protocol Skill - Python Dependencies
+
+# Statistical calculations for sample size calculator
+scipy>=1.11.0
+numpy>=1.24.0
+
+# Optional: For advanced power analysis (not currently used but available)
+statsmodels>=0.14.0
