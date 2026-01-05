@@ -21,7 +21,7 @@ This Claude Code skill automates the health insurance payer's prior authorizatio
 
 ## Key Features
 
-✅ **Automated Request Intake** - Validates member eligibility, provider credentials, and extracts clinical data
+✅ **Automated Request Intake** - Validates provider credentials, diagnosis/procedure codes, and extracts clinical data
 ✅ **Coverage Policy Matching** - Identifies applicable LCDs/NCDs and medical policies
 ✅ **Medical Necessity Assessment** - Maps clinical evidence to policy criteria
 ✅ **Decision Generation** - Generates approvals, denials, or pends with complete rationale
@@ -273,7 +273,7 @@ waypoints/archive/
 - Policy reference
 - Alternative covered services (if applicable)
 - Appeal rights and instructions
-- Peer-to-peer discussion option
+- Peer-to-peer discussion option (informational text in letter; scheduling not automated)
 - Provider notification letter
 
 ---
@@ -295,19 +295,21 @@ waypoints/archive/
 
 ---
 
-## Success Metrics
+## Target Metrics
 
-### Operational Efficiency
+> **Note:** These are design targets, not guaranteed outcomes. Actual performance will vary by implementation. Validate in your environment before production use.
+
+### Operational Efficiency (Projected)
 - **Average Review Time:** <5 minutes (vs. 30-60 min manual)
 - **Auto-Approval Rate:** 40-60% of requests (high confidence cases)
 - **Throughput:** 10,000+ requests/day per instance
 
-### Quality Metrics
+### Quality Metrics (Targets)
 - **Inter-Rater Reliability:** >95% agreement with human reviewers
 - **Appeal Overturn Rate:** <10% (denials are defensible)
 - **Policy Accuracy:** 99%+ correct policy identification
 
-### Business Impact
+### Business Impact (Estimated)
 - **Cost Savings:** $30-50 per PA processed
 - **Turnaround Time:** <24 hours average (vs. 3-7 days manual)
 - **Provider Satisfaction:** +20% improvement
@@ -453,24 +455,23 @@ For detailed error messages and troubleshooting steps, refer to SKILL.md error h
 
 ## Limitations
 
-⚠️ **IMPORTANT:** This skill generates draft authorization decisions for payer clinical review processes.
+⚠️ **IMPORTANT:** This skill generates **draft recommendations only**. The payer organization remains fully responsible for all final authorization decisions.
 
-**Not a substitute for:**
-- Human clinical judgment in complex cases
-- Payer medical director oversight
-- Regulatory compliance review
-- Legal review of denials
+**AI Decision Behavior:**
+- Default mode: APPROVE or PEND only - never automatically DENY
+- Users may override recommendations with documented justification
+- Decision logic is configurable in `rubric.md`
 
-**Required before final authorization:**
-- Clinical reviewer validation (for non-auto-approved cases)
-- Medical director sign-off (per payer policy)
-- Compliance review (for denials)
-- Quality assurance sampling
+**Human Review Required:**
+- Clinical reviewer validation for non-auto-approved cases
+- Medical director sign-off per payer policy
+- Compliance and legal review for denials
 
 **Known Limitations:**
-- Simulated policy database (requires real payer data integration)
+- Simulated policy database (requires real payer integration)
 - Simulated eligibility verification (requires real eligibility system)
-- Limited to English-language documentation
+- Provider verification checks NPI registry only (not network/credentialing status)
+- English-language documentation only
 - Requires structured clinical notes (not handwritten)
 
 ---
