@@ -160,6 +160,17 @@ RESULT: APPROVED
   Letter: outputs/1EG4TE5MK72_20251203_143022_approval_letter.txt
 ```
 
+### Demo/Test Mode
+
+Demo mode activates ONLY when **both** conditions are met:
+
+1. **Demo NPI**: `1234567890` or `1234567893`
+2. **Sample Member ID**: `1EG4-TE5-MK72` or `1EG4TE5MK72`
+
+When both conditions are met, the skill skips NPPES lookup and accepts the provider for demonstration purposes. This allows the sample data in `sample/` to complete the full workflow.
+
+**Safety feature:** If only the demo NPI is present without the sample member ID, the skill proceeds with normal NPPES validation. This prevents accidental demo mode activation in production if a real case happens to use one of these NPIs.
+
 ---
 
 ## Workflow Subskills

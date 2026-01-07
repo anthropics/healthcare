@@ -92,6 +92,25 @@ Inform the user you're validating credentials and codes.
 
 1. **NPI Lookup** via NPI MCP:
 
+   **First, check for demo/test mode:**
+
+   Demo mode activates ONLY when BOTH conditions are met:
+   1. NPI is a recognized demo NPI: `1234567890` or `1234567893`
+   2. Member ID matches sample data: `1EG4-TE5-MK72` or `1EG4TE5MK72`
+
+   If BOTH conditions are met (demo mode):
+   - Skip NPPES lookup
+   - Set `provider_verified = True`
+   - Display: "Demo mode activated - Sample data detected (demo NPI + sample member ID). NPPES lookup skipped for demonstration purposes."
+   - Use placeholder provider details: "Demo Provider, MD (Specialty from request)"
+   - Proceed with validation
+
+   If only NPI matches but member ID does not match sample data:
+   - Treat as real NPI and proceed with normal NPPES lookup
+   - This prevents accidental demo mode activation in production
+
+   **For real NPIs (or demo NPI without matching sample member ID):**
+
    Display: "Verifying provider credentials via NPI MCP Connector..."
 
    ```python
