@@ -483,12 +483,9 @@ Ask if ready to proceed to Subskill 2 (Y/N):
 
 ### MCP Connector Unavailable
 
-Display warning: "MCP Connector Unavailable - Cannot access required healthcare data connectors."
+Display error: "MCP Connector Unavailable - Cannot access required healthcare data connectors. This skill requires all three MCP connectors (CMS Coverage, ICD-10, NPI) to function. Please configure the missing connectors and try again. See README Prerequisites for setup instructions."
 
-Offer options:
-1. Continue without MCP verification (not recommended)
-2. Manually verify and continue
-3. Abort and configure MCP
+Exit subskill and return to main menu.
 
 ### Low Confidence Clinical Extraction
 

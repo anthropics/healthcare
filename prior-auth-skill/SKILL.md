@@ -112,6 +112,26 @@ The skill will:
 
 When this skill is invoked:
 
+### Startup: Check MCP Configuration
+
+**Before proceeding, verify required MCP connectors are available.**
+
+Check for the following MCP connectors:
+1. **CMS Coverage MCP** - Required for coverage policy lookup
+2. **ICD-10 MCP** - Required for diagnosis code validation
+3. **NPI MCP** - Required for provider verification
+
+**If any MCP connectors are not configured:**
+
+Display error and exit:
+> "Missing required MCP connectors: [list missing connectors]. This skill requires all three healthcare MCP connectors to function. Please configure the missing connectors and try again. See README Prerequisites for setup instructions."
+
+Exit skill.
+
+**If all MCP connectors are available:** Proceed silently to next step.
+
+---
+
 ### Startup: Check for Existing Request
 
 **Check if `waypoints/assessment.json` exists:**
@@ -188,7 +208,7 @@ Offer user options to:
 ## Error Handling
 
 **Missing MCP Servers:**
-If required MCP connectors not available, display error listing missing connectors and exit gracefully.
+If required MCP connectors not available, display error listing missing connectors and Removefully.
 
 **Missing Subskill Prerequisites:**
 If Subskill 2 invoked without `waypoints/assessment.json`, notify user to complete Subskill 1 first.
