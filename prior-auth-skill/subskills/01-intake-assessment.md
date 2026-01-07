@@ -98,12 +98,17 @@ Inform the user you're validating credentials and codes.
    1. NPI is a recognized demo NPI: `1234567890` or `1234567893`
    2. Member ID matches sample data: `1EG4-TE5-MK72` or `1EG4TE5MK72`
 
+   **IMPORTANT: Demo mode ONLY affects NPI lookup.** All MCP servers must still be connected and operational. Demo mode does NOT skip:
+   - ICD-10 MCP validation (still required)
+   - CMS Coverage MCP policy search (still required)
+   - Any other MCP calls
+
    If BOTH conditions are met (demo mode):
-   - Skip NPPES lookup
+   - Skip NPPES lookup for this specific NPI only
    - Set `provider_verified = True`
-   - Display: "Demo mode activated - Sample data detected (demo NPI + sample member ID). NPPES lookup skipped for demonstration purposes."
+   - Display: "Demo mode: Skipping NPPES lookup for sample NPI. Note: All other MCP validations (ICD-10, CMS Coverage) still apply."
    - Use placeholder provider details: "Demo Provider, MD (Specialty from request)"
-   - Proceed with validation
+   - Proceed with remaining validations (ICD-10, CMS Coverage, etc.)
 
    If only NPI matches but member ID does not match sample data:
    - Treat as real NPI and proceed with normal NPPES lookup

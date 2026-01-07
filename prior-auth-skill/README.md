@@ -167,9 +167,13 @@ Demo mode activates ONLY when **both** conditions are met:
 1. **Demo NPI**: `1234567890` or `1234567893`
 2. **Sample Member ID**: `1EG4-TE5-MK72` or `1EG4TE5MK72`
 
-When both conditions are met, the skill skips NPPES lookup and accepts the provider for demonstration purposes. This allows the sample data in `sample/` to complete the full workflow.
+**What demo mode does:** Skips NPPES lookup for the sample NPI only. The provider is accepted for demonstration purposes.
 
-**Safety feature:** If only the demo NPI is present without the sample member ID, the skill proceeds with normal NPPES validation. This prevents accidental demo mode activation in production if a real case happens to use one of these NPIs.
+**What demo mode does NOT do:** Demo mode does not bypass MCP requirements. All MCP servers (CMS Coverage, ICD-10, NPI) must still be connected. ICD-10 validation and CMS Coverage policy search still execute normally.
+
+**Safety features:**
+- If only the demo NPI is present without the sample member ID, normal NPPES validation proceeds
+- If MCP servers are not connected, the skill exits regardless of demo mode
 
 ---
 
