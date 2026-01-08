@@ -86,12 +86,14 @@ override_info = {
 
 ### Step 3: Generate Decision-Specific Content
 
+**Read template reference:** See [notification-letter-templates.md](notification-letter-templates.md) for available placeholders and template instructions.
+
 **Check for Template Files:**
 
-Before generating letters, check if custom templates exist in the `template/` folder.
+Before generating letters, check if custom templates exist in the `prior-auth-review-skill/assets/` folder.
 
 - If a template file is found for the decision type, read and use it as the base template
-- If no template found, generate a nicely formatted pdf.
+- If no template found, generate a nicely formatted pdf using the placeholders defined in the template reference
 
 Based on final decision, generate appropriate content in visually appealing pdf format, following the template if available.
 
@@ -196,7 +198,7 @@ Handle user choice appropriately.
 ## Output Files
 
 **Created:**
-- `waypoints/decision.json` - Final decision record (~15-25 KB)
+- `waypoints/decision.json` - Final decision record
 - `outputs/notification_letter.txt` or `.pdf` - Provider notification
 
 ---

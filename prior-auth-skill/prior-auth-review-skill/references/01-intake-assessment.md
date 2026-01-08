@@ -300,7 +300,7 @@ Inform the user you're assessing medical necessity against policy criteria.
 
 **Calculate Recommendation:**
 
-**IMPORTANT:** Read [rubric.md](../rubric.md) FIRST to understand the current decision policy, then apply those rules.
+**IMPORTANT:** Read [rubric.md](rubric.md) FIRST to understand the current decision policy, then apply those rules.
 
 **Steps:**
 1. Read rubric.md to understand decision rules
@@ -498,8 +498,8 @@ Ask if ready to proceed to Subskill 2 (Y/N):
 ## Output Files
 
 **Created:**
-- `waypoints/assessment.json` - Consolidated assessment (~45-60 KB)
-- `outputs/audit_justification.md` - Detailed medical necessity justification for audit (~10-15 KB)
+- `waypoints/assessment.json` - Consolidated assessment
+- `outputs/audit_justification.md` - Detailed medical necessity justification for audit
 
 ---
 

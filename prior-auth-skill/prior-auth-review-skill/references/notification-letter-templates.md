@@ -10,11 +10,11 @@ During Subskill 2 (Decision & Notification), the skill automatically searches th
 - **Denial letters**: Files containing "denial" or "deny" in the name
 - **Pend letters**: Files containing "pend" or "pending" in the name
 
-If a matching template is found, it will be used instead of the default built-in template.
+If a matching template is found, it will be used to generate the notification letter.
 
 ## Creating Custom Templates
 
-1. Copy `approval_template_example.txt` to create your own template
+1. Create a new template file based on the placeholders below
 2. Customize the letterhead, formatting, and content
 3. Use the placeholders below (they will be automatically replaced)
 4. Save with a descriptive name (e.g., `medicare_approval_letter.txt`)
@@ -75,12 +75,8 @@ If a matching template is found, it will be used instead of the default built-in
 
 ## Fallback Behavior
 
-If no custom template is found, the skill will use the built-in default templates which include:
-- Standard letterhead placeholder
-- Regulatory-compliant language
-- Appeal rights disclosures (denials)
-- All required elements per CMS guidelines
+If no custom template is found, the skill generates letters based on the decision type and available data.
 
 ## Sample Template Provided
 
-See `approval_template_example.txt` for a complete working example with all placeholders.
+See `Medicare_PA_Approval_Letter.pdf` in `prior-auth-review-skill/assets/` for a sample approval letter format.

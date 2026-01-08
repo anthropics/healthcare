@@ -1,6 +1,6 @@
 ---
 name: prior-auth-review-skill
-description: Automate payer review of prior authorization requests by synthesizing clinical documentation, validating medical necessity against coverage policies, and generating approval/denial determinations with supporting rationale.
+description: Automate payer review of prior authorization (PA) requests. This skill should be used when users say "Review this PA request", "Process prior authorization for [procedure]", "Assess medical necessity", "Generate PA decision", or when processing clinical documentation for coverage policy validation and authorization decisions.
 ---
 
 # Prior Authorization Review Skill
@@ -50,7 +50,7 @@ This skill requires 3 healthcare MCP connectors:
 2. **ICD-10 MCP Connector** - Diagnosis code validation and lookup
 3. **NPI MCP Connector** - Healthcare provider verification via NPPES
 
-**For detailed tool usage, parameters, and CMS web resources, see [subskills/01-intake-assessment.md](subskills/01-intake-assessment.md#prerequisites).**
+**For detailed tool usage, parameters, and CMS web resources, see [references/01-intake-assessment.md](references/01-intake-assessment.md#prerequisites).**
 
 ### MCP Invocation Notifications
 
@@ -74,7 +74,7 @@ See README.md File Organization section for complete directory structure and fil
 
 This skill enforces a **decision policy rubric** that determines the outcome when validation checks fail. The policy balances regulatory compliance, patient safety, and operational efficiency.
 
-**See [rubric.md](rubric.md) for:**
+**See [references/rubric.md](references/rubric.md) for:**
 - Complete decision policy matrix (STRICT vs LENIENT enforcement)
 - Detailed decision logic flow and pseudocode
 - Override authority rules
@@ -85,7 +85,7 @@ This skill enforces a **decision policy rubric** that determines the outcome whe
 - **LENIENT policies** → Automatic PEND (insufficient evidence, missing policy)
 - **Default fallback** → PEND (when unclear)
 
-To customize decision logic for your organization, edit [rubric.md](rubric.md).
+To customize decision logic for your organization, edit [references/rubric.md](references/rubric.md).
 
 ---
 
@@ -149,7 +149,7 @@ Exit skill.
 
 ### Subskill 1: Intake & Assessment
 
-**Execute:** Read and follow `subskills/01-intake-assessment.md`
+**Execute:** Read and follow `references/01-intake-assessment.md`
 
 **What it does:**
 1. Collect PA request information
@@ -172,7 +172,7 @@ Ready to proceed to Subskill 2? (Y/N): ___
 
 ### Subskill 2: Decision & Notification
 
-**Execute:** Read and follow `subskills/02-decision-notification.md`
+**Execute:** Read and follow `references/02-decision-notification.md`
 
 **What it does:**
 1. Load assessment from Subskill 1
@@ -234,9 +234,7 @@ Before completing workflow, verify:
 
 ---
 
-## Notes for Claude
-
-### Implementation Guidance
+## Implementation Requirements
 
 1. **Always read subskill files:** Don't execute from memory. Read the actual subskill markdown file and follow instructions.
 
@@ -318,10 +316,3 @@ Before completing workflow, verify:
 - Documents complete audit trail
 - **Output:** `waypoints/decision.json` and notification letter
 
----
-
-## Version Information
-
-**Skill Version:** 2.0 (Simplified)
-**Last Updated:** 2025-12-07
-**Architecture:** 2-Subskill Consolidated Workflow

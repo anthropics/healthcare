@@ -63,32 +63,6 @@ If any codes invalid → DENY
 If required criteria NOT_MET → DENY (only use PENDING for INSUFFICIENT)
 ```
 
-### To Make Even More Lenient (Auto-Approval Mode)
-
-For high-volume, low-risk services:
-- Allow APPROVE even if minor criteria are NOT_MET
-- Lower confidence threshold requirements
-- Skip validation for known low-risk CPT codes
-
-### Examples of Different Policies
-
-**Conservative payer (deny more):**
-- Provider not verified → DENY
-- Invalid codes → DENY
-- Criteria NOT_MET → DENY
-- Confidence <80% → PENDING
-
-**Progressive payer (approve more):**
-- Provider not verified → PENDING
-- Invalid codes → PENDING
-- Criteria NOT_MET → PENDING
-- Confidence >60% → May approve with conditions
-
-**Current default: Middle ground (lenient pending):**
-- Everything → PENDING or APPROVE
-- Never automatic DENY
-- Request more information instead of denying
-
 ---
 
 ## Override Rules
@@ -99,16 +73,3 @@ Users can override recommendations in Subskill 2:
 - APPROVE → DENY: Allowed (requires justification)
 - APPROVE → PENDING: Allowed (requires justification)
 
----
-
-## Version History
-
-**v2.0** (2025-12-16)
-- Simplified dramatically for easier customization
-- Changed default to lenient mode (PENDING instead of DENY)
-- Removed complex pseudocode
-- Made table-driven and easy to edit
-
-**v1.0** (2025-12-16)
-- Initial extraction from SKILL.md
-- Complex STRICT/LENIENT matrix
