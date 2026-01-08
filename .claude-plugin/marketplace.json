@@ -21,7 +21,7 @@
       ]
     },
     {
-      "name": "prior-auth-review",
+      "name": "prior-auth",
       "source": "./",
       "description": "Automate payer review of prior authorization requests with clinical documentation synthesis",
       "category": "healthcare",
