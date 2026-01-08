@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "cms-coverage": {
+      "type": "url",
+      "url": "https://mcp.deepsense.ai/cms_coverage/mcp"
+    },
+    "npi-registry": {
+      "type": "url",
+      "url": "https://mcp.deepsense.ai/npi_registry/mcp"
+    },
+    "pubmed": {
+      "type": "url",
+      "url": "https://pubmed.mcp.claude.com/mcp"
+    }
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "Healthcare MCP Plugins",
+  "description": "MCP server plugins for the Claude Healthcare Launch marketplace",
+  "version": "1.0.0",
+  "plugins": [
+    {
+      "id": "cms-coverage",
+      "name": "CMS Coverage MCP",
+      "description": "Medicare coverage policies including National Coverage Determinations (NCDs) and Local Coverage Determinations (LCDs). Required for prior authorization coverage policy lookup.",
+      "url": "https://mcp.deepsense.ai/cms_coverage/mcp",
+      "transport": "streamable-http",
+      "tools": [
+        "cms_search_all",
+        "cms_lcd_details",
+        "cms_search_ncds",
+        "cms_search_lcds",
+        "cms_contractors",
+        "cms_states"
+      ],
+      "usedBy": ["prior-auth-review-skill"],
+      "required": true,
+      "category": "healthcare-coverage"
+    },
+    {
+      "id": "npi-registry",
+      "name": "NPI Registry MCP",
+      "description": "Healthcare provider verification via the National Plan and Provider Enumeration System (NPPES). Required for provider credential verification in prior authorization.",
+      "url": "https://mcp.deepsense.ai/npi_registry/mcp",
+      "transport": "streamable-http",
+      "tools": [
+        "npi_lookup_provider",
+        "npi_verify_credentials"
+      ],
+      "usedBy": ["prior-auth-review-skill"],
+      "required": true,
+      "category": "healthcare-provider"
+    },
+    {
+      "id": "pubmed",
+      "name": "PubMed MCP",
+      "description": "Search and retrieve medical literature from PubMed/MEDLINE. Useful for clinical research, evidence-based medicine, and clinical trial protocol development.",
+      "url": "https://pubmed.mcp.claude.com/mcp",
+      "transport": "streamable-http",
+      "tools": [
+        "search_pubmed",
+        "get_article_details",
+        "get_citations"
+      ],
+      "usedBy": ["clinical-trial-protocol"],
+      "required": false,
+      "category": "medical-literature"
+    }
+  ],
+  "categories": {
+    "healthcare-coverage": {
+      "name": "Healthcare Coverage",
+      "description": "MCP servers for insurance coverage policies and medical necessity determination"
+    },
+    "healthcare-provider": {
+      "name": "Healthcare Provider",
+      "description": "MCP servers for provider verification and credentialing"
+    },
+    "medical-literature": {
+      "name": "Medical Literature",
+      "description": "MCP servers for medical research and publications"
+    }
+  }
+}
