@@ -21,7 +21,7 @@ description: >
 | `201 Created` | Successful create (include `Location` header) |
 | `204 No Content` | Successful delete |
 | `400 Bad Request` | Malformed JSON, wrong resourceType |
-| `401 Unauthorized` | Missing or invalid access token |
+| `401 Unauthorized` | Missing, expired, revoked, or malformed token (RFC 6750) |
 | `403 Forbidden` | Valid token but insufficient scopes |
 | `404 Not Found` | Resource doesn't exist |
 | `412 Precondition Failed` | If-Match ETag mismatch (NOT 400!) |
