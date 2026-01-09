@@ -1819,7 +1819,7 @@ Next Steps:
 ## Output Files
 
 **Created:**
-- `waypoints/04_protocol_operations.md` (Sections 8-11 only, ~2,000 lines)
+- `waypoints/04_protocol_operations.md` (Sections 8-11)
 - `waypoints/02_sample_size_calculation.json` (sample size calculation results)
 
 **Updated:**
@@ -1879,14 +1879,9 @@ Before finalizing, verify:
 - [ ] Protocol metadata updated correctly
 - [ ] Intervention metadata updated correctly
 - [ ] COMPLETE protocol now contains all 11 sections
-- [ ] Total protocol length: ~5,000 lines (appropriate for complexity)
 
 ## Notes
 
-- This subskill generates approximately 2,000-4,500 lines of protocol content
-- Simple studies: ~2,000 lines
-- Moderate complexity: ~3,000 lines
-- Complex studies with extensive assessments and statistics: ~4,000-4,500 lines
 - **Sample size calculation is interactive** - requires user input
 - Output stays within token limits by focusing on Sections 8-11 only
 - **This phase generates the final sections** - all 11 sections now generated but not yet concatenated
