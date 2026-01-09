@@ -1,12 +1,12 @@
 # Prior Authorization Review Skill
 
-Automate payer review of prior authorization requests using AI-powered clinical reasoning and coverage policy matching.
+Automate payer review of prior authorization requests using AI-powered clinical reasoning and coverage policy matching to aid the payer's determination and workflow.
 
 ---
 
 ## Overview
 
-This Claude Code skill automates the health insurance payer's prior authorization (PA) review process. It processes incoming PA requests from healthcare providers, validates medical necessity against coverage policies, and generates authorization decisions with complete documentation.
+This Claude Code skill helps automate the health insurance payer professional's prior authorization (PA) review process. It processes incoming PA requests from healthcare providers, validates medical necessity against coverage policies, and generates proposed authorization decisions with complete documentation for the professional's review and sign-off.
 
 **Target Users:** Health insurance payer organizations (Medicare Advantage, Commercial, Medicaid MCOs)
 
@@ -22,7 +22,7 @@ This Claude Code skill automates the health insurance payer's prior authorizatio
 ✅ **Automated Request Intake** - Validates provider credentials, diagnosis/procedure codes, and extracts clinical data
 ✅ **Coverage Policy Matching** - Identifies applicable LCDs/NCDs and medical policies
 ✅ **Medical Necessity Assessment** - Maps clinical evidence to policy criteria
-✅ **Decision Generation** - Generates approvals, denials, or pends with complete rationale
+✅ **Proposed Decision Generation** - Generates proposed approvals, denials, or pends with complete rationale
 ✅ **Provider Notifications** - Creates approval/denial/pend letters (supports custom templates)
 ✅ **Audit Trail** - Complete documentation of review steps and decision rationale
 ✅ **Resume Capability** - Can pause and resume at any subskill
@@ -117,7 +117,7 @@ Use the prior-auth-review-skill
    - Review assessment summary
    - Confirm to proceed to decision subskill
 
-6. **Receive final decision:**
+6. **Receive final payer decision:**
    - APPROVED: Authorization number, validity dates, provider letter
    - DENIED: Specific denial reasons, appeal rights, provider letter
    - PENDING: Documentation requests, deadline, provider letter
@@ -340,7 +340,7 @@ For detailed error messages and troubleshooting steps, refer to SKILL.md error h
 
 ## Limitations
 
-⚠️ **IMPORTANT:** This skill generates **draft recommendations only**. The payer organization remains fully responsible for all final authorization decisions.
+⚠️ **IMPORTANT:** This skill generates **draft recommendations only**. The payer organization remains fully responsible for all final authorization decisions, and appropriate professionals must review the recommended decision.
 
 **AI Decision Behavior:**
 - Default mode: APPROVE or PEND only - never automatically DENY
