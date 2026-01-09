@@ -343,8 +343,9 @@ For detailed error messages and troubleshooting steps, refer to SKILL.md error h
 ⚠️ **IMPORTANT:** This skill generates **draft recommendations only**. The payer organization remains fully responsible for all final authorization decisions, and appropriate professionals must review the recommended decision.
 
 **AI Decision Behavior:**
-- Default mode: APPROVE or PEND only - never automatically DENY
-- Users may override recommendations with documented justification
+- AI recommends APPROVE or PEND only - never recommends DENY in default mode
+- All recommendations require human confirmation before becoming final
+- Users may override any recommendation with documented justification
 - Decision logic is configurable in `prior-auth-review-skill/references/rubric.md`
 
 **Human Review Required:**
