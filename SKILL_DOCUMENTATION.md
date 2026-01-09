@@ -136,9 +136,3 @@ This Claude Code skill generates comprehensive clinical trial protocols based on
 ### Getting Started
 
 See [clinical-trial-protocol-skill/SKILL.md](clinical-trial-protocol-skill/SKILL.md) for complete installation and usage instructions.
-
----
-
-## License
-
-See LICENSE file for details.
