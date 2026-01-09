@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This subskill generates the operational, assessment, and statistical sections (8-11) of a comprehensive, FDA/NIH-compliant clinical study protocol. It adds efficacy and safety assessments, adverse event reporting, statistical analysis plan with sample size calculation, regulatory/operational considerations, and references to complete the protocol.
+This workflow step generates the operational, assessment, and statistical sections (8-11) of a comprehensive, FDA/NIH-compliant clinical study protocol. It adds efficacy and safety assessments, adverse event reporting, statistical analysis plan with sample size calculation, regulatory/operational considerations, and references to complete the protocol.
 
 ## Prerequisites
 
@@ -14,7 +14,7 @@ This subskill generates the operational, assessment, and statistical sections (8
 - `waypoints/02_protocol_metadata.json` (must show step_3_status: "completed")
 - `scripts/sample_size_calculator.py` (for sample size calculation)
 
-## What This Subskill Does
+## What This Step Does
 
 1. Verifies Step 3 completion
 2. **Performs sample size calculation** (asks user for parameters, runs calculator script)
@@ -1883,7 +1883,7 @@ Before finalizing, verify:
 
 ## Notes
 
-- This subskill generates approximately 2,000-4,500 lines of protocol content
+- This step generates approximately 2,000-4,500 lines of protocol content
 - Simple studies: ~2,000 lines
 - Moderate complexity: ~3,000 lines
 - Complex studies with extensive assessments and statistics: ~4,000-4,500 lines

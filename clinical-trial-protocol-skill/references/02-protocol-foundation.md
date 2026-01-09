@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This subskill generates a **title page** and the foundation sections (1-6) of a comprehensive, FDA/NIH-compliant clinical study protocol. It creates the protocol framework including a formal title page, compliance statements, study summary, introduction, objectives, design, and population criteria.
+This workflow step generates a **title page** and the foundation sections (1-6) of a comprehensive, FDA/NIH-compliant clinical study protocol. It creates the protocol framework including a formal title page, compliance statements, study summary, introduction, objectives, design, and population criteria.
 
 ## Prerequisites
 
@@ -11,7 +11,7 @@ This subskill generates a **title page** and the foundation sections (1-6) of a 
 - `waypoints/01_clinical_research_summary.json`
 - At least one protocol template (`.md` file) in the `template/` directory
 
-## What This Subskill Does
+## What This Step Does
 
 1. Reads intervention metadata and clinical research summary
 2. Reads NIH template and shared guidance
@@ -830,7 +830,7 @@ Before finalizing, verify:
 
 ## Notes
 
-- This subskill generates approximately 1,500 lines of protocol content
+- This step generates approximately 1,500 lines of protocol content
 - Output stays well within token limits by focusing on Sections 1-6 only
 - Phases 2b and 2c will append to this foundation to complete the protocol
 - Protocol foundation provides the structural framework; intervention details and operational content follow in subsequent phases

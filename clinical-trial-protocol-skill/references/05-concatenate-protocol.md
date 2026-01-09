@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This subskill concatenates all protocol section files (from Steps 2, 3, and 4) into a single, complete protocol markdown file. This is the final assembly step that produces the complete clinical trial protocol.
+This workflow step concatenates all protocol section files (from Steps 2, 3, and 4) into a single, complete protocol markdown file. This is the final assembly step that produces the complete clinical trial protocol.
 
 ## Prerequisites
 
@@ -13,7 +13,7 @@ This subskill concatenates all protocol section files (from Steps 2, 3, and 4) i
 - `waypoints/03_protocol_intervention.md` (Sections 7-8 from Step 3)
 - `waypoints/04_protocol_operations.md` (Sections 9-12 from Step 4)
 
-## What This Subskill Does
+## What This Step Does
 
 1. Verifies all section files exist
 2. Concatenates sections 1-12 into final protocol ]

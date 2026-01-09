@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This subskill generates the intervention-specific sections (6-7) of a comprehensive, FDA/NIH-compliant clinical study protocol. It adds detailed intervention administration, dose modifications (if applicable), preparation/handling, randomization/blinding, compliance monitoring, and discontinuation procedures to the protocol foundation.
+This workflow step generates the intervention-specific sections (6-7) of a comprehensive, FDA/NIH-compliant clinical study protocol. It adds detailed intervention administration, dose modifications (if applicable), preparation/handling, randomization/blinding, compliance monitoring, and discontinuation procedures to the protocol foundation.
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@ This subskill generates the intervention-specific sections (6-7) of a comprehens
 - `waypoints/02_protocol_foundation.md` (sections 1-5 from Step 2)
 - `waypoints/02_protocol_metadata.json` (must show step_2_status: "completed")
 
-## What This Subskill Does
+## What This Step Does
 
 1. Verifies Step 2 completion
 2. Reads protocol template (from metadata) and shared guidance
@@ -736,6 +736,6 @@ Before finalizing, verify:
 
 ## Notes
 
-- This subskill generates approximately 1,200 lines of protocol content
+- This step generates approximately 1,200 lines of protocol content
 - Output stays within token limits by focusing on Sections 6-7 only
 - Step 4 will complete the protocol by adding assessments, statistics, and operational content
