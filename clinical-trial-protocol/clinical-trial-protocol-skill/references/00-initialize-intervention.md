@@ -62,7 +62,7 @@ Do you have a custom protocol template you'd like to use for this project?
 
 If you have a template file (.md format), you can:
 - Drag and drop it into this chat now, OR
-- Type 'skip' to use the default templates in the template/ folder
+- Type 'skip' to use the default templates in the assets/ folder
 
 Your choice (drag file or type 'skip'):
 ```
@@ -74,7 +74,7 @@ Your choice (drag file or type 'skip'):
 
 **If user types 'skip' or doesn't provide:**
 1. Continue without custom template
-2. Step 2 will use templates from the `template/` directory
+2. Step 2 will use templates from the `assets/` directory
 
 ### Step 2.6: Optional Discovery Questions (ONLY if needed for clarity)
 

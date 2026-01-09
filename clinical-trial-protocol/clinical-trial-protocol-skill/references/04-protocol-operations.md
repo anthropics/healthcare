@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This subskill generates the operational, assessment, and statistical sections (8-11) of a comprehensive, FDA/NIH-compliant clinical study protocol. It adds efficacy and safety assessments, adverse event reporting, statistical analysis plan with sample size calculation, regulatory/operational considerations, and references to complete the protocol.
+This subskill generates the operational, assessment, and statistical sections (8-11) of a clinical study protocol. It adds efficacy and safety assessments, adverse event reporting, statistical analysis plan with sample size calculation, regulatory/operational considerations, and references to complete the protocol.
 
 ## Prerequisites
 
@@ -218,7 +218,7 @@ If script fails:
 
 1. Read `waypoints/intervention_metadata.json` to get the `protocol_template` and `template_source` field values
 2. **Read the protocol template file:**
-   - The path is stored in `protocol_template` field (could be `template/[name].md` OR a user-provided path)
+   - The path is stored in `protocol_template` field (could be `assets/[name].md` OR a user-provided path)
    - Read the file at that path (focus on Sections 8-11)
    - Note: The `template_source` field indicates whether this is `"directory"` or `"user_provided"` (for logging/debugging only)
 3. Read `waypoints/02_protocol_foundation.md` and `waypoints/03_protocol_intervention.md` to understand existing context (especially study design, endpoints, population, and Schedule of Activities)

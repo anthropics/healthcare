@@ -1,19 +1,18 @@
 # Clinical Trial Protocol
 
-Generate comprehensive, FDA/NIH-compliant clinical trial protocols for medical devices or drugs (phase 2 or 3). Modular waypoint-based architecture with interactive sample size calculation and research-driven recommendations.
+Generate clinical trial protocols for medical devices or drugs (phase 2 or 3). Modular waypoint-based architecture with interactive sample size calculation and research-driven recommendations.
 
 ## Key Features
 
-- ✅ **Device & Drug Support** - Handles both medical devices (IDE) and drugs (IND) with appropriate regulatory terminology
-- ✅ **Token-Efficient** - Modular protocol development (Steps 2, 3, 4) to stay within output token limits
-- ✅ **Resume from Any Step** - Interrupted workflows can continue from Step 0, 1, 2, 3, 4, or 5
-- ✅ **Sample Size Calculation** - Interactive statistical power analysis (continuous/binary endpoints)
-- ✅ **Research-Driven** - Leverages ClinicalTrials.gov and FDA guidance documents
-- ✅ **Comprehensive Output** - 5,000 protocols in markdown with all 12 NIH sections
+- **Device & Drug Support** - Handles both medical devices (IDE) and drugs (IND) with appropriate regulatory terminology
+- **Token-Efficient** - Modular protocol development (Steps 2, 3, 4) to stay within output token limits
+- **Resume from Any Step** - Interrupted workflows can continue from any step
+- **Sample Size Calculation** - Interactive statistical power analysis (continuous/binary endpoints)
+- **Research-Driven** - Leverages ClinicalTrials.gov and FDA guidance documents
 
 ## Configuration
-- Add your own custom templates to the /template folder, the skill will use the NIH/FDA compliant template as default.
-- Replace sample size calculator script in /scripts if needed, using a standard one by default.
+- Add your own custom templates to the `clinical-trial-protocol-skill/assets/` folder
+- Replace sample size calculator script in `clinical-trial-protocol-skill/scripts/` if needed
 
 ## Prerequisites
 
@@ -25,7 +24,7 @@ Generate comprehensive, FDA/NIH-compliant clinical trial protocols for medical d
 
 ```bash
 # In Claude Desktop, invoke the skill:
-Use the clinical-trial-protocol
+Use the clinical-trial-protocol-skill
 ```
 
 **Select Option 1** for full workflow (or resume from saved progress):
@@ -49,48 +48,54 @@ Use the clinical-trial-protocol
 
 **Step 2: Protocol Foundation** (Sections 1-6)
 - Compliance, Summary, Introduction, Objectives, Design, Population
-- Saves `02_protocol_foundation.md` (~1,500-3,000 lines)
+- Saves `02_protocol_foundation.md`
 
 **Step 3: Protocol Intervention** (Sections 7-8)
 - Administration, Dose Modifications, Discontinuation
-- Saves `03_protocol_intervention.md` (~1,200-4,200 lines)
+- Saves `03_protocol_intervention.md`
 
 **Step 4: Protocol Operations** (Sections 9-12)
 - Assessments, Statistics (with sample size calc), Regulatory, References
-- Saves `04_protocol_operations.md` (~2,000-4,500 lines)
+- Saves `04_protocol_operations.md`
 - Saves `02_sample_size_calculation.json`
 
 **Step 5: Concatenate Final Protocol**
 - Combines all section files (Steps 2, 3, 4) into single document
-- Creates `protocol_complete.md` (complete protocol, ~5,000-15,000 lines)
+- Creates `protocol_complete.md`
 - Preserves individual section files for easy regeneration
 
 ## File Structure
 
 ```
-clinical-trial-protocol/
-├── SKILL.md                          # Main orchestrator [START HERE]
-├── requirements.txt                  # Python dependencies
-├── scripts/
-│   └── sample_size_calculator.py     # Statistical power analysis
-├── template/
-│   └── *.md                          # Protocol templates (dynamically detected)
-├── subskills/                        # Step implementations
-│   ├── 00-initialize-intervention.md # Step 0
-│   ├── 01-research-protocols.md      # Step 1
-│   ├── 02-protocol-foundation.md     # Step 2: Sections 1-6
-│   ├── 03-protocol-intervention.md   # Step 3: Sections 7-8
-│   ├── 04-protocol-operations.md     # Step 4: Sections 9-12 + sample size calc
-│   └── 05-concatenate-protocol.md    # Step 5: Final concatenation
-└── waypoints/                        # Generated data
-    ├── intervention_metadata.json
-    ├── 01_clinical_research_summary.json
-    ├── 02_protocol_foundation.md     # Sections 1-6 (Step 2 output)
-    ├── 03_protocol_intervention.md   # Sections 7-8 (Step 3 output)
-    ├── 04_protocol_operations.md     # Sections 9-12 (Step 4 output)
-    ├── protocol_complete.md          # Complete protocol (Step 5 output)
-    ├── 02_protocol_metadata.json
-    └── 02_sample_size_calculation.json
+clinical-trial-protocol/                 # Repository root
+├── README.md                            # This file (practitioner documentation)
+├── requirements.txt                     # Python dependencies
+├── samples/                             # Sample protocol PDFs
+│   ├── sample_device.pdf
+│   └── sample_drug.pdf
+└── clinical-trial-protocol-skill/       # Skill package
+    ├── SKILL.md                         # Main orchestrator [START HERE]
+    ├── scripts/
+    │   └── sample_size_calculator.py    # Statistical power analysis
+    ├── assets/
+    │   └── FDA-Clinical-Protocol-Template.md
+    └── references/                      # Step implementations
+        ├── 00-initialize-intervention.md
+        ├── 01-research-protocols.md
+        ├── 02-protocol-foundation.md
+        ├── 03-protocol-intervention.md
+        ├── 04-protocol-operations.md
+        └── 05-concatenate-protocol.md
+
+waypoints/                               # Generated at runtime
+├── intervention_metadata.json
+├── 01_clinical_research_summary.json
+├── 02_protocol_foundation.md
+├── 03_protocol_intervention.md
+├── 04_protocol_operations.md
+├── protocol_complete.md
+├── 02_protocol_metadata.json
+└── 02_sample_size_calculation.json
 ```
 
 ## Key Resources

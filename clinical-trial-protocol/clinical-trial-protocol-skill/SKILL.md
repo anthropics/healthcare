@@ -1,26 +1,9 @@
 ---
-name: clinical-trial-protocol
-description: Generate comprehensive FDA/NIH-compliant clinical trial protocols for medical devices or drugs. Guides through intervention setup, clinical research, protocol development, and document generation using a waypoint-based architecture.
+name: clinical-trial-protocol-skill
+description: Generate clinical trial protocols for medical devices or drugs. This skill should be used when users say "Create a clinical trial protocol", "Generate protocol for [device/drug]", "Help me design a clinical study", "Research similar trials for [intervention]", or when developing FDA submission documentation for investigational products.
 ---
 
-## SYSTEM PROMPT: FDA REGULATORY CONSULTANT
-
-You are an expert FDA regulatory consultant with deep knowledge of U.S. Food and Drug Administration regulations, guidance documents, and industry best practices. Your role is to provide accurate, current, and actionable regulatory advice to help clients navigate FDA requirements successfully.
-
-**CORE COMPETENCIES:**
-- FDA regulations across all product categories (drugs, biologics, medical devices, food, cosmetics, tobacco)
-- Regulatory pathways (510(k), PMA, IND, NDA, BLA, etc.)
-- Clinical trial regulations (GCP, ICH guidelines)
-- Quality systems (GMP, QSR, ISO standards)
-- FDA inspection preparedness and response
-- Regulatory strategy development
-- Submission preparation and review processes
-
-**TONE:** Professional, authoritative, and solution-oriented.
-
----
-
-# Clinical Trial Protocol Skill (Orchestrator)
+# Clinical Trial Protocol Skill
 
 ## ⚠️ EXECUTION CONTROL - READ THIS FIRST
 
@@ -38,7 +21,7 @@ You are an expert FDA regulatory consultant with deep knowledge of U.S. Food and
 
 ## Overview
 
-This skill generates comprehensive, FDA/NIH-compliant clinical trial protocols for **medical devices or drugs** using a **modular, waypoint-based architecture** 
+This skill generates clinical trial protocols for **medical devices or drugs** using a **modular, waypoint-based architecture** 
 
 ## What This Skill Does
 
@@ -80,10 +63,10 @@ Users can provide substantial documentation, technical specifications, or resear
 
 ### Modular Subskill Steps
 
-Each step is an independent skill in `subskills/` directory:
+Each step is an independent skill in `references/` directory:
 
 ```
-subskills/
+references/
 ├── 00-initialize-intervention.md    # Collect device or drug information
 ├── 01-research-protocols.md         # Clinical trials research and FDA guidance
 ├── 02-protocol-foundation.md        # Protocol sections 1-6 (foundation, design, population)
@@ -133,7 +116,7 @@ max_results - Default 25, max 100
 
 ### 3. Clinical Protocol Template
 
-**Template Files:** Any `.md` files in the `template/` directory
+**Template Files:** Any `.md` files in the `assets/` directory
 
 **Purpose:** Reference template for protocol structure and content guidance. The system automatically detects available templates and uses them dynamically.
 
@@ -177,7 +160,7 @@ When skill is invoked, display the following message:
 ```
 🧬 CLINICAL TRIAL PROTOCOL
 
-Welcome! This skill generates comprehensive, FDA/NIH-compliant clinical trial protocols for medical devices or drugs.
+Welcome! This skill generates clinical trial protocols for medical devices or drugs.
 
 [If waypoints/intervention_metadata.json exists:]
 ✓ Found existing protocol in progress: [Intervention Name]
@@ -196,7 +179,7 @@ Welcome! This skill generates comprehensive, FDA/NIH-compliant clinical trial pr
 2. 📄 Full Protocol - Generate complete clinical trial protocol (Steps 0-5)
    • Everything in Research Only, plus:
    • Generate all protocol sections
-   • Create professional NIH-compliant protocol document
+   • Create professional protocol document
 
 3. ❌ Exit
 
@@ -232,8 +215,8 @@ For each step (0, 1):
    - Display "✓ Step [X] complete"
    - **Step execution method (ON-DEMAND LOADING):** When a step is ready to execute (NOT before), read the subskill markdown file and execute ALL instructions within it
    - **Step-to-file mapping:**
-     - Step 0: `subskills/00-initialize-intervention.md` (collect intervention info)
-     - Step 1: `subskills/01-research-protocols.md` (clinical research and FDA guidance)
+     - Step 0: `references/00-initialize-intervention.md` (collect intervention info)
+     - Step 1: `references/01-research-protocols.md` (clinical research and FDA guidance)
 
 3. **Handle errors:** If step fails, ask user to retry or exit. Save current state for resume capability.
 
@@ -333,12 +316,12 @@ For each step (0, 1, 2, 3, 4, 5):
    - **Step execution method (ON-DEMAND LOADING):** When a step is ready to execute (NOT before), read the subskill markdown file and execute ALL instructions within it
    - **IMPORTANT:** Do NOT read subskill files in advance. Only read them at the moment of execution.
    - **Step-to-file mapping:**
-     - Step 0: `subskills/00-initialize-intervention.md` (read when Step 0 executes)
-     - Step 1: `subskills/01-research-protocols.md` (read when Step 1 executes)
-     - Step 2: `subskills/02-protocol-foundation.md` (read when Step 2 executes - sections 1-6)
-     - Step 3: `subskills/03-protocol-intervention.md` (read when Step 3 executes - sections 7-8)
-     - Step 4: `subskills/04-protocol-operations.md` (read when Step 4 executes - sections 9-12)
-     - Step 5: `subskills/05-concatenate-protocol.md` (read when Step 5 executes - final concatenation)
+     - Step 0: `references/00-initialize-intervention.md` (read when Step 0 executes)
+     - Step 1: `references/01-research-protocols.md` (read when Step 1 executes)
+     - Step 2: `references/02-protocol-foundation.md` (read when Step 2 executes - sections 1-6)
+     - Step 3: `references/03-protocol-intervention.md` (read when Step 3 executes - sections 7-8)
+     - Step 4: `references/04-protocol-operations.md` (read when Step 4 executes - sections 9-12)
+     - Step 5: `references/05-concatenate-protocol.md` (read when Step 5 executes - final concatenation)
 
 3. **Handle errors:** If step fails, ask user to retry or exit. Save current state for resume capability.
 
@@ -376,7 +359,7 @@ File size: [Size in KB]
 Pause, let user open the section files, wait for further instruction
 
 **Option 2 Logic (Concatenate Protocol):**
-1. Execute Step 5 by reading and following `subskills/05-concatenate-protocol.md`
+1. Execute Step 5 by reading and following `references/05-concatenate-protocol.md`
 2. Step 5 will concatenate all section files into final protocol document
 3. Continue to Step 3 (Final Summary) after Step 5 completes
 
@@ -496,7 +479,7 @@ When this skill is invoked:
 4. **For each step execution (LAZY LOADING - On-Demand Only):**
    - **ONLY when a step is ready to execute**, read the corresponding subskill file
    - Do NOT read subskill files in advance or "to prepare"
-   - Example: When Step 1 needs to run, THEN read `subskills/01-research-protocols.md` and follow its instructions
+   - Example: When Step 1 needs to run, THEN read `references/01-research-protocols.md` and follow its instructions
    - **For protocol development:** Execute Steps 2, 3, 4 sequentially in order
    - Do NOT try to execute multiple steps in parallel - run sequentially
    - Read each step's subskill file only when that specific step is about to execute

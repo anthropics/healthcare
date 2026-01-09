@@ -2,14 +2,14 @@
 
 ## Purpose
 
-This subskill generates a **title page** and the foundation sections (1-6) of a comprehensive, FDA/NIH-compliant clinical study protocol. It creates the protocol framework including a formal title page, compliance statements, study summary, introduction, objectives, design, and population criteria.
+This subskill generates a **title page** and the foundation sections (1-6) of a clinical study protocol. It creates the protocol framework including a formal title page, compliance statements, study summary, introduction, objectives, design, and population criteria.
 
 ## Prerequisites
 
 **Required Files:**
 - `waypoints/intervention_metadata.json`
 - `waypoints/01_clinical_research_summary.json`
-- At least one protocol template (`.md` file) in the `template/` directory
+- At least one protocol template (`.md` file) in the `assets/` directory
 
 ## What This Subskill Does
 
@@ -42,20 +42,20 @@ Read all required files:
    - Display: "✓ Using custom template: [file_name]"
    - **Skip to Step 3**
 
-**PRIORITY 2: Check template/ directory**
+**PRIORITY 2: Check assets/ directory**
 
-3. List all `.md` files in the `template/` directory
+3. List all `.md` files in the `assets/` directory
 4. **If exactly one template found:** Use it automatically
-   - Store: `"protocol_template": "template/[name].md"`, `"template_source": "directory"`
+   - Store: `"protocol_template": "assets/[name].md"`, `"template_source": "directory"`
 5. **If multiple templates found:** Present list to user
    - Ask: "Multiple templates found. Please select: [list templates with numbers]"
-   - Store selected: `"protocol_template": "template/[selected].md"`, `"template_source": "directory"`
+   - Store selected: `"protocol_template": "assets/[selected].md"`, `"template_source": "directory"`
 6. **If no templates found AND no user-provided template:** Display error and exit
 
 **Store the template selection in `waypoints/intervention_metadata.json`:**
 ```json
 {
-  "protocol_template": "template/[name].md" or "[user-provided-path]",
+  "protocol_template": "assets/[name].md" or "[user-provided-path]",
   "template_source": "directory" or "user_provided"
 }
 ```

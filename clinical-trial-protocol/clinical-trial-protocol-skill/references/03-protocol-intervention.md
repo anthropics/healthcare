@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This subskill generates the intervention-specific sections (6-7) of a comprehensive, FDA/NIH-compliant clinical study protocol. It adds detailed intervention administration, dose modifications (if applicable), preparation/handling, randomization/blinding, compliance monitoring, and discontinuation procedures to the protocol foundation.
+This subskill generates the intervention-specific sections (6-7) of a clinical study protocol. It adds detailed intervention administration, dose modifications (if applicable), preparation/handling, randomization/blinding, compliance monitoring, and discontinuation procedures to the protocol foundation.
 
 ## Prerequisites
 
@@ -43,7 +43,7 @@ Exit.
 
 1. Read `waypoints/intervention_metadata.json` to get the `protocol_template` and `template_source` field values
 2. **Read the protocol template file:**
-   - The path is stored in `protocol_template` field (could be `template/[name].md` OR a user-provided path)
+   - The path is stored in `protocol_template` field (could be `assets/[name].md` OR a user-provided path)
    - Read the file at that path (focus on Sections 6-7)
    - Note: The `template_source` field indicates whether this is `"directory"` or `"user_provided"` (for logging/debugging only)
 3. Read `waypoints/02_protocol_foundation.md` to understand existing context (especially study design, endpoints, and population from Sections 1-5)
