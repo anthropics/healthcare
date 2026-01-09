@@ -457,7 +457,7 @@ Each subskill is designed to:
 Clinical trial protocols are complex, high-stakes documents requiring expertise across multiple disciplines. Professional consultation with clinical trial experts, biostatisticians, and regulatory affairs specialists is essential before proceeding with clinical study planning.
 
 
-## Implementation Notes for Claude
+## Implementation Requirements
 
 When this skill is invoked:
 
