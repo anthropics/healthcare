@@ -3,6 +3,12 @@ name: Claude Skill Review
 on:
   pull_request:
     types: [opened, synchronize, ready_for_review, reopened]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to review'
+        required: true
+        type: number
 
 jobs:
   detect-skills:
@@ -10,17 +16,36 @@ jobs:
     outputs:
       skills: ${{ steps.detect.outputs.skills }}
       has_skills: ${{ steps.detect.outputs.has_skills }}
+      pr_number: ${{ steps.pr-info.outputs.pr_number }}
+      base_ref: ${{ steps.pr-info.outputs.base_ref }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      - name: Get PR info
+        id: pr-info
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "pr_number=${{ inputs.pr_number }}" >> $GITHUB_OUTPUT
+            echo "base_ref=main" >> $GITHUB_OUTPUT
+          else
+            echo "pr_number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+            echo "base_ref=${{ github.base_ref }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout PR branch
+        if: github.event_name == 'workflow_dispatch'
+        run: gh pr checkout ${{ inputs.pr_number }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       - name: Detect skill changes
         id: detect
         run: |
           # Get changed files in this PR
-          changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          changed_files=$(git diff --name-only origin/${{ steps.pr-info.outputs.base_ref }}...HEAD)
 
           # Find all skill directories (directories containing SKILL.md)
           skill_dirs=$(find . -name "SKILL.md" -type f | xargs -I {} dirname {} | sed 's|^\./||')
@@ -68,10 +93,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Checkout PR branch
+        if: github.event_name == 'workflow_dispatch'
+        run: gh pr checkout ${{ needs.detect-skills.outputs.pr_number }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       - name: Get changed files for this skill
         id: skill-files
         run: |
-          changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep "^${{ matrix.skill }}" || true)
+          changed_files=$(git diff --name-only origin/${{ needs.detect-skills.outputs.base_ref }}...HEAD | grep "^${{ matrix.skill }}" || true)
           echo "files<<EOF" >> $GITHUB_OUTPUT
           echo "$changed_files" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -83,7 +114,7 @@ jobs:
           plugin_marketplaces: 'https://github.com/anthropics/agent-skills.git'
           plugins: 'skill-creator@anthropic-agent-skills'
           prompt: |
-            Review the changes to the **${{ matrix.skill }}** skill in PR ${{ github.repository }}/pull/${{ github.event.pull_request.number }}.
+            Review the changes to the **${{ matrix.skill }}** skill in PR ${{ github.repository }}/pull/${{ needs.detect-skills.outputs.pr_number }}.
 
             Changed files in this skill:
             ${{ steps.skill-files.outputs.files }}
