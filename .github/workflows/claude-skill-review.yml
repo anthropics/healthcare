@@ -82,7 +82,7 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           plugin_marketplaces: 'https://github.com/anthropics/skills.git'
           plugins: 'example-skills@anthropic-agent-skills'
-          claude_args: '--allowedTools "Bash(gh pr comment:*),Read,Glob,Grep"'
+          claude_args: '--allowedTools "Bash(gh pr comment:*),Bash(git:*),Read,Glob,Grep"'
           prompt: |
             /skill-creator
 
@@ -91,13 +91,8 @@ jobs:
             Changed files in this skill:
             ${{ steps.skill-files.outputs.files }}
 
-            Use the skill-creator guidelines you just loaded to evaluate this skill.
+            Use `git diff origin/${{ github.base_ref }}` to see what changed. Read the SKILL.md to get the skill title and understand the skill's purpose.
 
-            Structure your review in two sections:
+            If this is a new skill, provide a full review. If it's changes to an existing skill, focus on the specific changes. Evaluate against skill-creator best practices.
 
-            **Skill Review**: Evaluate the skill as a whole against skill-creator best practices.
-
-            **PR-Specific Feedback**: Call out any issues that are specifically introduced or addressed by the changes in this PR.
-
-            When done, post your review as a PR comment using:
-            gh pr comment ${{ github.event.pull_request.number }} --body "YOUR_REVIEW_HERE"
+            Post your feedback as a comment using `gh pr comment`. Use the skill title in the header. Keep feedback concise and actionable - blocking issues first, then suggestions.
