@@ -1,0 +1,68 @@
+name: Claude Skill Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+    paths:
+      - '**/SKILL.md'
+      - '**/skills/**'
+      - '**/.claude-plugin/**'
+
+jobs:
+  skill-review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Claude Skill Review
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          plugin_marketplaces: 'https://github.com/anthropics/agent-skills.git'
+          plugins: 'skill-creator@anthropic-agent-skills'
+          prompt: |
+            Review the skill changes in PR ${{ github.repository }}/pull/${{ github.event.pull_request.number }} using the skill-creator guidelines.
+
+            Focus your review on these key areas:
+
+            **1. Frontmatter Quality**
+            - Does SKILL.md have proper YAML frontmatter with `name` and `description` fields?
+            - Is the `description` comprehensive enough to trigger the skill appropriately?
+            - Does description include both what the skill does AND when to use it?
+
+            **2. Conciseness (Context Window is a Public Good)**
+            - Is the SKILL.md under 500 lines?
+            - Does it only include information Claude doesn't already know?
+            - Are examples used instead of verbose explanations where appropriate?
+
+            **3. Progressive Disclosure**
+            - Is content split appropriately between SKILL.md and references/?
+            - Are reference files properly linked and described in SKILL.md?
+            - Is detailed/variant-specific content moved to reference files?
+
+            **4. Degrees of Freedom**
+            - Is specificity matched to task fragility?
+            - Are scripts used for fragile/deterministic operations?
+            - Is appropriate flexibility given for context-dependent decisions?
+
+            **5. Resource Organization**
+            - Are scripts/ for executable code that needs deterministic reliability?
+            - Are references/ for documentation loaded as-needed?
+            - Are assets/ for output resources (templates, images)?
+            - No extraneous files (README.md, CHANGELOG.md, etc.)?
+
+            **6. Quality Standards**
+            - Uses imperative/infinitive form in instructions?
+            - No deeply nested references (keep one level deep)?
+            - Large reference files (>100 lines) have table of contents?
+
+            Provide specific, actionable feedback for any issues found. Be constructive and explain why each suggestion improves the skill.
