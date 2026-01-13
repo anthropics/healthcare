@@ -250,7 +250,7 @@ Offer user options to:
 ## Error Handling
 
 **Missing MCP Servers:**
-If required MCP connectors not available, display error listing missing connectors and Removefully.
+If required MCP connectors not available, display error listing missing connectors and exit gracefully.
 
 **Missing Subskill Prerequisites:**
 If Subskill 2 invoked without `waypoints/assessment.json`, notify user to complete Subskill 1 first.
