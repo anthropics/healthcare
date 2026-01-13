@@ -3,6 +3,10 @@ name: Claude Skill Review
 on:
   pull_request:
     types: [opened, synchronize, ready_for_review, reopened]
+  workflow_call:
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN:
+        required: true
 
 jobs:
   detect-skills:
