@@ -98,7 +98,7 @@ jobs:
             - Are appropriate additions/modifications
             - Have any issues that should be addressed
 
-            Post ONLY the PR-specific feedback as a comment (not the full skill review). Keep it concise and actionable.
+            Post ONLY the PR-specific feedback as a comment (not the full skill review). Keep it concise and actionable. Prioritize feedback by importance - list blocking issues first, then suggestions.
 
             gh pr comment ${{ github.event.pull_request.number }} --body "## Skill Review: ${{ matrix.skill }}
 
