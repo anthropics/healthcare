@@ -293,3 +293,4 @@ python scripts/setup_fhir_project.py my_fhir_api
 ```
 
 Creates a FastAPI project with correct models, OperationOutcome helpers, and Patient CRUD endpoints.
+# Test trigger Tue Jan 13 08:43:25 PM UTC 2026
