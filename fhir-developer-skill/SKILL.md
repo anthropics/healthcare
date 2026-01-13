@@ -26,6 +26,7 @@ description: >
 | `404 Not Found` | Resource doesn't exist |
 | `412 Precondition Failed` | If-Match ETag mismatch (NOT 400!) |
 | `422 Unprocessable Entity` | Missing required fields, invalid enum values, business rule violations |
+| `429 Too Many Requests` | Rate limit exceeded (include `Retry-After` header) |
 
 ### Required Fields by Resource (FHIR R4)
 | Resource | Required Fields | Everything Else |

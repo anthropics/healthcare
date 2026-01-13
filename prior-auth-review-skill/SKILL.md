@@ -11,7 +11,7 @@ This skill automates the payer review process for prior authorization (PA) reque
 
 **Target Users:** Health insurance payer organizations (Medicare Advantage, Commercial, Medicaid MCOs)
 
-**Value Proposition:** Reduce PA review time from 30-60 minutes to under 5 minutes. Enable auto-approval for 40-60% of clear-cut cases.
+**Value Proposition:** Reduce PA review time from 30-60 minutes to under 5 minutes. Enable auto-approval for 40-60% of clear-cut cases. Supports both commercial and government payer workflows.
 
 ---
 
