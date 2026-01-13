@@ -3,8 +3,6 @@ name: Claude Skill Review
 on:
   pull_request:
     types: [opened, synchronize, ready_for_review, reopened]
-    paths:
-      - '**/SKILL.md'
 
 jobs:
   skill-review:
@@ -21,7 +19,45 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Detect skill changes
+        id: detect-skills
+        run: |
+          # Get changed files in this PR
+          changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+
+          # Find all skill directories (directories containing SKILL.md)
+          skill_dirs=$(find . -name "SKILL.md" -type f | xargs -I {} dirname {} | sed 's|^\./||')
+
+          # Find changed files that are inside skill directories
+          skill_changes=""
+          affected_skills=""
+
+          for file in $changed_files; do
+            for skill_dir in $skill_dirs; do
+              if [[ "$file" == "$skill_dir"* ]]; then
+                skill_changes="$skill_changes$file"$'\n'
+                if [[ ! "$affected_skills" == *"$skill_dir"* ]]; then
+                  affected_skills="$affected_skills$skill_dir"$'\n'
+                fi
+              fi
+            done
+          done
+
+          # Output results
+          if [ -n "$skill_changes" ]; then
+            echo "has_skill_changes=true" >> $GITHUB_OUTPUT
+            echo "affected_skills<<EOF" >> $GITHUB_OUTPUT
+            echo "$affected_skills" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            echo "changed_files<<EOF" >> $GITHUB_OUTPUT
+            echo "$skill_changes" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "has_skill_changes=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Run Claude Skill Review
+        if: steps.detect-skills.outputs.has_skill_changes == 'true'
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -30,10 +66,16 @@ jobs:
           prompt: |
             Review the skill changes in PR ${{ github.repository }}/pull/${{ github.event.pull_request.number }}.
 
-            Use the skill-creator skill guidelines to evaluate each skill. For each SKILL.md changed, review the full skill directory (scripts/, references/, assets/) against the skill-creator best practices.
+            Affected skills:
+            ${{ steps.detect-skills.outputs.affected_skills }}
+
+            Changed files:
+            ${{ steps.detect-skills.outputs.changed_files }}
+
+            Use the skill-creator skill guidelines to evaluate these changes. Review all changed files against skill-creator best practices.
 
             Structure your review in two sections:
 
-            **Changes in this PR**: Feedback on the specific lines/content added or modified in this PR. This is the primary focus.
+            **Changes in this PR**: Feedback on the specific changes in this PR. This is the primary focus.
 
             **Pre-existing issues** (optional): If you notice issues with the skill that existed before this PR, briefly note them here. Keep this section short - the author isn't responsible for fixing everything.
