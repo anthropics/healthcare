@@ -24,6 +24,7 @@ description: >
 | `401 Unauthorized` | Missing, expired, revoked, or malformed token (RFC 6750) |
 | `403 Forbidden` | Valid token but insufficient scopes |
 | `404 Not Found` | Resource doesn't exist |
+| `409 Conflict` | Version conflict during concurrent updates |
 | `412 Precondition Failed` | If-Match ETag mismatch (NOT 400!) |
 | `422 Unprocessable Entity` | Missing required fields, invalid enum values, business rule violations |
 
