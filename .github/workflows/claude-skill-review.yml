@@ -5,7 +5,6 @@ on:
     types: [opened, synchronize, ready_for_review, reopened]
     paths:
       - '**/SKILL.md'
-      - '**/*-skill/**'
 
 jobs:
   skill-review:
@@ -30,6 +29,8 @@ jobs:
           plugins: 'skill-creator@anthropic-agent-skills'
           prompt: |
             Review the skill changes in PR ${{ github.repository }}/pull/${{ github.event.pull_request.number }} using the skill-creator guidelines.
+
+            For each SKILL.md changed, also review the full skill directory (scripts/, references/, assets/) to ensure everything is properly organized and referenced.
 
             Focus your review on these key areas:
 
