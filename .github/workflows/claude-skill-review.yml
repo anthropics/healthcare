@@ -32,4 +32,8 @@ jobs:
 
             Use the skill-creator skill guidelines to evaluate each skill. For each SKILL.md changed, review the full skill directory (scripts/, references/, assets/) against the skill-creator best practices.
 
-            Provide specific, actionable feedback for any issues found.
+            Structure your review in two sections:
+
+            **Changes in this PR**: Feedback on the specific lines/content added or modified in this PR. This is the primary focus.
+
+            **Pre-existing issues** (optional): If you notice issues with the skill that existed before this PR, briefly note them here. Keep this section short - the author isn't responsible for fixing everything.
