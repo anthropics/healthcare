@@ -80,18 +80,30 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          plugin_marketplaces: 'https://github.com/anthropics/agent-skills.git'
-          plugins: 'skill-creator@anthropic-agent-skills'
           prompt: |
             Review the changes to the **${{ matrix.skill }}** skill in PR ${{ github.repository }}/pull/${{ github.event.pull_request.number }}.
 
             Changed files in this skill:
             ${{ steps.skill-files.outputs.files }}
 
-            Use the skill-creator skill guidelines to evaluate this skill.
+            Evaluate this skill against these best practices:
+
+            **Frontmatter**: SKILL.md must have YAML frontmatter with `name` and `description`. Description should explain what the skill does AND when to use it.
+
+            **Conciseness**: Context window is a public good. Only include info Claude doesn't already know. Prefer examples over verbose explanations. Keep SKILL.md under 500 lines.
+
+            **Progressive Disclosure**: Split content between SKILL.md (essentials) and references/ (details). Reference files should be linked from SKILL.md with clear guidance on when to read them.
+
+            **Resource Organization**:
+            - scripts/: Executable code for deterministic/repeated operations
+            - references/: Documentation loaded as-needed
+            - assets/: Output resources (templates, images)
+            - No extraneous files (README.md, CHANGELOG.md, etc.)
+
+            **Degrees of Freedom**: Match specificity to task fragility. Use scripts for fragile operations, text instructions for flexible decisions.
 
             Structure your review in two sections:
 
-            **Skill Review**: Evaluate the skill as a whole against skill-creator best practices.
+            **Skill Review**: Evaluate the skill as a whole against the above best practices.
 
-            **PR-Specific Feedback**: Call out any issues that are specifically introduced or addressed by the changes in this PR.
+            **PR-Specific Feedback**: Call out any issues specifically introduced or addressed by the changes in this PR.
