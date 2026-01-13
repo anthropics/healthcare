@@ -29,7 +29,7 @@ jobs:
           affected_skills=()
           for skill_dir in $skill_dirs; do
             for file in $changed_files; do
-              if [[ "$file" == "$skill_dir"* ]]; then
+              if [[ "$file" == "$skill_dir/"* ]] || [[ "$file" == "$skill_dir" ]]; then
                 affected_skills+=("$skill_dir")
                 break
               fi
@@ -58,7 +58,7 @@ jobs:
       fail-fast: false
     permissions:
       contents: read
-      pull-requests: read
+      pull-requests: write
       issues: read
       id-token: write
 
@@ -71,7 +71,7 @@ jobs:
       - name: Get changed files for this skill
         id: skill-files
         run: |
-          changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep "^${{ matrix.skill }}" || true)
+          changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -F "${{ matrix.skill }}/" || true)
           echo "files<<EOF" >> $GITHUB_OUTPUT
           echo "$changed_files" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
