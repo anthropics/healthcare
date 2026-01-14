@@ -175,6 +175,9 @@ class Patient(BaseModel):
 | `8462-4` | Diastolic blood pressure |
 | `8310-5` | Body temperature |
 | `2708-6` | Oxygen saturation (SpO2) |
+| `9279-1` | Respiratory rate |
+| `29463-7` | Body weight |
+| `8302-2` | Body height |
 
 ---
 
