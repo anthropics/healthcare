@@ -72,31 +72,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get changed files for this skill
-        id: skill-files
-        run: |
-          changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -F "${{ matrix.skill }}/" || true)
-          echo "files<<EOF" >> $GITHUB_OUTPUT
-          echo "$changed_files" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
       - name: Run Claude Skill Review
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           plugin_marketplaces: 'https://github.com/anthropics/skills.git'
           plugins: 'example-skills@anthropic-agent-skills'
-          claude_args: '--allowedTools "Bash(gh pr comment:*),Bash(git:*),Read,Glob,Grep"'
+          claude_args: '--allowedTools "Bash(gh pr comment:*),Bash(git:*),Read,Glob,Grep,Skill"'
           prompt: |
-            /skill-creator
+            Use the skill-creator skill to review the **${{ matrix.skill }}** skill in PR #${{ github.event.pull_request.number }}.
 
-            Review the changes to the **${{ matrix.skill }}** skill in PR #${{ github.event.pull_request.number }}.
+            Use `git diff origin/${{ github.base_ref }} -- ${{ matrix.skill }}/` to see what changed. If this is a new skill, provide a full review. If it's changes to an existing skill, focus on the changes.
 
-            Changed files in this skill:
-            ${{ steps.skill-files.outputs.files }}
-
-            Use `git diff origin/${{ github.base_ref }}` to see what changed. Read the SKILL.md to get the skill title and understand the skill's purpose.
-
-            If this is a new skill, provide a full review. If it's changes to an existing skill, focus on the specific changes. Evaluate against skill-creator best practices.
-
-            Post your feedback as a comment using `gh pr comment`. Use the skill title in the header. Keep feedback concise and actionable - blocking issues first, then suggestions.
+            Post your feedback as a comment using `gh pr comment`. Use the skill title in the header.
