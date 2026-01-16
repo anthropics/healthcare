@@ -46,6 +46,7 @@ Generate FDA/NIH-compliant clinical trial protocols for medical devices or drugs
 | MCP Name | Description | URL |
 |----------|-------------|-----|
 | CMS Coverage | Access the CMS Coverage Database | https://mcp.deepsense.ai/cms_coverage/mcp |
+| ICD-10 Codes | Access ICD-10-CM and ICD-10-PCS code sets | https://mcp.deepsense.ai/icd10_codes/mcp |
 | NPI Registry | Access US National Provider Identifier (NPI) Registry | https://mcp.deepsense.ai/npi_registry/mcp |
 | PubMed | Search biomedical literature from PubMed | https://pubmed.mcp.claude.com/mcp |
 
@@ -53,6 +54,7 @@ Install MCP plugins:
 
 ```bash
 claude mcp add-from-marketplace anthropics/healthcare/cms-coverage
+claude mcp add-from-marketplace anthropics/healthcare/icd10-codes
 claude mcp add-from-marketplace anthropics/healthcare/npi-registry
 claude mcp add-from-marketplace anthropics/healthcare/pubmed
 ```
