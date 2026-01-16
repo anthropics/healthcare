@@ -23,14 +23,14 @@ None - This skill is a reference guide and doesn't require external dependencies
 
 ## What This Skill Provides
 
-### Quick Reference Tables
+**Quick Reference Tables:**
 
 - HTTP status codes (200, 201, 400, 401, 403, 404, 412, 422)
 - Required vs optional fields by resource type (critical: only 1..1 or 1..* are required)
 - Value sets and enum validation (status, gender, intent, etc.)
 - Coding system URLs (LOINC, SNOMED CT, RxNorm, ICD-10)
 
-### Validation Patterns
+**Validation Patterns:**
 
 Complete validation examples in Python/FastAPI and TypeScript/Express showing:
 - Required field validation
@@ -38,14 +38,14 @@ Complete validation examples in Python/FastAPI and TypeScript/Express showing:
 - Proper OperationOutcome error responses
 - HTTP status code selection
 
-### Reference Documentation
+**Reference Documentation:**
 
 - **resource-examples.md** - Complete JSON examples for all major resource types
 - **smart-auth.md** - SMART on FHIR OAuth 2.0 authorization implementation guide
 - **pagination.md** - Search result pagination with Bundle responses
 - **bundles.md** - Bundle transaction/batch operations for atomic updates
 
-### Project Setup Script
+**Project Setup Script:**
 
 - **setup_fhir_project.py** - Generates FastAPI project scaffold with validation, error handling, and SMART auth stubs
 
