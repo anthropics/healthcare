@@ -49,25 +49,6 @@ Complete validation examples in Python/FastAPI and TypeScript/Express showing:
 
 - **setup_fhir_project.py** - Generates FastAPI project scaffold with validation, error handling, and SMART auth stubs
 
-## Usage
-
-This skill is automatically triggered when you're working on FHIR-related development tasks:
-
-- Creating FHIR REST endpoints
-- Validating FHIR resources
-- Implementing SMART on FHIR authorization
-- Working with Bundles, transactions, or batch operations
-- Handling search pagination
-
-See [SKILL.md](SKILL.md) for complete reference tables and validation patterns.
-
-## Related MCP Connectors
-
-This skill works well with healthcare MCP connectors for code validation:
-
-- **ICD-10 Codes** - Diagnosis and procedure code validation
-- **NPI Registry** - Provider credential verification
-
 ## Common Pitfalls Addressed
 
 - **422 vs 400** - Use 422 for invalid field values, 400 for malformed JSON
@@ -76,6 +57,13 @@ This skill works well with healthcare MCP connectors for code validation:
 - **Encounter.class** - It's a Coding object, not a string
 - **SMART scopes** - Proper format is `patient/Observation.read` not `read:observation`
 
-## License
+## Related MCP Connectors
 
-Provided under Anthropic's terms of service.
+This skill works well with healthcare MCP connectors for code validation:
+
+- **ICD-10 Codes** - Diagnosis and procedure code validation
+- **NPI Registry** - Provider credential verification
+
+## Getting Started
+
+See [SKILL.md](SKILL.md) for complete reference tables and validation patterns.
