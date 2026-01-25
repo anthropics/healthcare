@@ -237,7 +237,7 @@ Generate Sections 8-11 following template structure, adapted for this specific i
 - Sample size calculation results (`waypoints/02_sample_size_calculation.json`)
 - Intervention metadata
 - Phase 1 clinical research summary
-- Existing protocol draft (Sections 1-8)
+- Existing protocol draft (Sections 1-7)
 
 **Follow guidance from:**
 - Selected protocol template from Step 3 (structure, regulatory requirements)
@@ -1704,7 +1704,7 @@ Create `waypoints/04_protocol_operations.md` with Sections 8-11 only.
 
 Update `waypoints/02_protocol_metadata.json`:
 - Set `step_4_status` to "completed"
-- Add sections 9, 10, 11, 12 to `sections_completed` array
+- Add sections 8, 9, 10, 11 to `sections_completed` array
 - Update `protocol_status` to "sections_complete" (final concatenation pending)
 - Add `waypoint_files` object tracking all protocol section files
 - Update notes
@@ -1730,14 +1730,14 @@ Update `waypoints/02_protocol_metadata.json`:
   "step_2_status": "completed",
   "step_3_status": "completed",
   "step_4_status": "completed",
-  "sections_completed": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+  "sections_completed": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
   "sections_pending": [],
   "sample_size_calculated": true,
   "sample_size_n_per_arm": "[from calculation]",
   "sample_size_n_total": "[from calculation]",
   "notes": [
     "DRAFT for planning purposes",
-    "All sections (1-12) generated",
+    "All sections (1-11) generated",
     "Final concatenation pending in Step 5",
     "Sample size calculation completed",
     "Requires biostatistician review",
@@ -1759,7 +1759,7 @@ Update `waypoints/intervention_metadata.json`:
 Display concise summary with:
 - Intervention name, protocol version, date
 - Step 4 completion status
-- ALL Sections generated: 1-12
+- ALL Sections generated: 1-11
 - Operations file created with size
 - Sample size calculation results
 - DRAFT disclaimer
@@ -1779,19 +1779,19 @@ Protocol: Version 1.0 Draft (2025-12-03)
   • Total Enrollment Target: [adjusted_n_total]
   • Power: [power]%, Alpha: [alpha]
 
-Protocol Status: All 12 Sections Generated
-  ✓ Section 1: Statement of Compliance
-  ✓ Section 2: Protocol Summary
-  ✓ Section 3: Introduction
-  ✓ Section 4: Objectives and Endpoints
-  ✓ Section 5: Study Design
-  ✓ Section 6: Study Population
-  ✓ Section 7: Study Intervention
-  ✓ Section 8: Discontinuation
-  ✓ Section 9: Study Assessments (with AE/SAE reporting)
-  ✓ Section 10: Statistical Considerations (with sample size)
-  ✓ Section 10: Supporting Documentation and Operations
-  ✓ Section 11: References
+Protocol Status: All 11 Sections Generated
+  ✓ STATEMENT OF COMPLIANCE
+  ✓ 1 PROTOCOL SUMMARY
+  ✓ 2 INTRODUCTION
+  ✓ 3 OBJECTIVES AND ENDPOINTS
+  ✓ 4 STUDY DESIGN
+  ✓ 5 STUDY POPULATION
+  ✓ 6 STUDY INTERVENTION
+  ✓ 7 STUDY INTERVENTION DISCONTINUATION AND PARTICIPANT DISCONTINUATION/WITHDRAWAL
+  ✓ 8 STUDY ASSESSMENTS AND PROCEDURES
+  ✓ 9 STATISTICAL CONSIDERATIONS
+  ✓ 10 SUPPORTING DOCUMENTATION AND OPERATIONAL CONSIDERATIONS
+  ✓ 11 REFERENCES
 
 Files Created/Updated:
   • waypoints/04_protocol_operations.md (NEW: Sections 8-11, ~[lines] lines)
@@ -1827,11 +1827,11 @@ Next Steps:
 - `waypoints/intervention_metadata.json` (step 4 marked complete)
 
 **Existing (from prior phases):**
-- `waypoints/02_protocol_foundation.md` (Sections 1-6 from Step 2)
-- `waypoints/03_protocol_intervention.md` (Sections 7-8 from Step 3)
+- `waypoints/02_protocol_foundation.md` (Sections 1-5 from Step 2)
+- `waypoints/03_protocol_intervention.md` (Sections 6-7 from Step 3)
 
 **To be created in Step 5:**
-- `waypoints/protocol_complete.md` (Final concatenated protocol with all 12 sections)
+- `waypoints/protocol_complete.md` (Final concatenated protocol with all 11 sections)
 
 ## Error Handling
 
@@ -1840,7 +1840,7 @@ Next Steps:
 Error: Step 3 must be completed first.
 Current status: step_3_status = [status]
 
-Please complete Step 3 to generate intervention details (Sections 7-8) before proceeding to Phase 4.
+Please complete Step 3 to generate intervention details (Sections 6-7) before proceeding to Step 4.
 ```
 
 **If protocol section files missing:**

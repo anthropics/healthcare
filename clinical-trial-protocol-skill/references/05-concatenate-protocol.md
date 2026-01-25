@@ -9,14 +9,14 @@ This subskill concatenates all protocol section files (from Steps 2, 3, and 4) i
 **Required Files:**
 - `waypoints/intervention_metadata.json`
 - `waypoints/02_protocol_metadata.json` (must show step_4_status: "completed")
-- `waypoints/02_protocol_foundation.md` (Sections 1-6 from Step 2)
-- `waypoints/03_protocol_intervention.md` (Sections 7-8 from Step 3)
-- `waypoints/04_protocol_operations.md` (Sections 9-12 from Step 4)
+- `waypoints/02_protocol_foundation.md` (Sections 1-5 from Step 2)
+- `waypoints/03_protocol_intervention.md` (Sections 6-7 from Step 3)
+- `waypoints/04_protocol_operations.md` (Sections 8-11 from Step 4)
 
 ## What This Subskill Does
 
 1. Verifies all section files exist
-2. Concatenates sections 1-12 into final protocol ]
+2. Concatenates sections 1-11 into final protocol
 3. Updates metadata to mark protocol as complete
 4. Displays final summary
 
@@ -36,7 +36,7 @@ Read `waypoints/02_protocol_metadata.json` and verify:
 Error: Step 4 must be completed before concatenation.
 Phase 4 status: [current status]
 
-Please complete Step 4 to generate final protocol sections (9-12).
+Please complete Step 4 to generate final protocol sections (8-11).
 ```
 Exit.
 
@@ -69,32 +69,33 @@ Combine all three protocol section files into the final complete protocol.
 
 **Expected output:**
 - Filename: `waypoints/protocol_complete.md`
-- Size: ~500KB-2MB
-- Lines: ~5,000-15,000 lines
-- Sections: All 12 sections (1-12)
+- Size: ~400KB-1.5MB
+- Lines: ~4,000-12,000 lines
+- Sections: All 11 sections (1-11)
 
 ### Step 3: Verify Complete Protocol
 
 Read the concatenated file to verify:
 - File is readable
-- Contains all 12 section headers
+- Contains all 11 section headers
 - No missing content or truncation
 - Proper markdown formatting preserved
 
 **Section headers to verify:**
 ```
-# 1. STATEMENT OF COMPLIANCE
-# 2. PROTOCOL SUMMARY
-# 3. INTRODUCTION AND STUDY RATIONALE
-# 4. STUDY OBJECTIVES AND ENDPOINTS
-# 5. STUDY DESIGN
-# 6. STUDY POPULATION
-# 7. STUDY INTERVENTION
-# 8. STUDY INTERVENTION DISCONTINUATION AND PARTICIPANT DISCONTINUATION/WITHDRAWAL
-# 9. STUDY ASSESSMENTS AND PROCEDURES
-# 10. STATISTICAL CONSIDERATIONS
-# 11. SUPPORTING DOCUMENTATION AND OPERATIONAL CONSIDERATIONS
-# 12. REFERENCES
+STATEMENT OF COMPLIANCE
+
+# 1 PROTOCOL SUMMARY
+# 2 INTRODUCTION
+# 3 OBJECTIVES AND ENDPOINTS
+# 4 STUDY DESIGN
+# 5 STUDY POPULATION
+# 6 STUDY INTERVENTION
+# 7 STUDY INTERVENTION DISCONTINUATION AND PARTICIPANT DISCONTINUATION/WITHDRAWAL
+# 8 STUDY ASSESSMENTS AND PROCEDURES
+# 9 STATISTICAL CONSIDERATIONS
+# 10 SUPPORTING DOCUMENTATION AND OPERATIONAL CONSIDERATIONS
+# 11 REFERENCES
 ```
 
 ### Step 4: Update Metadata
@@ -123,12 +124,12 @@ Read the concatenated file to verify:
   "step_3_status": "completed",
   "step_4_status": "completed",
   "step_5_status": "completed",
-  "sections_completed": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+  "sections_completed": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
   "sections_pending": [],
   "concatenation_date": "[current date]",
   "notes": [
     "DRAFT for planning purposes",
-    "Complete protocol (Sections 1-12) concatenated in protocol_complete.md",
+    "Complete protocol (Sections 1-11) concatenated in protocol_complete.md",
     "Requires biostatistician review",
     "Requires clinical expert review",
     "Requires IRB approval",
@@ -178,25 +179,25 @@ Protocol Details:
 File: waypoints/protocol_complete.md
 Size: [Size in KB/MB]
 Lines: [Line count]
-Sections: All 12 sections (1-12)
+Sections: All 11 sections (1-11)
 
-✓ Section 1: Statement of Compliance
-✓ Section 2: Protocol Summary
-✓ Section 3: Introduction
-✓ Section 4: Objectives and Endpoints
-✓ Section 5: Study Design
-✓ Section 6: Study Population
-✓ Section 7: Study Intervention
-✓ Section 8: Discontinuation
-✓ Section 9: Study Assessments (with AE/SAE reporting)
-✓ Section 10: Statistical Considerations (with sample size)
-✓ Section 11: Supporting Documentation and Operations
-✓ Section 12: References
+✓ STATEMENT OF COMPLIANCE
+✓ 1 PROTOCOL SUMMARY
+✓ 2 INTRODUCTION
+✓ 3 OBJECTIVES AND ENDPOINTS
+✓ 4 STUDY DESIGN
+✓ 5 STUDY POPULATION
+✓ 6 STUDY INTERVENTION
+✓ 7 STUDY INTERVENTION DISCONTINUATION AND PARTICIPANT DISCONTINUATION/WITHDRAWAL
+✓ 8 STUDY ASSESSMENTS AND PROCEDURES
+✓ 9 STATISTICAL CONSIDERATIONS
+✓ 10 SUPPORTING DOCUMENTATION AND OPERATIONAL CONSIDERATIONS
+✓ 11 REFERENCES
 
 Supporting Files:
-  • waypoints/02_protocol_foundation.md (Sections 1-6)
-  • waypoints/03_protocol_intervention.md (Sections 7-8)
-  • waypoints/04_protocol_operations.md (Sections 9-12)
+  • waypoints/02_protocol_foundation.md (Sections 1-5)
+  • waypoints/03_protocol_intervention.md (Sections 6-7)
+  • waypoints/04_protocol_operations.md (Sections 8-11)
   • waypoints/02_sample_size_calculation.json
   • waypoints/01_clinical_research_summary.json
 
@@ -241,16 +242,16 @@ You can:
 ## Output Files
 
 **Created:**
-- `waypoints/protocol_complete.md` (Complete protocol with all 12 sections, ~5,000-15,000 lines)
+- `waypoints/protocol_complete.md` (Complete protocol with all 11 sections, ~4,000-12,000 lines)
 
 **Updated:**
 - `waypoints/02_protocol_metadata.json` (step 5 marked complete, final file path added)
 - `waypoints/intervention_metadata.json` (step 5 marked complete)
 
 **Preserved:**
-- `waypoints/02_protocol_foundation.md` (Sections 1-6 from Phase 2)
-- `waypoints/03_protocol_intervention.md` (Sections 7-8 from Phase 3)
-- `waypoints/04_protocol_operations.md` (Sections 9-12 from Phase 4)
+- `waypoints/02_protocol_foundation.md` (Sections 1-5 from Step 2)
+- `waypoints/03_protocol_intervention.md` (Sections 6-7 from Step 3)
+- `waypoints/04_protocol_operations.md` (Sections 8-11 from Step 4)
 
 ## Error Handling
 
@@ -271,7 +272,7 @@ Error details: [error message]
 Warning: Protocol concatenation completed but verification found issues.
 
 The file waypoints/protocol_complete.md was created but may be incomplete.
-Please manually verify that all 12 sections are present.
+Please manually verify that all 11 sections are present.
 
 Issues detected: [list issues]
 ```
@@ -281,10 +282,10 @@ Issues detected: [list issues]
 Before finalizing, verify:
 - [ ] All three section files exist and are readable
 - [ ] `protocol_complete.md` created successfully
-- [ ] File size is reasonable (500KB-2MB typical)
-- [ ] All 12 section headers present
+- [ ] File size is reasonable (400KB-1.5MB typical)
+- [ ] All 11 section headers present
 - [ ] No content truncation or missing sections
-- [ ] Line count is appropriate (~5,000-15,000 lines)
+- [ ] Line count is appropriate (~4,000-12,000 lines)
 - [ ] Metadata updated correctly
 - [ ] Final summary displays all information
 

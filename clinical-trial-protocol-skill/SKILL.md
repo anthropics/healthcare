@@ -35,9 +35,9 @@ Starting with an intervention idea (device or drug), this orchestrated workflow 
 **📄 Full Protocol Mode (Steps 0-5):**
 0. **Initialize Intervention** - Collect device or drug information
 1. **Research Similar Protocols** - Find similar trials, FDA guidance, and published protocols
-2. **Protocol Foundation** - Generate protocol sections 1-6 (foundation, design, population)
-3. **Protocol Intervention** - Generate protocol sections 7-8 (intervention details)
-4. **Protocol Operations** - Generate protocol sections 9-12 (assessments, statistics, operations)
+2. **Protocol Foundation** - Generate protocol sections 1-5 (foundation, design, population)
+3. **Protocol Intervention** - Generate protocol sections 6-7 (intervention details)
+4. **Protocol Operations** - Generate protocol sections 8-11 (assessments, statistics, operations)
 5. **Generate Protocol** - Create professional file ready for stakeholder review
 
 ## Architecture
@@ -50,9 +50,9 @@ All analysis data is stored in `waypoints/` directory as JSON/markdown files:
 waypoints/
 ├── intervention_metadata.json           # Intervention info, status, initial context
 ├── 01_clinical_research_summary.json   # Similar trials, FDA guidance, recommendations
-├── 02_protocol_foundation.md            # Protocol sections 1-6 (Step 2)
-├── 03_protocol_intervention.md          # Protocol sections 7-8 (Step 3)
-├── 04_protocol_operations.md            # Protocol sections 9-12 (Step 4)
+├── 02_protocol_foundation.md            # Protocol sections 1-5 (Step 2)
+├── 03_protocol_intervention.md          # Protocol sections 6-7 (Step 3)
+├── 04_protocol_operations.md            # Protocol sections 8-11 (Step 4)
 ├── 02_protocol_draft.md                 # Complete protocol (concatenated in Step 4)
 ├── 02_protocol_metadata.json            # Protocol metadata
 └── 02_sample_size_calculation.json      # Statistical sample size calculation
@@ -69,9 +69,9 @@ Each step is an independent skill in `references/` directory:
 references/
 ├── 00-initialize-intervention.md    # Collect device or drug information
 ├── 01-research-protocols.md         # Clinical trials research and FDA guidance
-├── 02-protocol-foundation.md        # Protocol sections 1-6 (foundation, design, population)
-├── 03-protocol-intervention.md      # Protocol sections 7-8 (intervention details)
-├── 04-protocol-operations.md        # Protocol sections 9-12 (assessments, statistics, operations)
+├── 02-protocol-foundation.md        # Protocol sections 1-5 (foundation, design, population)
+├── 03-protocol-intervention.md      # Protocol sections 6-7 (intervention details)
+├── 04-protocol-operations.md        # Protocol sections 8-11 (assessments, statistics, operations)
 └── 05-generate-document.md          # NIH Protocol generation
 ```
 
@@ -318,9 +318,9 @@ For each step (0, 1, 2, 3, 4, 5):
    - **Step-to-file mapping:**
      - Step 0: `references/00-initialize-intervention.md` (read when Step 0 executes)
      - Step 1: `references/01-research-protocols.md` (read when Step 1 executes)
-     - Step 2: `references/02-protocol-foundation.md` (read when Step 2 executes - sections 1-6)
-     - Step 3: `references/03-protocol-intervention.md` (read when Step 3 executes - sections 7-8)
-     - Step 4: `references/04-protocol-operations.md` (read when Step 4 executes - sections 9-12)
+     - Step 2: `references/02-protocol-foundation.md` (read when Step 2 executes - sections 1-5)
+     - Step 3: `references/03-protocol-intervention.md` (read when Step 3 executes - sections 6-7)
+     - Step 4: `references/04-protocol-operations.md` (read when Step 4 executes - sections 8-11)
      - Step 5: `references/05-concatenate-protocol.md` (read when Step 5 executes - final concatenation)
 
 3. **Handle errors:** If step fails, ask user to retry or exit. Save current state for resume capability.
@@ -388,9 +388,9 @@ Display completion message with:
 - Easy to parse and reference
 
 **Markdown Waypoints** (Steps 2, 3, 4):
-- Step 2: `02_protocol_foundation.md` (Sections 1-6)
-- Step 3: `03_protocol_intervention.md` (Sections 7-8)
-- Step 4: `04_protocol_operations.md` (Sections 9-12)
+- Step 2: `02_protocol_foundation.md` (Sections 1-5)
+- Step 3: `03_protocol_intervention.md` (Sections 6-7)
+- Step 4: `04_protocol_operations.md` (Sections 8-11)
 - Step 4: `02_protocol_draft.md` (concatenated complete protocol)
 - Human-readable protocol documents
 - Can be directly edited by users

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This subskill generates a **title page** and the foundation sections (1-6) of a clinical study protocol. It creates the protocol framework including a formal title page, compliance statements, study summary, introduction, objectives, design, and population criteria.
+This subskill generates a **title page** and the foundation sections (1-5) of a clinical study protocol. It creates the protocol framework including a formal title page, compliance statements, study summary, introduction, objectives, design, and population criteria.
 
 ## Prerequisites
 
@@ -16,8 +16,8 @@ This subskill generates a **title page** and the foundation sections (1-6) of a 
 1. Reads intervention metadata and clinical research summary
 2. Reads NIH template and shared guidance
 3. Generates formal protocol title page with regulatory identifiers
-4. Synthesizes intervention-specific protocol content for Sections 1-6
-5. Writes protocol foundation (title page + Sections 1-6) to waypoint file (creates new file)
+4. Synthesizes intervention-specific protocol content for Sections 1-5
+5. Writes protocol foundation (title page + Sections 1-5) to waypoint file (creates new file)
 6. Creates protocol metadata tracking file
 
 ## Execution Flow
@@ -65,7 +65,7 @@ Read all required files:
 1. Read the selected protocol template file from Step 2 in its entirety
 
 **Internalize:**
-- NIH template structure for Sections 1-6
+- NIH template structure for Sections 1-5
 - Content depth targets from shared guidance
 - Quality principles (comprehensive over brief, specific over generic)
 - Intervention-specific terminology (device vs drug)
@@ -85,7 +85,7 @@ Generate formal title page (see Title Page section below) with:
 
 ### Step 5: Synthesize Protocol Foundation Content
 
-Generate Sections 1-6 following template structure, adapted for this specific intervention and indication.
+Generate Sections 1-5 following template structure, adapted for this specific intervention and indication.
 
 **Use data from:**
 - Intervention metadata (intervention type, name, indication, initial context)
@@ -547,7 +547,7 @@ Generate three comprehensive subsections:
 
 ---
 
-### Section 4: OBJECTIVES AND ENDPOINTS (50 lines)
+### Section 3: OBJECTIVES AND ENDPOINTS (50 lines)
 
 **Generate an objectives and endpoints table** with these columns: Objective | Endpoint | Justification
 
@@ -711,9 +711,9 @@ This is a critical section requiring detailed criteria.
 
 Create `waypoints/02_protocol_foundation.md` with:
 - Title Page (from Step 4)
-- Sections 1-6 (from Step 5 synthesis) in markdown format
+- Sections 1-5 (from Step 5 synthesis) in markdown format
 
-**IMPORTANT:** This is a NEW FILE creation. Write all content starting with Title Page, followed by Sections 1-6.
+**IMPORTANT:** This is a NEW FILE creation. Write all content starting with Title Page, followed by Sections 1-5.
 
 Create `waypoints/02_protocol_metadata.json` with:
 ```json
@@ -731,11 +731,11 @@ Create `waypoints/02_protocol_metadata.json` with:
   "step_2_status": "completed",
   "step_3_status": "pending",
   "step_4_status": "pending",
-  "sections_completed": [1, 2, 3, 4, 5, 6],
-  "sections_pending": [7, 8, 9, 10, 11, 12],
+  "sections_completed": [1, 2, 3, 4, 5],
+  "sections_pending": [6, 7, 8, 9, 10, 11],
   "notes": [
     "DRAFT for planning purposes",
-    "Protocol foundation (Sections 1-6) completed",
+    "Protocol foundation (Sections 1-5) completed",
     "Continue to Step 3 for intervention details",
     "Requires biostatistician review",
     "Requires IRB approval",
@@ -750,10 +750,10 @@ Create `waypoints/02_protocol_metadata.json` with:
 Display concise summary with:
 - Intervention name, protocol version, date
 - Step 2 completion status
-- Title Page + Sections completed: 1-6
+- Title Page + Sections completed: 1-5
 - Protocol foundation file created with size
 - DRAFT disclaimer
-- Next steps: Review protocol foundation, continue to Step 3 for intervention details (Sections 7-8)
+- Next steps: Review protocol foundation, continue to Step 3 for intervention details (Sections 6-7)
 
 **Example output:**
 ```
@@ -765,13 +765,13 @@ Protocol: Version 1.0 Draft (2025-12-03)
 Protocol Structure:
   ✓ Title Page (Protocol Cover Page with regulatory identifiers)
 
-Sections Completed (1-6):
-  ✓ Section 1: Statement of Compliance
-  ✓ Section 2: Protocol Summary (Synopsis, Schema, SoA)
-  ✓ Section 3: Introduction (Rationale, Background, Risk/Benefit)
-  ✓ Section 4: Objectives and Endpoints
-  ✓ Section 5: Study Design
-  ✓ Section 6: Study Population (Inclusion/Exclusion Criteria)
+Sections Completed:
+  ✓ STATEMENT OF COMPLIANCE
+  ✓ 1 PROTOCOL SUMMARY (Synopsis, Schema, SoA)
+  ✓ 2 INTRODUCTION (Rationale, Background, Risk/Benefit)
+  ✓ 3 OBJECTIVES AND ENDPOINTS
+  ✓ 4 STUDY DESIGN
+  ✓ 5 STUDY POPULATION (Inclusion/Exclusion Criteria)
 
 Files Created:
   • waypoints/02_protocol_foundation.md (~[size]KB, [lines] lines)
@@ -781,7 +781,7 @@ Files Created:
 ## Output Files
 
 **Created:**
-- `waypoints/02_protocol_foundation.md` (~100KB - Sections 1-6 only, ~1,500 lines)
+- `waypoints/02_protocol_foundation.md` (~80KB - Sections 1-5 only, ~1,200 lines)
 - `waypoints/02_protocol_metadata.json` (~1KB - protocol metadata with phase tracking)
 
 **NOT updated yet:**
@@ -817,7 +817,7 @@ Would you like to:
 
 Before finalizing, verify:
 - [ ] Title page is included with all required elements (metadata table, protocol ID, confidentiality statement, sponsor info, title, regulatory IDs, footer)
-- [ ] All 6 sections (1-6) are included after the title page
+- [ ] All 5 sections (1-5) are included after the title page
 - [ ] Synopsis table matches objectives/endpoints table
 - [ ] Schedule of Activities table is comprehensive (20-30 rows, 12-20 columns)
 - [ ] Inclusion criteria: 10-15 detailed items with specific values
@@ -825,12 +825,12 @@ Before finalizing, verify:
 - [ ] Study design rationale references Phase 1 findings
 - [ ] Background section leverages Phase 1 research extensively
 - [ ] Intervention-specific terminology used correctly (device vs drug)
-- [ ] Protocol foundation length: ~1,500 lines (appropriate for sections 1-6)
+- [ ] Protocol foundation length: ~1,200 lines (appropriate for sections 1-5)
 - [ ] File created successfully at waypoints/02_protocol_foundation.md
 
 ## Notes
 
-- This subskill generates approximately 1,500 lines of protocol content
-- Output stays well within token limits by focusing on Sections 1-6 only
-- Phases 2b and 2c will append to this foundation to complete the protocol
+- This subskill generates approximately 1,200 lines of protocol content
+- Output stays well within token limits by focusing on Sections 1-5 only
+- Steps 3 and 4 will build upon this foundation to complete the protocol
 - Protocol foundation provides the structural framework; intervention details and operational content follow in subsequent phases
