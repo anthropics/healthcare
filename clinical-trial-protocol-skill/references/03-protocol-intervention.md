@@ -33,7 +33,7 @@ Read `waypoints/02_protocol_metadata.json` and verify:
 Error: Step 2 must be completed before Step 3.
 Step 2 status: [current status]
 
-Please complete Step 2 first to generate protocol foundation (Sections 1-6).
+Please complete Step 2 first to generate protocol foundation (Sections 1-5).
 ```
 Exit.
 
@@ -605,7 +605,7 @@ Create `waypoints/03_protocol_intervention.md` with Sections 6-7 only.
 
 Update `waypoints/02_protocol_metadata.json`:
 - Set `step_3_status` to "completed"
-- Add sections 7 and 8 to `sections_completed` array
+- Add sections 6 and 7 to `sections_completed` array
 - Update `protocol_status` to "intervention_complete"
 - Update notes
 
@@ -625,11 +625,11 @@ Update `waypoints/02_protocol_metadata.json`:
   "step_2_status": "completed",
   "step_3_status": "completed",
   "step_4_status": "pending",
-  "sections_completed": [1, 2, 3, 4, 5, 6, 7, 8],
-  "sections_pending": [9, 10, 11, 12],
+  "sections_completed": [1, 2, 3, 4, 5, 6, 7],
+  "sections_pending": [8, 9, 10, 11],
   "notes": [
     "DRAFT for planning purposes",
-    "Protocol foundation and intervention details (Sections 1-8) completed",
+    "Protocol foundation and intervention details (Sections 1-7) completed",
     "Continue to Step 4 for assessments, statistics, and operations",
     "Requires biostatistician review",
     "Requires IRB approval",
@@ -644,10 +644,10 @@ Update `waypoints/02_protocol_metadata.json`:
 Display concise summary with:
 - Intervention name, protocol version, date
 - Step 3 completion status
-- Sections completed: 7-8 (Study Intervention, Discontinuation)
+- Sections completed: 6-7 (Study Intervention, Discontinuation)
 - Protocol file updated with size
 - DRAFT disclaimer
-- Next steps: Review intervention details, continue to Phase 4 for assessments and statistics (Sections 9-12)
+- Next steps: Review intervention details, continue to Step 4 for assessments and statistics (Sections 8-11)
 
 **Example output:**
 ```
@@ -656,21 +656,21 @@ Display concise summary with:
 Intervention: [Name]
 Protocol: Version 1.0 Draft (2025-12-03)
 
-Sections Completed (7-8):
-  ✓ Section 7: Study Intervention
+Sections Completed (6-7):
+  ✓ 6 STUDY INTERVENTION
     - Administration procedures and dosing
     - Dose modifications [if applicable]
     - Preparation, handling, storage
     - Randomization and blinding
     - Compliance monitoring
     - Concomitant therapy
-  ✓ Section 7: Study Intervention Discontinuation and Participant Discontinuation/Withdrawal
+  ✓ 7 STUDY INTERVENTION DISCONTINUATION AND PARTICIPANT DISCONTINUATION/WITHDRAWAL
 
 Files Updated:
   • waypoints/03_protocol_intervention.md (appended ~[size]KB, now [total lines] lines)
   • waypoints/02_protocol_metadata.json
 
-Protocol Status: Sections 1-8 complete (Foundation + Intervention)
+Protocol Status: Sections 1-7 complete (Foundation + Intervention)
 
 ```
 
@@ -693,7 +693,7 @@ Protocol Status: Sections 1-8 complete (Foundation + Intervention)
 Error: Step 2 must be completed first.
 Current status: step_2_status = [status]
 
-Please complete Step 2 to generate protocol foundation (Sections 1-6) before proceeding to Phase 3.
+Please complete Step 2 to generate protocol foundation (Sections 1-5) before proceeding to Step 3.
 ```
 
 **If protocol foundation file missing:**

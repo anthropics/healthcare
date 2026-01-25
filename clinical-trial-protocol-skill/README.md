@@ -38,9 +38,9 @@ This Claude Code skill generates comprehensive clinical trial protocols based on
 | ---- | ---- | ----------- | ------ |
 | 0 | Initialize | Collect intervention info (device/drug, indication) | `intervention_metadata.json` |
 | 1 | Research | Search ClinicalTrials.gov, find FDA guidance | `01_clinical_research_summary.json` |
-| 2 | Foundation | Sections 1-6: Summary, Objectives, Design, Population | `02_protocol_foundation.md` |
-| 3 | Intervention | Sections 7-8: Administration, Dose Modifications | `03_protocol_intervention.md` |
-| 4 | Operations | Sections 9-12: Assessments, Statistics, Regulatory | `04_protocol_operations.md` |
+| 2 | Foundation | Sections 1-5: Summary, Objectives, Design, Population | `02_protocol_foundation.md` |
+| 3 | Intervention | Sections 6-7: Administration, Dose Modifications | `03_protocol_intervention.md` |
+| 4 | Operations | Sections 8-11: Assessments, Statistics, Regulatory | `04_protocol_operations.md` |
 | 5 | Concatenate | Combine all sections into final protocol | `protocol_complete.md` |
 
 ## Requirements
