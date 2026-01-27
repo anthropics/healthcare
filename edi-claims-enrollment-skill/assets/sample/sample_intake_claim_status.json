@@ -1,0 +1,106 @@
+{
+  "metadata": {
+    "skill_version": "1.1.0",
+    "timestamp": "2024-03-15T15:05:00Z",
+    "transaction_type": "276",
+    "subskill": "intake",
+    "input_file": "claim_status_sample_276.txt"
+  },
+  "transactions": [
+    {
+      "transaction_id": "STATUS20240315001",
+      "control_number": "0003",
+      "status": "parsed",
+      "data": {
+        "envelope": {
+          "isa_control_number": "000000003",
+          "gs_control_number": "3",
+          "st_control_number": "0003",
+          "sender_id": "PROVIDER001",
+          "receiver_id": "PAYER001",
+          "transmission_date": "2024-03-15",
+          "transmission_time": "1500",
+          "transaction_set": "276"
+        },
+        "inquiry": {
+          "trace_number": "STATUS20240315001",
+          "trace_type": "1",
+          "purpose": "13",
+          "inquiry_date": "2024-03-15"
+        },
+        "information_source": {
+          "entity_type": "PR",
+          "entity_name": "ACME HEALTH PLAN",
+          "payer_id": "PAYER001",
+          "identifier_code": "PI"
+        },
+        "information_receiver": {
+          "entity_type": "41",
+          "organization_name": "SMITH FAMILY PRACTICE",
+          "npi": "1234567890",
+          "identifier_code": "XX"
+        },
+        "service_provider": {
+          "entity_type": "1P",
+          "organization_name": "SMITH FAMILY PRACTICE",
+          "npi": "1234567890",
+          "identifier_code": "XX"
+        },
+        "subscriber": {
+          "entity_type": "IL",
+          "last_name": "DOE",
+          "first_name": "JOHN",
+          "middle_initial": "M",
+          "member_id": "MBR12345678",
+          "member_id_type": "MI",
+          "date_of_birth": "1980-05-15",
+          "gender": "M"
+        },
+        "patient": {
+          "same_as_subscriber": true,
+          "entity_type": "QC",
+          "last_name": "DOE",
+          "first_name": "JOHN",
+          "middle_initial": "M"
+        },
+        "claim_identifiers": {
+          "patient_control_number": "CLM12345",
+          "payer_claim_number": "PAYER987654",
+          "service_date": "2024-03-10"
+        }
+      },
+      "validation": {
+        "errors": [],
+        "warnings": [],
+        "info": [
+          {
+            "rule_id": "S-ENV-001",
+            "severity": "info",
+            "field": "ISA",
+            "message": "ISA segment present and valid",
+            "detail": "Envelope structure validated successfully"
+          },
+          {
+            "rule_id": "S-276-001",
+            "severity": "info",
+            "field": "HL",
+            "message": "HL hierarchy valid for 276 inquiry",
+            "detail": "Information Source → Information Receiver → Service Provider → Subscriber → Patient"
+          },
+          {
+            "rule_id": "C-REF-001",
+            "severity": "info",
+            "field": "REF",
+            "message": "Claim identifiers present",
+            "detail": "Both patient control number and payer claim number provided"
+          }
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "total_count": 1,
+    "parsed_count": 1,
+    "error_count": 0
+  }
+}

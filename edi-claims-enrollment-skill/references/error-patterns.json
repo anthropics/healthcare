@@ -1,0 +1,909 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "last_updated": "2024-03-15T16:00:00Z",
+    "description": "Historical error patterns and resolutions to improve intelligent error messages",
+    "data_period": "2024-01-01 to 2024-03-15",
+    "total_transactions_processed": 15487
+  },
+  "error_patterns": {
+    "E-ELG-001": {
+      "rule_id": "E-ELG-001",
+      "rule_name": "Member Not Eligible on Service Date",
+      "category": "eligibility",
+      "total_occurrences": 234,
+      "occurrence_rate": 0.0151,
+      "trend": "stable",
+      "resolutions": {
+        "denied_ineligible": {
+          "count": 152,
+          "percentage": 64.96,
+          "avg_resolution_time_minutes": 12,
+          "description": "Member confirmed ineligible, claim denied"
+        },
+        "approved_after_correction": {
+          "count": 54,
+          "percentage": 23.08,
+          "avg_resolution_time_minutes": 45,
+          "description": "Eligibility error corrected, claim approved"
+        },
+        "emergency_exception": {
+          "count": 18,
+          "percentage": 7.69,
+          "avg_resolution_time_minutes": 28,
+          "description": "Emergency services exception applied"
+        },
+        "cobra_continuation": {
+          "count": 10,
+          "percentage": 4.27,
+          "avg_resolution_time_minutes": 35,
+          "description": "COBRA coverage identified, claim processed"
+        }
+      },
+      "common_causes": [
+        {
+          "cause": "Employment termination",
+          "frequency": 0.65,
+          "typical_resolution": "denied_ineligible",
+          "indicators": ["termination_date_aligned_with_employment", "no_cobra_elected"]
+        },
+        {
+          "cause": "Retroactive termination error",
+          "frequency": 0.23,
+          "typical_resolution": "approved_after_correction",
+          "indicators": ["recent_termination", "member_believes_covered", "pending_834_correction"]
+        },
+        {
+          "cause": "Emergency service requiring exception",
+          "frequency": 0.08,
+          "typical_resolution": "emergency_exception",
+          "indicators": ["emergency_cpt_code", "state_mandate", "within_exception_timeframe"]
+        },
+        {
+          "cause": "COBRA not reflected in system",
+          "frequency": 0.04,
+          "typical_resolution": "cobra_continuation",
+          "indicators": ["recently_terminated", "within_cobra_period", "premium_payment_found"]
+        }
+      ],
+      "contextual_factors": {
+        "emergency_indicators": {
+          "cpt_codes": ["99281", "99282", "99283", "99284", "99285"],
+          "place_of_service": ["23"],
+          "increases_emergency_exception_likelihood": 0.35
+        },
+        "retroactive_error_indicators": {
+          "days_between_term_and_service": {"threshold": 14, "multiplier": 1.5},
+          "trading_partner_retro_error_rate": {"threshold": 0.15, "multiplier": 1.3}
+        },
+        "high_confidence_denial_indicators": {
+          "employment_termination_confirmed": 0.95,
+          "no_cobra_election": 0.90,
+          "member_acknowledges_termination": 0.98
+        }
+      },
+      "trading_partner_patterns": {
+        "SUBMITTER001": {
+          "occurrence_count": 67,
+          "percentage_of_total": 28.63,
+          "resolution_pattern": {
+            "denied_ineligible": 0.78,
+            "approved_after_correction": 0.15,
+            "emergency_exception": 0.05,
+            "cobra_continuation": 0.02
+          },
+          "notes": "Higher than average ineligible rate; generally accurate terminations",
+          "recommendation": "Standard processing"
+        },
+        "SUBMITTER002": {
+          "occurrence_count": 42,
+          "percentage_of_total": 17.95,
+          "resolution_pattern": {
+            "denied_ineligible": 0.31,
+            "approved_after_correction": 0.64,
+            "emergency_exception": 0.03,
+            "cobra_continuation": 0.02
+          },
+          "notes": "High retroactive error rate; frequent corrections needed",
+          "recommendation": "Pend for verification before denying; contact employer",
+          "confidence_adjustment": -0.25
+        }
+      },
+      "time_patterns": {
+        "end_of_month": {
+          "occurrence_multiplier": 1.8,
+          "retroactive_error_rate": 0.32,
+          "notes": "Higher occurrence at month-end due to batch terminations"
+        },
+        "monday_morning": {
+          "occurrence_multiplier": 1.3,
+          "notes": "Weekend terminations processed Monday"
+        }
+      },
+      "avg_resolution_time_minutes": 18,
+      "escalation_rate": 0.08,
+      "user_feedback_score": 4.2,
+      "accuracy_of_suggested_resolution": 0.87
+    },
+    "C-DX-003": {
+      "rule_id": "C-DX-003",
+      "rule_name": "Invalid ICD-10 Diagnosis Code",
+      "category": "coding",
+      "total_occurrences": 189,
+      "occurrence_rate": 0.0122,
+      "trend": "decreasing",
+      "resolutions": {
+        "pended_for_correction": {
+          "count": 156,
+          "percentage": 82.54,
+          "avg_resolution_time_minutes": 8,
+          "description": "Claim pended, provider submitted corrected code"
+        },
+        "denied_invalid_code": {
+          "count": 23,
+          "percentage": 12.17,
+          "avg_resolution_time_minutes": 6,
+          "description": "Provider unable/unwilling to correct, claim denied"
+        },
+        "code_set_update_needed": {
+          "count": 10,
+          "percentage": 5.29,
+          "avg_resolution_time_minutes": 120,
+          "description": "Payer code set was outdated, updated and reprocessed"
+        }
+      },
+      "common_causes": [
+        {
+          "cause": "Provider using outdated code set",
+          "frequency": 0.68,
+          "typical_resolution": "pended_for_correction",
+          "indicators": ["code_discontinued_previous_year", "provider_has_pattern"]
+        },
+        {
+          "cause": "Typo in diagnosis code",
+          "frequency": 0.22,
+          "typical_resolution": "pended_for_correction",
+          "indicators": ["similar_valid_codes_exist", "single_digit_difference"]
+        },
+        {
+          "cause": "Payer code set outdated",
+          "frequency": 0.05,
+          "typical_resolution": "code_set_update_needed",
+          "indicators": ["code_valid_in_newer_set", "multiple_providers_affected"]
+        },
+        {
+          "cause": "Non-specific code used",
+          "frequency": 0.05,
+          "typical_resolution": "pended_for_correction",
+          "indicators": ["code_lacks_required_specificity", "billable_code_required"]
+        }
+      ],
+      "contextual_factors": {
+        "typo_detection": {
+          "enabled": true,
+          "levenshtein_distance_threshold": 2,
+          "suggests_alternatives": true
+        },
+        "annual_code_update_timing": {
+          "october_december": {
+            "occurrence_multiplier": 2.1,
+            "notes": "ICD-10 updates effective October, providers slow to adopt"
+          },
+          "january_march": {
+            "occurrence_multiplier": 1.4,
+            "notes": "Lingering issues from October updates"
+          }
+        }
+      },
+      "provider_patterns": {
+        "high_error_rate_providers": [
+          {
+            "provider_npi": "1234567890",
+            "provider_name": "SMITH FAMILY PRACTICE",
+            "occurrence_count": 24,
+            "error_rate": 0.18,
+            "common_issue": "Using 2022 code set in 2024",
+            "recommendation": "Provider education opportunity; contact about code set update"
+          }
+        ]
+      },
+      "avg_resolution_time_minutes": 12,
+      "escalation_rate": 0.02,
+      "user_feedback_score": 4.5,
+      "accuracy_of_suggested_resolution": 0.92
+    },
+    "P-NPI-003": {
+      "rule_id": "P-NPI-003",
+      "rule_name": "Provider NPI Not Found or Invalid",
+      "category": "provider",
+      "total_occurrences": 127,
+      "occurrence_rate": 0.0082,
+      "trend": "stable",
+      "resolutions": {
+        "corrected_npi_provided": {
+          "count": 89,
+          "percentage": 70.08,
+          "avg_resolution_time_minutes": 15,
+          "description": "Provider submitted correct NPI"
+        },
+        "added_to_directory": {
+          "count": 24,
+          "percentage": 18.90,
+          "avg_resolution_time_minutes": 35,
+          "description": "NPI valid but missing from directory, added"
+        },
+        "denied_invalid_npi": {
+          "count": 14,
+          "percentage": 11.02,
+          "avg_resolution_time_minutes": 10,
+          "description": "No valid NPI provided, claim denied"
+        }
+      },
+      "common_causes": [
+        {
+          "cause": "Typo in NPI",
+          "frequency": 0.55,
+          "typical_resolution": "corrected_npi_provided",
+          "indicators": ["checksum_failed", "similar_npi_in_directory"]
+        },
+        {
+          "cause": "Recently enrolled provider",
+          "frequency": 0.25,
+          "typical_resolution": "added_to_directory",
+          "indicators": ["nppes_active", "not_in_payer_directory"]
+        },
+        {
+          "cause": "Wrong NPI type used",
+          "frequency": 0.12,
+          "typical_resolution": "corrected_npi_provided",
+          "indicators": ["organization_npi_used_for_individual", "mismatch_provider_type"]
+        },
+        {
+          "cause": "Deactivated NPI",
+          "frequency": 0.08,
+          "typical_resolution": "denied_invalid_npi",
+          "indicators": ["nppes_deactivated", "provider_retired_or_deceased"]
+        }
+      },
+      "contextual_factors": {
+        "auto_fix_candidates": {
+          "enabled": true,
+          "criteria": {
+            "high_confidence_match_threshold": 0.90,
+            "claim_amount_threshold": 1000.00,
+            "requires_manager_approval": true
+          },
+          "success_rate_when_applied": 0.94
+        },
+        "fuzzy_matching": {
+          "enabled": true,
+          "name_similarity_threshold": 0.85,
+          "suggests_matches_count": 3
+        }
+      },
+      "avg_resolution_time_minutes": 18,
+      "escalation_rate": 0.05,
+      "user_feedback_score": 4.3,
+      "accuracy_of_suggested_resolution": 0.88
+    },
+    "D-RET-001": {
+      "rule_id": "D-RET-001",
+      "rule_name": "Retroactive Enrollment",
+      "category": "enrollment",
+      "total_occurrences": 312,
+      "occurrence_rate": 0.0201,
+      "trend": "increasing",
+      "resolutions": {
+        "approved_with_justification": {
+          "count": 234,
+          "percentage": 75.00,
+          "avg_resolution_time_minutes": 55,
+          "description": "Retroactive enrollment approved per policy"
+        },
+        "approved_limited_period": {
+          "count": 42,
+          "percentage": 13.46,
+          "avg_resolution_time_minutes": 48,
+          "description": "Approved but limited to allowed retroactive period"
+        },
+        "denied_no_justification": {
+          "count": 28,
+          "percentage": 8.97,
+          "avg_resolution_time_minutes": 25,
+          "description": "No valid reason for retroactive enrollment"
+        },
+        "pending_documentation": {
+          "count": 8,
+          "percentage": 2.56,
+          "avg_resolution_time_minutes": 180,
+          "description": "Awaiting supporting documentation"
+        }
+      },
+      "common_causes": [
+        {
+          "cause": "Late employer notification",
+          "frequency": 0.62,
+          "typical_resolution": "approved_with_justification",
+          "indicators": ["new_hire_within_90_days", "standard_waiting_period"]
+        },
+        {
+          "cause": "Qualifying life event",
+          "frequency": 0.23,
+          "typical_resolution": "approved_with_justification",
+          "indicators": ["birth", "marriage", "loss_of_other_coverage"]
+        },
+        {
+          "cause": "Administrative error correction",
+          "frequency": 0.12,
+          "typical_resolution": "approved_with_justification",
+          "indicators": ["was_enrolled_previously", "data_entry_error"]
+        },
+        {
+          "cause": "No valid reason provided",
+          "frequency": 0.03,
+          "typical_resolution": "denied_no_justification",
+          "indicators": ["no_qlf", "exceeds_policy_limits", "no_employer_justification"]
+        }
+      },
+      "contextual_factors": {
+        "retroactive_period_thresholds": {
+          "low_risk": {
+            "max_days": 30,
+            "approval_rate": 0.95,
+            "avg_claims_affected": 0.4
+          },
+          "medium_risk": {
+            "max_days": 90,
+            "approval_rate": 0.78,
+            "avg_claims_affected": 2.1
+          },
+          "high_risk": {
+            "max_days": 999,
+            "approval_rate": 0.45,
+            "avg_claims_affected": 8.7,
+            "requires_compliance_review": true
+          }
+        },
+        "claims_impact_correlation": {
+          "probability_of_claims_during_retro_period": 0.32,
+          "avg_financial_impact_per_enrollment": 847.50,
+          "max_financial_impact_seen": 34200.00
+        }
+      },
+      "group_patterns": {
+        "GROUP12345": {
+          "group_name": "ACME CORPORATION",
+          "retro_enrollment_rate": 0.08,
+          "avg_retro_days": 23,
+          "approval_rate": 0.94,
+          "notes": "Good compliance; mostly legitimate late hires",
+          "recommendation": "Standard processing"
+        },
+        "GROUP67890": {
+          "group_name": "XYZ COMPANY",
+          "retro_enrollment_rate": 0.24,
+          "avg_retro_days": 67,
+          "approval_rate": 0.58,
+          "notes": "High retro rate; poor HR processes",
+          "recommendation": "Enhanced review; schedule group training",
+          "confidence_adjustment": -0.15
+        }
+      },
+      "avg_resolution_time_minutes": 52,
+      "escalation_rate": 0.15,
+      "user_feedback_score": 4.1,
+      "accuracy_of_suggested_resolution": 0.81
+    },
+    "B-ELG-001": {
+      "rule_id": "B-ELG-001",
+      "rule_name": "Dependent Age Limit Exceeded",
+      "category": "enrollment",
+      "total_occurrences": 156,
+      "occurrence_rate": 0.0101,
+      "trend": "stable",
+      "resolutions": {
+        "approved_student_status": {
+          "count": 98,
+          "percentage": 62.82,
+          "avg_resolution_time_minutes": 32,
+          "description": "Student verification provided, enrollment approved"
+        },
+        "approved_disabled_status": {
+          "count": 24,
+          "percentage": 15.38,
+          "avg_resolution_time_minutes": 48,
+          "description": "Disability certification provided, enrollment approved"
+        },
+        "denied_no_exception": {
+          "count": 28,
+          "percentage": 17.95,
+          "avg_resolution_time_minutes": 18,
+          "description": "No valid exception, enrollment denied"
+        },
+        "pending_documentation": {
+          "count": 6,
+          "percentage": 3.85,
+          "avg_resolution_time_minutes": 240,
+          "description": "Awaiting student/disability documentation"
+        }
+      },
+      "common_causes": [
+        {
+          "cause": "Full-time student continuing education",
+          "frequency": 0.63,
+          "typical_resolution": "approved_student_status",
+          "indicators": ["age_26_to_28", "spring_fall_enrollment_period"]
+        },
+        {
+          "cause": "Disabled dependent",
+          "frequency": 0.15,
+          "typical_resolution": "approved_disabled_status",
+          "indicators": ["disability_onset_before_26", "already_on_file"]
+        },
+        {
+          "cause": "Parent unaware of age limit",
+          "frequency": 0.18,
+          "typical_resolution": "denied_no_exception",
+          "indicators": ["no_documentation_provided", "age_over_28"]
+        },
+        {
+          "cause": "State mandate extension",
+          "frequency": 0.04,
+          "typical_resolution": "approved_student_status",
+          "indicators": ["state_allows_extension", "conditions_met"]
+        }
+      ],
+      "contextual_factors": {
+        "age_distribution": {
+          "age_26": {"count": 98, "approval_rate": 0.85},
+          "age_27": {"count": 42, "approval_rate": 0.72},
+          "age_28": {"count": 12, "approval_rate": 0.58},
+          "age_29_plus": {"count": 4, "approval_rate": 0.25}
+        },
+        "documentation_quality": {
+          "enrollment_verification_adequate_rate": 0.94,
+          "most_common_issue": "expired_verification",
+          "recertification_required_annually": true
+        },
+        "seasonal_patterns": {
+          "august_september": {
+            "occurrence_multiplier": 1.6,
+            "notes": "Fall semester enrollments"
+          },
+          "january": {
+            "occurrence_multiplier": 1.3,
+            "notes": "Spring semester enrollments"
+          }
+        }
+      },
+      "avg_resolution_time_minutes": 34,
+      "escalation_rate": 0.06,
+      "user_feedback_score": 4.4,
+      "accuracy_of_suggested_resolution": 0.89
+    },
+    "E-270-001": {
+      "rule_id": "E-270-001",
+      "rule_name": "Incomplete Eligibility Inquiry",
+      "category": "eligibility_inquiry",
+      "total_occurrences": 0,
+      "occurrence_rate": 0.0000,
+      "trend": "new",
+      "resolutions": {
+        "rejected_missing_member_id": {
+          "count": 0,
+          "percentage": 0.00,
+          "avg_resolution_time_minutes": 5,
+          "description": "Inquiry rejected - missing member identifier"
+        },
+        "processed_with_available_data": {
+          "count": 0,
+          "percentage": 0.00,
+          "avg_resolution_time_minutes": 8,
+          "description": "Processed using available identifiers"
+        },
+        "general_eligibility_returned": {
+          "count": 0,
+          "percentage": 0.00,
+          "avg_resolution_time_minutes": 6,
+          "description": "Missing service type, returned general eligibility"
+        }
+      },
+      "common_causes": [
+        {
+          "cause": "Data mapping error in provider system",
+          "frequency": 0.60,
+          "typical_resolution": "rejected_missing_member_id",
+          "indicators": ["pattern_from_same_provider", "specific_field_always_missing"]
+        },
+        {
+          "cause": "Manual inquiry with incomplete entry",
+          "frequency": 0.25,
+          "typical_resolution": "rejected_missing_member_id",
+          "indicators": ["real_time_inquiry", "sporadic_occurrence"]
+        },
+        {
+          "cause": "System integration issue",
+          "frequency": 0.15,
+          "typical_resolution": "processed_with_available_data",
+          "indicators": ["multiple_providers_affected", "recent_system_change"]
+        }
+      },
+      "avg_resolution_time_minutes": 6,
+      "escalation_rate": 0.05,
+      "user_feedback_score": 0.00,
+      "accuracy_of_suggested_resolution": 0.00
+    },
+    "E-271-002": {
+      "rule_id": "E-271-002",
+      "rule_name": "Eligibility Response Missing Benefit Data",
+      "category": "eligibility_response",
+      "total_occurrences": 0,
+      "occurrence_rate": 0.0000,
+      "trend": "new",
+      "resolutions": {
+        "regenerated_with_complete_data": {
+          "count": 0,
+          "percentage": 0.00,
+          "avg_resolution_time_minutes": 15,
+          "description": "Response regenerated with complete benefit information"
+        },
+        "manual_benefit_lookup": {
+          "count": 0,
+          "percentage": 0.00,
+          "avg_resolution_time_minutes": 20,
+          "description": "Manual benefit lookup performed"
+        },
+        "inactive_status_returned": {
+          "count": 0,
+          "percentage": 0.00,
+          "avg_resolution_time_minutes": 5,
+          "description": "Member inactive, appropriate response generated"
+        }
+      },
+      "common_causes": [
+        {
+          "cause": "Benefit data incomplete in system",
+          "frequency": 0.55,
+          "typical_resolution": "manual_benefit_lookup",
+          "indicators": ["recently_enrolled_member", "benefits_not_loaded"]
+        },
+        {
+          "cause": "Response template/mapping error",
+          "frequency": 0.30,
+          "typical_resolution": "regenerated_with_complete_data",
+          "indicators": ["multiple_responses_affected", "pattern_across_batch"]
+        },
+        {
+          "cause": "Service type not covered",
+          "frequency": 0.15,
+          "typical_resolution": "inactive_status_returned",
+          "indicators": ["specific_service_type", "plan_exclusion"]
+        }
+      },
+      "avg_resolution_time_minutes": 15,
+      "escalation_rate": 0.08,
+      "user_feedback_score": 0.00,
+      "accuracy_of_suggested_resolution": 0.00
+    },
+    "M-SUB-002": {
+      "rule_id": "M-SUB-002",
+      "rule_name": "Subscriber Not Found",
+      "category": "eligibility_inquiry",
+      "total_occurrences": 0,
+      "occurrence_rate": 0.0000,
+      "trend": "new",
+      "resolutions": {
+        "corrected_member_id": {
+          "count": 0,
+          "percentage": 0.00,
+          "avg_resolution_time_minutes": 12,
+          "description": "Correct member ID provided, inquiry processed"
+        },
+        "not_found_response_generated": {
+          "count": 0,
+          "percentage": 0.00,
+          "avg_resolution_time_minutes": 5,
+          "description": "AAA*N*72 response generated"
+        },
+        "enrollment_pending": {
+          "count": 0,
+          "percentage": 0.00,
+          "avg_resolution_time_minutes": 8,
+          "description": "Member enrollment pending, AAA response with message"
+        }
+      },
+      "common_causes": [
+        {
+          "cause": "Member ID typo or format error",
+          "frequency": 0.45,
+          "typical_resolution": "corrected_member_id",
+          "indicators": ["similar_id_exists", "checksum_mismatch"]
+        },
+        {
+          "cause": "Member not yet enrolled",
+          "frequency": 0.30,
+          "typical_resolution": "enrollment_pending",
+          "indicators": ["inquiry_near_effective_date", "found_in_pending_queue"]
+        },
+        {
+          "cause": "Member in different group/plan",
+          "frequency": 0.15,
+          "typical_resolution": "not_found_response_generated",
+          "indicators": ["name_match_other_group", "wrong_plan_queried"]
+        },
+        {
+          "cause": "Member ID format mismatch",
+          "frequency": 0.10,
+          "typical_resolution": "corrected_member_id",
+          "indicators": ["leading_zeros", "special_characters"]
+        }
+      },
+      "contextual_factors": {
+        "fuzzy_matching": {
+          "enabled": true,
+          "name_similarity_threshold": 0.85,
+          "dob_weight": 0.40,
+          "name_weight": 0.60
+        },
+        "auto_fix_candidates": {
+          "enabled": true,
+          "requires_supervisor_approval": true,
+          "high_confidence_threshold": 0.90
+        }
+      },
+      "avg_resolution_time_minutes": 10,
+      "escalation_rate": 0.07,
+      "user_feedback_score": 0.00,
+      "accuracy_of_suggested_resolution": 0.00
+    },
+    "C-276-003": {
+      "rule_id": "C-276-003",
+      "rule_name": "Claim Not Found",
+      "category": "claim_status",
+      "total_occurrences": 0,
+      "occurrence_rate": 0.0000,
+      "trend": "new",
+      "resolutions": {
+        "claim_in_process": {
+          "count": 0,
+          "percentage": 0.00,
+          "avg_resolution_time_minutes": 5,
+          "description": "Recent claim, STC*A1 status returned"
+        },
+        "not_found_response": {
+          "count": 0,
+          "percentage": 0.00,
+          "avg_resolution_time_minutes": 8,
+          "description": "STC*A7 not found status returned"
+        },
+        "found_with_alternate_id": {
+          "count": 0,
+          "percentage": 0.00,
+          "avg_resolution_time_minutes": 25,
+          "description": "Claim found using alternate identifiers"
+        },
+        "intake_rejection_found": {
+          "count": 0,
+          "percentage": 0.00,
+          "avg_resolution_time_minutes": 10,
+          "description": "Claim rejected at intake, STC*E0 returned"
+        }
+      },
+      "common_causes": [
+        {
+          "cause": "Claim recently submitted",
+          "frequency": 0.40,
+          "typical_resolution": "claim_in_process",
+          "indicators": ["service_date_within_5_days", "expected_in_batch"]
+        },
+        {
+          "cause": "Claim identifier mismatch",
+          "frequency": 0.30,
+          "typical_resolution": "found_with_alternate_id",
+          "indicators": ["member_and_date_match", "different_claim_number"]
+        },
+        {
+          "cause": "Submitted to wrong payer",
+          "frequency": 0.15,
+          "typical_resolution": "not_found_response",
+          "indicators": ["member_has_cob", "no_matching_claim"]
+        },
+        {
+          "cause": "Rejected at intake",
+          "frequency": 0.15,
+          "typical_resolution": "intake_rejection_found",
+          "indicators": ["found_in_rejection_log", "validation_failure"]
+        }
+      },
+      "contextual_factors": {
+        "claim_age_thresholds": {
+          "recent": {"max_days": 5, "expected_resolution": "claim_in_process"},
+          "standard": {"max_days": 30, "expected_resolution": "found_with_alternate_id"},
+          "older": {"max_days": 180, "expected_resolution": "not_found_response"},
+          "archive": {"max_days": 999, "requires_extended_search": true}
+        },
+        "comprehensive_search": {
+          "search_pending_queue": true,
+          "search_intake_logs": true,
+          "search_archive_if_old": true,
+          "use_alternate_identifiers": true
+        }
+      },
+      "avg_resolution_time_minutes": 22,
+      "escalation_rate": 0.06,
+      "user_feedback_score": 0.00,
+      "accuracy_of_suggested_resolution": 0.00
+    },
+    "C-277-004": {
+      "rule_id": "C-277-004",
+      "rule_name": "Conflicting Status Information",
+      "category": "claim_status",
+      "total_occurrences": 0,
+      "occurrence_rate": 0.0000,
+      "trend": "new",
+      "resolutions": {
+        "partial_adjudication_identified": {
+          "count": 0,
+          "percentage": 0.00,
+          "avg_resolution_time_minutes": 15,
+          "description": "Service line level status provided"
+        },
+        "data_corrected_and_processed": {
+          "count": 0,
+          "percentage": 0.00,
+          "avg_resolution_time_minutes": 35,
+          "description": "Data integrity issue corrected"
+        },
+        "manual_override_completed": {
+          "count": 0,
+          "percentage": 0.00,
+          "avg_resolution_time_minutes": 25,
+          "description": "Manual adjustment completed properly"
+        },
+        "escalated_to_IT": {
+          "count": 0,
+          "percentage": 0.00,
+          "avg_resolution_time_minutes": 60,
+          "description": "System issue escalated for resolution"
+        }
+      },
+      "common_causes": [
+        {
+          "cause": "Partial claim adjudication",
+          "frequency": 0.50,
+          "typical_resolution": "partial_adjudication_identified",
+          "indicators": ["some_lines_finalized", "others_pending"]
+        },
+        {
+          "cause": "Data integrity issue",
+          "frequency": 0.30,
+          "typical_resolution": "data_corrected_and_processed",
+          "indicators": ["fields_not_synchronized", "system_update_recent"]
+        },
+        {
+          "cause": "Manual override incomplete",
+          "frequency": 0.20,
+          "typical_resolution": "manual_override_completed",
+          "indicators": ["audit_log_shows_change", "partial_update"]
+        }
+      },
+      "contextual_factors": {
+        "consistency_checks": {
+          "check_entity_claim_alignment": true,
+          "check_claim_line_alignment": true,
+          "check_status_payment_alignment": true,
+          "automated_validation": true
+        },
+        "escalation_criteria": {
+          "multiple_claims_affected": true,
+          "system_wide_pattern": true,
+          "cannot_determine_cause": true
+        }
+      },
+      "avg_resolution_time_minutes": 30,
+      "escalation_rate": 0.12,
+      "user_feedback_score": 0.00,
+      "accuracy_of_suggested_resolution": 0.00
+    },
+    "I-EQ-001": {
+      "rule_id": "I-EQ-001",
+      "rule_name": "Invalid Service Type Code",
+      "category": "eligibility_inquiry",
+      "total_occurrences": 0,
+      "occurrence_rate": 0.0000,
+      "trend": "new",
+      "resolutions": {
+        "processed_as_general_eligibility": {
+          "count": 0,
+          "percentage": 0.00,
+          "avg_resolution_time_minutes": 6,
+          "description": "Defaulted to general eligibility (type 30)"
+        },
+        "rejected_unsupported_type": {
+          "count": 0,
+          "percentage": 0.00,
+          "avg_resolution_time_minutes": 5,
+          "description": "AAA*N*64 rejection response generated"
+        },
+        "inferred_correct_type": {
+          "count": 0,
+          "percentage": 0.00,
+          "avg_resolution_time_minutes": 8,
+          "description": "Service type inferred from provider specialty"
+        }
+      },
+      "common_causes": [
+        {
+          "cause": "Typo in service type code",
+          "frequency": 0.60,
+          "typical_resolution": "processed_as_general_eligibility",
+          "indicators": ["similar_valid_code_exists", "single_character_difference"]
+        },
+        {
+          "cause": "Using incorrect code set",
+          "frequency": 0.25,
+          "typical_resolution": "rejected_unsupported_type",
+          "indicators": ["pattern_from_provider", "outdated_code"]
+        },
+        {
+          "cause": "System mapping error",
+          "frequency": 0.15,
+          "typical_resolution": "inferred_correct_type",
+          "indicators": ["multiple_inquiries_affected", "provider_specialty_known"]
+        }
+      },
+      "contextual_factors": {
+        "common_valid_codes": {
+          "30": "Health Benefit Plan Coverage",
+          "47": "Deductible",
+          "48": "Out of Pocket Maximum",
+          "60": "Co-payment",
+          "88": "Pharmacy",
+          "98": "Professional Physician Visit"
+        },
+        "inference_enabled": {
+          "use_provider_specialty": true,
+          "confidence_threshold": 0.85,
+          "log_inference_for_review": true
+        }
+      },
+      "avg_resolution_time_minutes": 6,
+      "escalation_rate": 0.03,
+      "user_feedback_score": 0.00,
+      "accuracy_of_suggested_resolution": 0.00
+    }
+  },
+  "overall_statistics": {
+    "total_unique_errors": 42,
+    "most_common_errors": [
+      {"rule_id": "D-RET-001", "count": 312},
+      {"rule_id": "E-ELG-001", "count": 234},
+      {"rule_id": "C-DX-003", "count": 189},
+      {"rule_id": "B-ELG-001", "count": 156},
+      {"rule_id": "P-NPI-003", "count": 127}
+    ],
+    "avg_resolution_time_all_errors_minutes": 24,
+    "overall_escalation_rate": 0.07,
+    "user_satisfaction_score": 4.3,
+    "intelligent_error_adoption_rate": 0.87
+  },
+  "learning_metrics": {
+    "prediction_accuracy_trend": [
+      {"month": "2024-01", "accuracy": 0.79},
+      {"month": "2024-02", "accuracy": 0.83},
+      {"month": "2024-03", "accuracy": 0.87}
+    ],
+    "confidence_calibration": {
+      "when_confidence_above_90": {"actual_accuracy": 0.94},
+      "when_confidence_70_to_90": {"actual_accuracy": 0.81},
+      "when_confidence_50_to_70": {"actual_accuracy": 0.64},
+      "when_confidence_below_50": {"actual_accuracy": 0.42}
+    },
+    "user_feedback_incorporated": {
+      "total_feedback_instances": 428,
+      "led_to_rule_adjustment": 67,
+      "led_to_confidence_adjustment": 142,
+      "led_to_new_pattern_identified": 23
+    }
+  }
+}

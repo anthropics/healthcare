@@ -1,0 +1,203 @@
+{
+  "metadata": {
+    "skill_version": "1.0.0",
+    "timestamp": "2024-03-15T14:40:00Z",
+    "transaction_type": "837P",
+    "subskill": "validation",
+    "input_file": "waypoints/intake.json",
+    "intelligent_errors_enabled": true
+  },
+  "transactions": [
+    {
+      "transaction_id": "CLM98765",
+      "status": "exception",
+      "data": {
+        "claim_id": "CLM98765",
+        "member_id": "MBR87654321",
+        "member_name": "SMITH, JANE K",
+        "provider_npi": "2345678901",
+        "provider_name": "MERCY HOSPITAL",
+        "service_date": "2024-03-05",
+        "total_charge": 5500.00,
+        "procedure_code": "99285",
+        "diagnosis_codes": ["I10", "E119"]
+      },
+      "validation": {
+        "errors": [
+          {
+            "rule_id": "E-ELG-001",
+            "severity": "error",
+            "field": "Service Date vs Coverage",
+            "message": "Member not eligible on service date",
+            "detail": "Member MBR87654321 coverage terminated 2024-03-01, service date 2024-03-05",
+            "remediation": "HUMAN REVIEW REQUIRED: Verify member eligibility; check for retroactive reinstatement; deny if confirmed ineligible",
+            "intelligent_error": {
+              "formatted_message": "❌ Member Not Eligible on Service Date\n\nQUICK DIAGNOSIS:\n  Member ID: MBR87654321\n  Name: SMITH, JANE K\n  Service Date: 2024-03-05\n  Coverage Status: Terminated\n  Termination Date: 2024-03-01 (4 days before service)\n  Plan: ACME HEALTH PLAN\n\nCONTEXT:\n  Claim Amount: $5,500.00\n  Service Type: Emergency Department Visit - High Severity\n  Procedure Code: 99285\n  Place of Service: 23 (Emergency Room - Hospital)\n  Provider: MERCY HOSPITAL (NPI: 2345678901)\n\nPOSSIBLE CAUSES:\n  1. ✓ Most likely: Member coverage actually terminated\n     - Common after: Employment termination, non-payment, voluntary drop\n     - Verify: Check member status in eligibility system\n     - Confidence: 60%\n\n  2. ⚠️ Possible: Retroactive termination error\n     - Pattern: Recent termination may be data entry error\n     - Verify: Check for pending 834 corrections\n     - Action: Contact employer group if suspicious\n     - Confidence: 25%\n\n  3. 🔍 Consider: Emergency services exception\n     - Detected: Service code 99285 indicates high-severity emergency care\n     - Rule: Emergency services often covered regardless of eligibility status\n     - Verify: Confirm emergency nature and apply state/plan exception rules\n     - Confidence: 15%\n\nSIMILAR CASES:\n  You've processed 23 similar eligibility exceptions this month:\n  - 15 denied - confirmed ineligible (65%)\n  - 6 approved after verification (26%)\n  - 2 emergency exceptions applied (9%)\n  \n  Top resolution: Denied for actual ineligibility\n\nNEXT STEPS:\n  1. Open eligibility system and search member ID: MBR87654321\n  2. Verify coverage dates and termination reason:\n     - If terminated for employment end → Likely valid denial\n     - If termed for non-payment → Check for reinstatement\n     - If administrative error → Flag for correction\n  3. Because this is emergency visit:\n     → Review your emergency services policy\n     → Check state mandates for emergency coverage\n     → Determine if exception overrides eligibility requirement\n  4. Final action:\n     If confirmed ineligible AND no emergency exception → Deny with reason code 27 (member not eligible)\n     If emergency exception applies → Approve with emergency benefit rules\n     If pending correction → Pend claim pending eligibility update\n     If uncertain → Escalate to Eligibility Specialist\n\nBUSINESS IMPACT:\n  Financial: $5,500.00 at risk\n  Member satisfaction: High - emergency services are sensitive\n  Provider: Hospital may have provided care in good faith\n  Timely filing: Claim received day 5 of 365-day limit (safe)\n\nREVIEW CHECKLIST: Checklist 1, Step 2\nESTIMATED TIME: 15-20 minutes\nESCALATE IF: Unclear eligibility status after system check OR emergency exception interpretation unclear\n\nLEARN MORE:\n  → Eligibility troubleshooting guide\n  → Emergency services policy\n  → State emergency mandate requirements",
+              "summary": "Member MBR87654321 coverage terminated 4 days before service date",
+              "context": {
+                "member_id": "MBR87654321",
+                "member_name": "SMITH, JANE K",
+                "service_date": "2024-03-05",
+                "term_date": "2024-03-01",
+                "days_difference": 4,
+                "claim_amount": 5500.00,
+                "service_type": "Emergency",
+                "procedure_code": "99285",
+                "procedure_description": "Emergency department visit - high severity",
+                "place_of_service": "23",
+                "provider_name": "MERCY HOSPITAL"
+              },
+              "possible_causes": [
+                {
+                  "rank": 1,
+                  "description": "Member coverage actually terminated",
+                  "likelihood": "most_likely",
+                  "confidence": 0.60,
+                  "indicator": "✓",
+                  "details": "Common after employment termination, non-payment, or voluntary drop",
+                  "action": "Verify in eligibility system"
+                },
+                {
+                  "rank": 2,
+                  "description": "Retroactive termination error awaiting correction",
+                  "likelihood": "possible",
+                  "confidence": 0.25,
+                  "indicator": "⚠️",
+                  "details": "Recent termination may be data entry error",
+                  "action": "Check for pending 834 corrections or contact employer"
+                },
+                {
+                  "rank": 3,
+                  "description": "Emergency services exception may apply",
+                  "likelihood": "consider",
+                  "confidence": 0.15,
+                  "indicator": "🔍",
+                  "details": "CPT 99285 indicates high-severity emergency care",
+                  "action": "Review emergency services policy and state mandates"
+                }
+              ],
+              "similar_cases": {
+                "total_count": 23,
+                "period": "this_month",
+                "resolutions": [
+                  {"outcome": "denied_ineligible", "count": 15, "percentage": 65},
+                  {"outcome": "approved_after_verification", "count": 6, "percentage": 26},
+                  {"outcome": "emergency_exception_applied", "count": 2, "percentage": 9}
+                ],
+                "top_resolution": "Denied for actual ineligibility"
+              },
+              "next_steps": [
+                {
+                  "step": 1,
+                  "action": "Open eligibility system and search member ID: MBR87654321",
+                  "type": "immediate"
+                },
+                {
+                  "step": 2,
+                  "action": "Verify coverage dates and termination reason",
+                  "type": "investigation",
+                  "decision_tree": [
+                    "If terminated for employment end → Likely valid denial",
+                    "If termed for non-payment → Check for reinstatement",
+                    "If administrative error → Flag for correction"
+                  ]
+                },
+                {
+                  "step": 3,
+                  "action": "Review emergency services policy due to emergency visit type",
+                  "type": "policy_check"
+                },
+                {
+                  "step": 4,
+                  "action": "Make final determination based on findings",
+                  "type": "decision",
+                  "options": [
+                    "Deny with reason code 27 if confirmed ineligible and no emergency exception",
+                    "Approve with emergency benefit rules if exception applies",
+                    "Pend claim if pending eligibility correction",
+                    "Escalate to Eligibility Specialist if uncertain"
+                  ]
+                }
+              ],
+              "business_impact": {
+                "financial_risk": 5500.00,
+                "member_satisfaction": "high",
+                "provider_impact": "hospital_good_faith_care",
+                "timely_filing_status": "safe",
+                "days_remaining": 360
+              },
+              "metadata": {
+                "estimated_resolution_time_minutes": 18,
+                "related_checklist": "Checklist 1, Step 2",
+                "escalation_criteria": "Unclear eligibility status after system check OR emergency exception interpretation unclear",
+                "who_handles": "Eligibility Specialist or Senior Claims Reviewer",
+                "priority": "high"
+              }
+            }
+          }
+        ],
+        "warnings": [
+          {
+            "rule_id": "B-CHG-002",
+            "severity": "warning",
+            "field": "CLM02",
+            "message": "High-dollar claim requires additional review",
+            "detail": "Charge amount $5,500.00 exceeds standard threshold",
+            "remediation": "Flag for high-dollar claims review per Checklist 2",
+            "intelligent_error": {
+              "formatted_message": "⚠️ High-Dollar Claim Detected\n\nQUICK DIAGNOSIS:\n  Claim Amount: $5,500.00\n  Threshold: $5,000.00 (institutional), $2,500.00 (professional)\n  Overage: $500.00 above threshold\n  Service Type: Emergency department visit\n\nCONTEXT:\n  Procedure: 99285 (Emergency department visit - high severity)\n  Units: 1\n  Average charge for 99285: $3,200 - $4,800\n  This charge: $5,500.00 (high end of range)\n  Provider: MERCY HOSPITAL\n\nANALYSIS:\n  🟡 Charge is above threshold but within reasonable range for this service\n  - Typical 99285 charges: $3,200 - $4,800\n  - This claim: $5,500.00 (115% of high end)\n  - May reflect facility fees, supplies, or geographic variation\n\nPOSSIBLE REASONS FOR HIGH CHARGE:\n  1. ✓ Geographic location (high-cost area)\n  2. ⚠️ Facility fees and supplies included\n  3. 🔍 Complexity of emergency visit justified higher charge\n  4. 💡 Less likely: Upcoding or billing error\n\nPROVIDER PATTERN:\n  MERCY HOSPITAL (NPI: 2345678901) historical charges:\n  - Average 99285 charge: $4,200\n  - This claim: $5,500 (131% of provider's average)\n  - Pattern: Slightly higher than provider's norm\n\nNEXT STEPS:\n  1. Review charge is reasonable for emergency visit complexity\n  2. Verify no unbundling or duplicate charges\n  3. Apply Checklist 2: High-Dollar Claims Review\n  4. If charges justified → Process normally\n     If charges excessive → Request itemized bill or adjust\n\nESTIMATED TIME: +5 minutes for high-dollar review\nREQUIRES: Manager notification (claims >$5,000)",
+              "summary": "Claim amount $5,500 exceeds $5,000 threshold",
+              "context": {
+                "claim_amount": 5500.00,
+                "threshold": 5000.00,
+                "overage": 500.00,
+                "procedure_code": "99285",
+                "typical_range_low": 3200,
+                "typical_range_high": 4800,
+                "provider_average": 4200
+              },
+              "assessment": {
+                "risk_level": "medium",
+                "within_reasonable_range": true,
+                "percentage_of_typical": 115,
+                "percentage_of_provider_norm": 131
+              },
+              "next_steps": [
+                "Review charge reasonableness",
+                "Verify no unbundling",
+                "Apply Checklist 2",
+                "Notify manager per policy"
+              ],
+              "metadata": {
+                "estimated_additional_time_minutes": 5,
+                "requires_manager_notification": true,
+                "related_checklist": "Checklist 2"
+              }
+            }
+          }
+        ],
+        "info": [
+          {
+            "rule_id": "C-CPT-001",
+            "severity": "info",
+            "field": "SV101-2",
+            "message": "Emergency department visit code detected",
+            "detail": "CPT 99285 - Emergency department visit, high severity",
+            "remediation": "Verify if emergency services exception applies to eligibility issue",
+            "intelligent_error": {
+              "formatted_message": "ℹ️ Emergency Services Detected\n\nService code 99285 indicates this is a high-severity emergency department visit.\n\nIMPLICATIONS:\n  ✓ May override normal prior authorization requirements\n  ✓ May trigger emergency services coverage exception\n  ✓ Different cost-sharing rules may apply\n  ✓ State mandates may require coverage regardless of network status\n\nRELEVANCE TO OTHER ISSUES:\n  - Eligibility issue (E-ELG-001): Emergency exception may apply\n  - Consider emergency services policy when making final determination\n\nNO ACTION REQUIRED - Informational only",
+              "summary": "Emergency department visit detected - may affect eligibility determination"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "total_count": 1,
+    "pass_count": 0,
+    "warning_count": 0,
+    "exception_count": 1,
+    "intelligent_errors_generated": 3
+  }
+}

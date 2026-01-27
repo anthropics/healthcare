@@ -1,0 +1,128 @@
+{
+  "metadata": {
+    "skill_version": "1.0.0",
+    "timestamp": "2024-03-15T14:35:00Z",
+    "transaction_type": "837P",
+    "subskill": "intake",
+    "input_file": "claim_sample_837P.txt"
+  },
+  "transactions": [
+    {
+      "transaction_id": "CLM12345",
+      "control_number": "0001",
+      "status": "parsed",
+      "data": {
+        "envelope": {
+          "isa_control_number": "000000001",
+          "gs_control_number": "1",
+          "st_control_number": "0001",
+          "sender_id": "SUBMITTER001",
+          "receiver_id": "PAYER001",
+          "transmission_date": "2024-03-15",
+          "transmission_time": "1430"
+        },
+        "claim": {
+          "claim_id": "CLM12345",
+          "patient_control_number": "CLM12345",
+          "total_charge_amount": 150.00,
+          "claim_type": "professional",
+          "place_of_service": "11",
+          "service_date": "2024-03-10"
+        },
+        "subscriber": {
+          "relationship": "self",
+          "member_id": "MBR12345678",
+          "last_name": "DOE",
+          "first_name": "JOHN",
+          "middle_initial": "M",
+          "date_of_birth": "1980-05-15",
+          "gender": "M",
+          "address": {
+            "street": "456 OAK AVENUE",
+            "city": "ANYTOWN",
+            "state": "CA",
+            "zip": "90210"
+          }
+        },
+        "patient": {
+          "same_as_subscriber": true
+        },
+        "billing_provider": {
+          "organization_name": "SMITH FAMILY PRACTICE",
+          "npi": "1234567890",
+          "tax_id": "123456789",
+          "address": {
+            "street": "123 MAIN STREET",
+            "city": "ANYTOWN",
+            "state": "CA",
+            "zip": "90210"
+          }
+        },
+        "rendering_provider": {
+          "last_name": "JONES",
+          "first_name": "SARAH",
+          "middle_initial": "A",
+          "npi": "0987654321",
+          "specialty_code": "207R00000X",
+          "specialty_description": "Internal Medicine"
+        },
+        "payer": {
+          "name": "ACME HEALTH PLAN",
+          "payer_id": "PAYER001"
+        },
+        "diagnoses": [
+          {
+            "code": "Z1234",
+            "code_type": "ABK",
+            "description": "Principal Diagnosis (placeholder)",
+            "pointer": 1
+          },
+          {
+            "code": "Z5678",
+            "code_type": "ABF",
+            "description": "Secondary Diagnosis (placeholder)",
+            "pointer": 2
+          }
+        ],
+        "service_lines": [
+          {
+            "line_number": 1,
+            "procedure_code": "99213",
+            "procedure_description": "Office/outpatient visit est",
+            "charge_amount": 100.00,
+            "units": 1,
+            "service_date": "2024-03-10",
+            "diagnosis_pointers": [1]
+          },
+          {
+            "line_number": 2,
+            "procedure_code": "80053",
+            "procedure_description": "Comprehensive metabolic panel",
+            "charge_amount": 50.00,
+            "units": 1,
+            "service_date": "2024-03-10",
+            "diagnosis_pointers": [1]
+          }
+        ]
+      },
+      "validation": {
+        "errors": [],
+        "warnings": [],
+        "info": [
+          {
+            "rule_id": "S-ENV-001",
+            "severity": "info",
+            "field": "ISA",
+            "message": "ISA segment present and valid",
+            "detail": "Envelope structure validated successfully"
+          }
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "total_count": 1,
+    "parsed_count": 1,
+    "error_count": 0
+  }
+}

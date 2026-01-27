@@ -1,0 +1,388 @@
+================================================================================
+EDI CLAIMS REVIEW WITH INTELLIGENT ERROR MESSAGES
+================================================================================
+
+Generated: 2024-03-15 14:45:00 UTC
+Input File: claim_sample_837P_exception.txt
+Transaction Type: 837P (Professional Claims)
+Intelligent Errors: ENABLED
+Skill Version: 1.0.0
+
+================================================================================
+EXECUTIVE SUMMARY
+================================================================================
+
+Total Claims Processed: 1
+  - Exception (Human Review Needed): 1 (100.0%)
+
+Total Charges: $5,500.00
+  - Exception Claims Total: $5,500.00
+
+================================================================================
+EXCEPTION #1: MEMBER ELIGIBILITY ISSUE
+================================================================================
+
+Claim ID: CLM98765
+Control Number: 0002
+Priority: HIGH 🔴
+Status: EXCEPTION - HUMAN REVIEW REQUIRED
+
+--------------------------------------------------------------------------------
+❌ Member Not Eligible on Service Date
+--------------------------------------------------------------------------------
+
+QUICK DIAGNOSIS:
+  Member ID: MBR87654321
+  Name: SMITH, JANE K
+  Service Date: 2024-03-05
+  Coverage Status: Terminated
+  Termination Date: 2024-03-01 (4 days before service)
+  Plan: ACME HEALTH PLAN
+
+CONTEXT:
+  Claim Amount: $5,500.00
+  Service Type: Emergency Department Visit - High Severity
+  Procedure Code: 99285
+  Place of Service: 23 (Emergency Room - Hospital)
+  Provider: MERCY HOSPITAL (NPI: 2345678901)
+  Diagnosis: I10 (Essential hypertension), E119 (Type 2 diabetes mellitus)
+
+POSSIBLE CAUSES:
+
+  1. ✓ Most likely: Member coverage actually terminated
+     Confidence: 60%
+
+     Common after: Employment termination, non-payment, voluntary drop
+
+     Verify: Check member status in eligibility system
+
+     What to look for:
+     - Termination reason code
+     - Employment end date alignment
+     - Premium payment history
+     - COBRA election status
+
+  2. ⚠️ Possible: Retroactive termination error
+     Confidence: 25%
+
+     Pattern: Recent termination may be data entry error
+
+     Why this matters: Only 4 days between termination and service date
+     - Could be accidental early termination
+     - May be pending correction in next 834 file
+
+     Action: Check for pending 834 corrections or contact employer
+
+     Red flags indicating error:
+     - No employment termination record
+     - Member believes they have coverage
+     - Recent retroactive corrections from this employer
+
+  3. 🔍 Consider: Emergency services exception may apply
+     Confidence: 15%
+
+     Detected: Service code 99285 indicates high-severity emergency care
+
+     Rule: Emergency services often covered regardless of eligibility status
+     - EMTALA requirements mandate stabilization treatment
+     - Many states require coverage of emergency services
+     - Member may not have had choice of provider
+
+     Verify: Confirm emergency nature and apply state/plan exception rules
+
+     What constitutes an emergency:
+     - Sudden onset of severe symptoms
+     - Prudent layperson standard
+     - Life or limb threatening condition
+     - Documentation in medical record
+
+SIMILAR CASES:
+
+  📊 You've processed 23 similar eligibility exceptions this month:
+
+  Resolution breakdown:
+  - 15 denied - confirmed ineligible (65%)
+  - 6 approved after verification (26%)
+  - 2 emergency exceptions applied (9%)
+
+  Top resolution: Denied for actual ineligibility
+
+  Pattern insight: Emergency exception applied in 9% of cases when proper
+  documentation and state requirements confirmed
+
+NEXT STEPS:
+
+  Step 1: IMMEDIATE - Verify eligibility in system
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ Action: Open eligibility system and search member ID: MBR87654321│
+  │ Time: 3-5 minutes                                                │
+  │                                                                  │
+  │ What to check:                                                   │
+  │ ✓ Current coverage status                                        │
+  │ ✓ Termination date and reason                                    │
+  │ ✓ Any pending reinstatement                                      │
+  │ ✓ COBRA election status                                          │
+  │ ✓ Appeals or corrections in process                              │
+  └─────────────────────────────────────────────────────────────────┘
+
+  Step 2: INVESTIGATION - Analyze termination reason
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ Decision tree:                                                   │
+  │                                                                  │
+  │ IF terminated for employment end                                 │
+  │   → Likely valid denial                                          │
+  │   → Proceed to Step 3 (emergency check)                          │
+  │                                                                  │
+  │ IF termed for non-payment                                        │
+  │   → Check for reinstatement                                      │
+  │   → Contact member services for payment status                   │
+  │                                                                  │
+  │ IF administrative error                                          │
+  │   → Flag for correction                                          │
+  │   → Pend claim pending 834 correction                            │
+  └─────────────────────────────────────────────────────────────────┘
+
+  Step 3: POLICY CHECK - Emergency services exception
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ Because this is an emergency visit (CPT 99285):                  │
+  │                                                                  │
+  │ Actions required:                                                │
+  │ ✓ Review your emergency services policy                          │
+  │ ✓ Check state mandates for emergency coverage                    │
+  │ ✓ Determine if exception overrides eligibility requirement       │
+  │                                                                  │
+  │ Key questions:                                                   │
+  │ - Does your plan cover emergency services for termed members?    │
+  │ - What is the timeframe for emergency exception (30 days, etc.)? │
+  │ - Does state law mandate emergency coverage?                     │
+  │                                                                  │
+  │ If yes to any → Exception may apply, proceed to medical review   │
+  └─────────────────────────────────────────────────────────────────┘
+
+  Step 4: DECISION - Final determination
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ Option A: Deny claim (if confirmed ineligible, no exception)     │
+  │   → Use reason code 27 (member not eligible on date of service)  │
+  │   → Generate provider correspondence                             │
+  │   → Member responsible for charges                               │
+  │   → Document decision thoroughly                                 │
+  │                                                                  │
+  │ Option B: Approve with emergency benefits (if exception applies) │
+  │   → Apply emergency benefit rules and cost-sharing               │
+  │   → Document emergency exception used                            │
+  │   → May require medical review of emergency nature               │
+  │   → Process with special handling code                           │
+  │                                                                  │
+  │ Option C: Pend claim (if pending eligibility correction)         │
+  │   → Await 834 correction from employer                           │
+  │   → Set follow-up date (recommend 14 days)                       │
+  │   → Monitor timely filing deadline                               │
+  │                                                                  │
+  │ Option D: Escalate (if uncertain)                                │
+  │   → Forward to Eligibility Specialist                            │
+  │   → Attach all research and findings                             │
+  │   → Flag for manager review if needed                            │
+  └─────────────────────────────────────────────────────────────────┘
+
+BUSINESS IMPACT:
+
+  💰 Financial Risk: $5,500.00
+
+  Member Satisfaction: HIGH IMPACT
+  - Emergency services are highly sensitive
+  - Denial may cause member hardship
+  - Could result in member complaint or appeal
+  - Provider relations may be affected
+
+  Provider Impact: Hospital provided care in good faith
+  - Provider may have verified eligibility at time of service
+  - Retroactive denial creates collection challenges
+  - May affect future provider relations
+
+  Timely Filing: SAFE ✓
+  - Claim received day 5 of 365-day limit
+  - 360 days remaining to resolve
+  - No urgency from filing deadline perspective
+
+REVIEW REQUIREMENTS:
+
+  ✓ Checklist: Checklist 1, Step 2 (Member Eligibility Verification)
+  ✓ Estimated Time: 15-20 minutes total
+    - Eligibility check: 5 min
+    - Investigation: 5-7 min
+    - Policy review: 3-5 min
+    - Decision & documentation: 2-3 min
+
+  ⚠️ Escalate if:
+    - Eligibility status unclear after system check
+    - Emergency exception interpretation uncertain
+    - Conflicting information from employer vs. system
+    - High potential for member complaint
+
+  👤 Typically handled by:
+    - Eligibility Specialist (preferred)
+    - Senior Claims Reviewer
+    - May require Medical Director input for emergency determination
+
+--------------------------------------------------------------------------------
+⚠️ High-Dollar Claim Detected (Non-blocking warning)
+--------------------------------------------------------------------------------
+
+QUICK DIAGNOSIS:
+  Claim Amount: $5,500.00
+  Threshold: $5,000.00 (institutional), $2,500.00 (professional)
+  Overage: $500.00 above threshold
+  Service Type: Emergency department visit
+
+CONTEXT:
+  Procedure: 99285 (Emergency department visit - high severity)
+  Units: 1
+  Average charge for 99285: $3,200 - $4,800 nationwide
+  This charge: $5,500.00 (high end of range, +15%)
+  Provider: MERCY HOSPITAL
+
+CHARGE ANALYSIS:
+
+  🟡 MEDIUM CONCERN: Charge is above threshold but within reasonable range
+
+  Comparison to benchmarks:
+  - Typical 99285 charges: $3,200 - $4,800
+  - This claim: $5,500.00 (115% of high end)
+  - May reflect facility fees, supplies, or geographic variation
+
+  Provider historical pattern:
+  - MERCY HOSPITAL average 99285 charge: $4,200
+  - This claim: $5,500 (131% of provider's average)
+  - Interpretation: Slightly higher than this provider's norm
+
+  💡 Higher charge may be justified by:
+  - Emergency complexity (high severity level)
+  - Geographic location (high-cost metro area)
+  - Facility fees and emergency supplies included
+  - After-hours or weekend services
+
+RECOMMENDED ACTIONS:
+
+  Since charge is within reasonable range:
+
+  1. Apply standard high-dollar review (Checklist 2)
+     - Verify no unbundling of services
+     - Confirm no duplicate charges
+     - Check modifier usage is appropriate
+
+  2. Manager notification required (claims >$5,000)
+     - Per policy, claims over $5,000 require manager awareness
+     - No manager approval needed if otherwise valid
+
+  3. Process normally if eligibility resolved
+     - High charge alone is not grounds for denial
+     - Apply contracted rate or usual & customary if higher
+
+  4. Request itemized bill only if:
+     - Charge exceeds $7,500 OR
+     - 150%+ of provider average OR
+     - Other suspicious indicators present
+
+ESTIMATED ADDITIONAL TIME: +5 minutes for high-dollar review
+ACTION REQUIRED: Notify claims manager per policy
+
+--------------------------------------------------------------------------------
+ℹ️ Emergency Services Detected (Informational)
+--------------------------------------------------------------------------------
+
+Service code 99285 indicates this is a high-severity emergency department visit.
+
+IMPLICATIONS FOR THIS CLAIM:
+
+  ✓ May override normal prior authorization requirements
+  ✓ May trigger emergency services coverage exception
+  ✓ Different cost-sharing rules may apply
+  ✓ State mandates may require coverage regardless of network status
+
+RELEVANCE TO OTHER ISSUES:
+
+  Connects to Eligibility Issue (E-ELG-001):
+  - Emergency exception may override member ineligibility
+  - Review emergency services policy during eligibility review
+  - Consider state emergency mandate requirements
+
+  Connects to High-Dollar Warning (B-CHG-002):
+  - Emergency visits typically have higher charges
+  - Complexity of emergency visit may justify $5,500 charge
+  - Emergency cost-sharing rules may differ from standard
+
+ACTION: Consider emergency context when making final determination
+
+NO IMMEDIATE ACTION REQUIRED - Informational only
+
+================================================================================
+DECISION WORKSPACE
+================================================================================
+
+Reviewer: ____________________________  Date: _______________  Time: _______
+
+Eligibility System Research:
+  Member status found: [ ] Active  [ ] Terminated  [ ] Other: ______________
+  Termination reason: ___________________________________________________
+  COBRA elected: [ ] Yes  [ ] No  [ ] N/A
+  Pending corrections: [ ] Yes  [ ] No
+  Notes: ________________________________________________________________
+  ________________________________________________________________________
+
+Emergency Exception Analysis:
+  Emergency services policy allows exception: [ ] Yes  [ ] No  [ ] Unclear
+  State mandate requires coverage: [ ] Yes  [ ] No  [ ] N/A
+  Timeframe within exception period: [ ] Yes  [ ] No
+  Medical documentation supports emergency: [ ] Yes  [ ] No  [ ] Not reviewed
+  Notes: ________________________________________________________________
+  ________________________________________________________________________
+
+Final Determination:
+  [ ] DENY - Member not eligible, no exception applies
+      Reason code: ___  Denial letter: [ ] Generated
+
+  [ ] APPROVE - Emergency exception applied
+      Emergency benefit tier: _______  Special handling code: _______
+
+  [ ] PEND - Awaiting eligibility correction
+      Follow-up date: _______________  Days to follow up: _______
+
+  [ ] ESCALATE - Unable to determine, escalating to: __________________
+
+Total Resolution Time: ________ minutes
+
+Manager Review (if required for high-dollar):
+  Manager: ____________________________  Date: _______________
+  [ ] Approved  [ ] Requires additional review  [ ] Escalate
+
+================================================================================
+LEARNING NOTES
+================================================================================
+
+What worked well in this review:
+________________________________________________________________________________
+
+What could be improved:
+________________________________________________________________________________
+
+Suggestions for rule refinement:
+________________________________________________________________________________
+
+================================================================================
+END OF INTELLIGENT ERROR REPORT
+================================================================================
+
+💡 TIP: Use the decision tree in Step 2 to systematically evaluate eligibility
+        issues. Document each decision point for audit trail.
+
+📚 RESOURCES:
+   - Eligibility troubleshooting guide: [Internal link]
+   - Emergency services policy: [Internal link]
+   - State emergency mandate requirements: [Internal link]
+   - Member services contact for COBRA questions: [Phone/email]
+
+⚡ QUICK ACTIONS:
+   - Search member: eligibility.system/member/MBR87654321
+   - View provider: provider.directory/npi/2345678901
+   - Policy lookup: policies/emergency-services
+   - Manager notify: Auto-email sent for $5,500+ claim

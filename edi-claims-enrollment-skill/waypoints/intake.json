@@ -1,0 +1,128 @@
+{
+  "metadata": {
+    "transaction_type": "837P",
+    "transaction_name": "Professional Claim",
+    "source_file": "claim_sample_837P_exception.txt",
+    "processed_timestamp": "2026-01-26T10:30:00Z",
+    "interchange_control_number": "000000002",
+    "group_control_number": "2",
+    "transaction_control_number": "0002",
+    "trading_partner_sender": "SUBMITTER001",
+    "trading_partner_receiver": "PAYER001",
+    "transmission_date": "2024-03-15",
+    "total_claims": 1
+  },
+  "envelope_validation": {
+    "isa_valid": true,
+    "gs_valid": true,
+    "st_valid": true,
+    "segment_counts_match": true,
+    "control_numbers_match": true,
+    "issues": []
+  },
+  "claims": [
+    {
+      "claim_id": "CLM98765",
+      "transaction_control_number": "0002",
+      "claim_filing_indicator": "CI",
+      "claim_frequency_code": "1",
+      "patient_control_number": "CLM98765",
+
+      "billing_provider": {
+        "organization_name": "MERCY HOSPITAL",
+        "npi": "2345678901",
+        "tax_id": "987654321",
+        "address": {
+          "street": "789 HOSPITAL DRIVE",
+          "city": "BIGCITY",
+          "state": "CA",
+          "zip": "90211"
+        }
+      },
+
+      "subscriber": {
+        "entity_type": "Person",
+        "last_name": "SMITH",
+        "first_name": "JANE",
+        "middle_name": "K",
+        "member_id": "MBR87654321",
+        "date_of_birth": "1975-08-20",
+        "gender": "F",
+        "relationship_to_subscriber": "Self",
+        "address": {
+          "street": "789 ELM STREET",
+          "city": "BIGCITY",
+          "state": "CA",
+          "zip": "90211"
+        }
+      },
+
+      "payer": {
+        "organization_name": "ACME HEALTH PLAN",
+        "payer_id": "PAYER001",
+        "payer_responsibility": "Primary"
+      },
+
+      "claim_information": {
+        "total_claim_charge": 5500.00,
+        "place_of_service": "21",
+        "claim_type": "Professional",
+        "provider_signature_on_file": "Y",
+        "provider_accept_assignment": "A",
+        "benefits_assignment_certified": "Y",
+        "release_of_info_certified": "Y"
+      },
+
+      "service_dates": {
+        "onset_date": "2024-03-05",
+        "service_date_start": "2024-03-05",
+        "service_date_end": "2024-03-05"
+      },
+
+      "diagnosis_codes": [
+        {
+          "code": "I10",
+          "type": "ABK",
+          "description": "Essential (primary) hypertension"
+        },
+        {
+          "code": "E119",
+          "type": "ABF",
+          "description": "Type 2 diabetes mellitus without complications"
+        }
+      ],
+
+      "rendering_provider": {
+        "entity_type": "Person",
+        "last_name": "WILLIAMS",
+        "first_name": "ROBERT",
+        "middle_name": "D",
+        "npi": "3456789012",
+        "taxonomy_code": "207Q00000X",
+        "provider_type": "Family Medicine"
+      },
+
+      "service_lines": [
+        {
+          "line_number": 1,
+          "procedure_code": "99285",
+          "procedure_type": "HC",
+          "procedure_description": "Emergency department visit - High Severity",
+          "line_item_charge": 5500.00,
+          "unit_of_measure": "UN",
+          "quantity": 1.0,
+          "diagnosis_code_pointers": ["1", "2"],
+          "service_date": "2024-03-05",
+          "place_of_service": "21"
+        }
+      ],
+
+      "submitter": {
+        "organization_name": "ABC MEDICAL BILLING",
+        "submitter_id": "SUBMITTER001",
+        "contact_name": "CONTACT NAME",
+        "contact_phone": "8005551234"
+      }
+    }
+  ]
+}

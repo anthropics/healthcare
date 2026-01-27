@@ -1,0 +1,133 @@
+{
+  "metadata": {
+    "skill_version": "1.0.0",
+    "timestamp": "2024-03-15T13:20:00Z",
+    "transaction_type": "834",
+    "subskill": "validation",
+    "input_file": "waypoints/intake.json"
+  },
+  "transactions": [
+    {
+      "transaction_id": "ENROLL001-SUB1001",
+      "status": "pass",
+      "data": {
+        "member_id": "SUB1001",
+        "member_name": "JOHNSON, ROBERT L",
+        "group_number": "GROUP12345",
+        "effective_date": "2024-04-01",
+        "maintenance_type": "021"
+      },
+      "validation": {
+        "errors": [],
+        "warnings": [],
+        "info": [
+          {
+            "rule_id": "B-GRP-001",
+            "severity": "info",
+            "field": "Group Number",
+            "message": "Group contract verified and active",
+            "detail": "Group GROUP12345 is active with contract dates 2024-01-01 to 2024-12-31",
+            "remediation": "None - group validated"
+          },
+          {
+            "rule_id": "D-EFF-005",
+            "severity": "info",
+            "field": "DTP*348",
+            "message": "Effective date is 1st of month",
+            "detail": "Standard enrollment cycle detected",
+            "remediation": "None - standard enrollment"
+          }
+        ]
+      }
+    },
+    {
+      "transaction_id": "ENROLL002-SUB2001",
+      "status": "exception",
+      "data": {
+        "member_id": "SUB2001",
+        "member_name": "MARTINEZ, CARLOS J",
+        "group_number": "GROUP67890",
+        "effective_date": "2023-12-01",
+        "maintenance_type": "021"
+      },
+      "validation": {
+        "errors": [],
+        "warnings": [
+          {
+            "rule_id": "D-RET-001",
+            "severity": "warning",
+            "field": "Effective Date",
+            "message": "Effective date is retroactive (> 90 days in past)",
+            "detail": "Effective date 2023-12-01 is 105 days before transaction date 2024-03-15",
+            "remediation": "HUMAN REVIEW REQUIRED: Verify retroactive enrollment is allowed; check for prior claims to reprocess"
+          },
+          {
+            "rule_id": "D-RET-004",
+            "severity": "warning",
+            "field": "Retroactive Period",
+            "message": "Retroactive enrollment > 90 days",
+            "detail": "High-risk retroactive enrollment requiring escalation",
+            "remediation": "Apply Checklist 5: Retroactive Enrollment Changes Review"
+          }
+        ],
+        "info": [
+          {
+            "rule_id": "B-GRP-002",
+            "severity": "info",
+            "field": "Effective Date vs Group",
+            "message": "Effective date within group contract dates",
+            "detail": "Group contract covers period from 2023-07-01 to 2024-06-30",
+            "remediation": "None - dates align with contract"
+          },
+          {
+            "rule_id": "V-PCP-001",
+            "severity": "info",
+            "field": "NM1*P3",
+            "message": "PCP assignment provided for HMO plan",
+            "detail": "PCP NPI 4567890123 assigned with effective date 2023-12-01",
+            "remediation": "Verify PCP is in-network and accepting patients"
+          }
+        ]
+      }
+    },
+    {
+      "transaction_id": "ENROLL002-DEP2001",
+      "status": "warning",
+      "data": {
+        "member_id": "DEP2001",
+        "member_name": "MARTINEZ, SOPHIA L",
+        "group_number": "GROUP67890",
+        "effective_date": "2023-12-01",
+        "relationship": "Child"
+      },
+      "validation": {
+        "errors": [],
+        "warnings": [
+          {
+            "rule_id": "B-ELG-001",
+            "severity": "warning",
+            "field": "Dependent Age",
+            "message": "Dependent approaching age limit",
+            "detail": "Dependent DOB 2000-03-25, age 23 years, 11 months. Standard dependent age limit is 26.",
+            "remediation": "Monitor for age-out; verify student or disabled status if needed in future"
+          },
+          {
+            "rule_id": "D-RET-001",
+            "severity": "warning",
+            "field": "Effective Date",
+            "message": "Effective date is retroactive (> 90 days in past)",
+            "detail": "Effective date 2023-12-01 is 105 days before transaction date 2024-03-15",
+            "remediation": "HUMAN REVIEW REQUIRED: Same retroactive issue as subscriber"
+          }
+        ],
+        "info": []
+      }
+    }
+  ],
+  "summary": {
+    "total_count": 3,
+    "pass_count": 1,
+    "warning_count": 1,
+    "exception_count": 1
+  }
+}

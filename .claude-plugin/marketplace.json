@@ -43,6 +43,17 @@
       ]
     },
     {
+      "name": "edi-claims-enrollment",
+      "source": "./",
+      "description": "Review, validate, and pre-process EDI X12 837/834/270/271/276/277 transactions with intelligent error messages and human-review-ready summaries",
+      "category": "healthcare",
+      "tags": ["edi", "claims", "enrollment", "x12", "healthcare-payers", "validation"],
+      "strict": false,
+      "skills": [
+        "./edi-claims-enrollment-skill"
+      ]
+    },
+    {
       "name": "cms-coverage",
       "source": "./cms-coverage",
       "description": "Access the CMS Coverage Database",

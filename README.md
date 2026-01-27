@@ -12,6 +12,7 @@ Skills for healthcare workflows including clinical trials, prior authorization r
 /plugin install fhir-developer@healthcare
 /plugin install prior-auth-review@healthcare
 /plugin install clinical-trial-protocol@healthcare
+/plugin install edi-claims-enrollment@healthcare
 ```
 
 ## Available Skills
@@ -20,6 +21,15 @@ Skills for healthcare workflows including clinical trials, prior authorization r
 **Plugin ID**: `fhir-developer@healthcare`
 
 Connect healthcare systems faster with specialized knowledge of HL7 FHIR R4 for healthcare data exchange, including resource structures, coding systems (LOINC, SNOMED CT, RxNorm), and validation patterns.
+
+**Requirements**: None
+
+---
+
+### EDI Claims and Enrollment Review
+**Plugin ID**: `edi-claims-enrollment@healthcare`
+
+Automate EDI transaction review for healthcare payer organizations. Review, validate, and pre-process X12 837 (Claims), 834 (Enrollment), 270/271 (Eligibility), and 276/277 (Claim Status) transactions with 265+ validation rules, error messages, and human-review-ready summaries.
 
 **Requirements**: None
 
