@@ -1,0 +1,203 @@
+{
+  "metadata": {
+    "skill_version": "1.0.0",
+    "timestamp": "2024-03-15T12:15:00Z",
+    "transaction_type": "834",
+    "subskill": "intake",
+    "input_file": "enrollment_sample_834.txt"
+  },
+  "transactions": [
+    {
+      "transaction_id": "ENROLL001-SUB1001",
+      "member_type": "subscriber",
+      "control_number": "0001",
+      "status": "parsed",
+      "data": {
+        "envelope": {
+          "isa_control_number": "000000101",
+          "gs_control_number": "101",
+          "st_control_number": "0001",
+          "sender_id": "EMPLOYER001",
+          "receiver_id": "PAYER001",
+          "transmission_date": "2024-03-15",
+          "transmission_time": "1200"
+        },
+        "transaction_header": {
+          "transaction_type": "00",
+          "reference_id": "ENROLL001",
+          "transaction_date": "2024-03-15"
+        },
+        "group_info": {
+          "group_number": "GROUP12345",
+          "sponsor_name": "ACME CORPORATION",
+          "payer_name": "ACME HEALTH PLAN",
+          "payer_tax_id": "123456789"
+        },
+        "member": {
+          "member_indicator": "Y",
+          "relationship_code": "18",
+          "relationship_description": "Self",
+          "maintenance_type": "021",
+          "maintenance_description": "Addition",
+          "maintenance_reason": null,
+          "employment_status": "FT",
+          "subscriber_id": "SUB1001",
+          "member_id": "SUB1001",
+          "group_number": "GROUP12345"
+        },
+        "demographics": {
+          "last_name": "JOHNSON",
+          "first_name": "ROBERT",
+          "middle_initial": "L",
+          "date_of_birth": "1985-06-01",
+          "gender": "M",
+          "ssn": null
+        },
+        "contact_info": {
+          "phone": "5551234567",
+          "email": "RJOHNSON@EMAIL.COM",
+          "address": {
+            "street": "123 MAPLE STREET",
+            "city": "HOMETOWN",
+            "state": "TX",
+            "zip": "75001"
+          }
+        },
+        "coverage": [
+          {
+            "maintenance_type": "021",
+            "insurance_line_code": "HLT",
+            "coverage_description": "GOLD PPO",
+            "effective_date": "2024-04-01",
+            "termination_date": null,
+            "group_number": "GROUP12345",
+            "plan_id": "PLAN001"
+          }
+        ],
+        "provider_assignment": null
+      },
+      "validation": {
+        "errors": [],
+        "warnings": [],
+        "info": [
+          {
+            "rule_id": "S-ENV-001",
+            "severity": "info",
+            "field": "ISA",
+            "message": "ISA segment present and valid",
+            "detail": "Envelope structure validated successfully"
+          }
+        ]
+      }
+    },
+    {
+      "transaction_id": "ENROLL001-DEP1001",
+      "member_type": "dependent",
+      "control_number": "0001",
+      "status": "parsed",
+      "data": {
+        "member": {
+          "member_indicator": "N",
+          "relationship_code": "01",
+          "relationship_description": "Spouse",
+          "maintenance_type": "021",
+          "maintenance_description": "Addition",
+          "employment_status": "PT",
+          "subscriber_id": "SUB1001",
+          "member_id": "DEP1001",
+          "group_number": "GROUP12345"
+        },
+        "demographics": {
+          "last_name": "JOHNSON",
+          "first_name": "MARY",
+          "middle_initial": "A",
+          "date_of_birth": "1987-04-15",
+          "gender": "F",
+          "ssn": null
+        },
+        "contact_info": {
+          "address": {
+            "street": "123 MAPLE STREET",
+            "city": "HOMETOWN",
+            "state": "TX",
+            "zip": "75001"
+          }
+        },
+        "coverage": [
+          {
+            "maintenance_type": "021",
+            "insurance_line_code": "HLT",
+            "coverage_description": "GOLD PPO",
+            "effective_date": "2024-04-01",
+            "termination_date": null,
+            "group_number": "GROUP12345",
+            "plan_id": "PLAN001"
+          }
+        ]
+      },
+      "validation": {
+        "errors": [],
+        "warnings": [],
+        "info": []
+      }
+    },
+    {
+      "transaction_id": "ENROLL001-DEP1002",
+      "member_type": "dependent",
+      "control_number": "0001",
+      "status": "parsed",
+      "data": {
+        "member": {
+          "member_indicator": "N",
+          "relationship_code": "19",
+          "relationship_description": "Child",
+          "maintenance_type": "021",
+          "maintenance_description": "Addition",
+          "employment_status": null,
+          "subscriber_id": "SUB1001",
+          "member_id": "DEP1002",
+          "group_number": "GROUP12345"
+        },
+        "demographics": {
+          "last_name": "JOHNSON",
+          "first_name": "EMILY",
+          "middle_initial": "R",
+          "date_of_birth": "2010-09-20",
+          "gender": "F",
+          "ssn": null
+        },
+        "contact_info": {
+          "address": {
+            "street": "123 MAPLE STREET",
+            "city": "HOMETOWN",
+            "state": "TX",
+            "zip": "75001"
+          }
+        },
+        "coverage": [
+          {
+            "maintenance_type": "021",
+            "insurance_line_code": "HLT",
+            "coverage_description": "GOLD PPO",
+            "effective_date": "2024-04-01",
+            "termination_date": null,
+            "group_number": "GROUP12345",
+            "plan_id": "PLAN001"
+          }
+        ]
+      },
+      "validation": {
+        "errors": [],
+        "warnings": [],
+        "info": []
+      }
+    }
+  ],
+  "summary": {
+    "total_count": 3,
+    "parsed_count": 3,
+    "error_count": 0,
+    "subscriber_count": 1,
+    "dependent_count": 2
+  }
+}

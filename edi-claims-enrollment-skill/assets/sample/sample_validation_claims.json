@@ -1,0 +1,102 @@
+{
+  "metadata": {
+    "skill_version": "1.0.0",
+    "timestamp": "2024-03-15T14:40:00Z",
+    "transaction_type": "837P",
+    "subskill": "validation",
+    "input_file": "waypoints/intake.json"
+  },
+  "transactions": [
+    {
+      "transaction_id": "CLM12345",
+      "status": "pass",
+      "data": {
+        "claim_id": "CLM12345",
+        "member_id": "MBR12345678",
+        "provider_npi": "1234567890",
+        "service_date": "2024-03-10",
+        "total_charge": 150.00
+      },
+      "validation": {
+        "errors": [],
+        "warnings": [
+          {
+            "rule_id": "C-DX-002",
+            "severity": "warning",
+            "field": "HI*ABK",
+            "message": "Diagnosis code format appears to be placeholder",
+            "detail": "Code Z1234 may not be a valid ICD-10-CM code",
+            "remediation": "Verify diagnosis code against ICD-10-CM code set"
+          }
+        ],
+        "info": [
+          {
+            "rule_id": "E-ELG-001",
+            "severity": "info",
+            "field": "Service Date vs Coverage",
+            "message": "Member eligibility confirmed for service date",
+            "detail": "Member MBR12345678 had active coverage on 2024-03-10",
+            "remediation": "None - eligibility verified"
+          },
+          {
+            "rule_id": "P-NPI-003",
+            "severity": "info",
+            "field": "NM109 (Billing Provider)",
+            "message": "Provider NPI verified in directory",
+            "detail": "Provider 1234567890 is active and credentialed",
+            "remediation": "None - provider verified"
+          }
+        ]
+      }
+    },
+    {
+      "transaction_id": "CLM98765",
+      "status": "exception",
+      "data": {
+        "claim_id": "CLM98765",
+        "member_id": "MBR87654321",
+        "provider_npi": "2345678901",
+        "service_date": "2024-03-05",
+        "total_charge": 5500.00
+      },
+      "validation": {
+        "errors": [
+          {
+            "rule_id": "E-ELG-001",
+            "severity": "error",
+            "field": "Service Date vs Coverage",
+            "message": "Member not eligible on service date",
+            "detail": "Member MBR87654321 coverage terminated 2024-03-01, service date 2024-03-05",
+            "remediation": "HUMAN REVIEW REQUIRED: Verify member eligibility; check for retroactive reinstatement; deny if confirmed ineligible"
+          }
+        ],
+        "warnings": [
+          {
+            "rule_id": "B-CHG-002",
+            "severity": "warning",
+            "field": "CLM02",
+            "message": "High-dollar claim requires additional review",
+            "detail": "Charge amount $5,500.00 exceeds standard threshold",
+            "remediation": "Flag for high-dollar claims review per Checklist 2"
+          }
+        ],
+        "info": [
+          {
+            "rule_id": "C-CPT-001",
+            "severity": "info",
+            "field": "SV101-2",
+            "message": "Emergency department visit code detected",
+            "detail": "CPT 99285 - Emergency department visit, high severity",
+            "remediation": "Verify if emergency services exception applies to eligibility issue"
+          }
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "total_count": 2,
+    "pass_count": 1,
+    "warning_count": 0,
+    "exception_count": 1
+  }
+}

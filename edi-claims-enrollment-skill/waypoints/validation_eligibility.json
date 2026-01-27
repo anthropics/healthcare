@@ -1,0 +1,268 @@
+{
+  "metadata": {
+    "validation_timestamp": "2026-01-26T10:45:15Z",
+    "rubric_version": "eligibility-v1.0",
+    "total_inquiries_validated": 1,
+    "total_responses_validated": 1,
+    "validation_summary": {
+      "pass": 1,
+      "warning": 0,
+      "exception": 0,
+      "error": 0
+    }
+  },
+
+  "eligibility_270_validation": {
+    "transaction_id": "ELIG20240315001",
+    "overall_status": "PASS",
+    "requires_human_review": false,
+    "validation_score": 100,
+
+    "structural_validation": {
+      "status": "PASS",
+      "rules_checked": 7,
+      "rules_passed": 7,
+      "issues": [],
+      "findings": [
+        {
+          "rule_id": "S-ENV-001",
+          "severity": "Info",
+          "description": "ISA segment validated",
+          "finding": "ISA envelope present and properly formatted"
+        },
+        {
+          "rule_id": "S-270-001",
+          "severity": "Info",
+          "description": "HL hierarchy validated",
+          "finding": "Valid HL structure: Information Source → Information Receiver → Subscriber"
+        }
+      ]
+    },
+
+    "request_validation": {
+      "status": "PASS",
+      "rules_checked": 6,
+      "rules_passed": 6,
+      "issues": [],
+      "findings": [
+        {
+          "rule_id": "R-TRN-001",
+          "severity": "Info",
+          "description": "TRN (Trace Number) present and valid",
+          "finding": "TRN*1*ELIG20240315001*PROVIDER001 - Properly formatted"
+        },
+        {
+          "rule_id": "R-DTP-001",
+          "severity": "Info",
+          "description": "Inquiry date present",
+          "finding": "Date: 2024-03-15"
+        }
+      ]
+    },
+
+    "member_validation": {
+      "status": "PASS",
+      "rules_checked": 5,
+      "rules_passed": 5,
+      "issues": [],
+      "findings": [
+        {
+          "rule_id": "M-ID-001",
+          "severity": "Info",
+          "description": "Member ID present",
+          "finding": "Member ID: MBR12345678"
+        },
+        {
+          "rule_id": "M-DMG-001",
+          "severity": "Info",
+          "description": "Demographics present",
+          "finding": "DOB: 1980-05-15, Gender: M, Age: 43"
+        }
+      ]
+    },
+
+    "provider_payer_validation": {
+      "status": "PASS",
+      "rules_checked": 4,
+      "rules_passed": 4,
+      "issues": [],
+      "findings": [
+        {
+          "rule_id": "P-NPI-001",
+          "severity": "Info",
+          "description": "Provider NPI validated",
+          "finding": "NPI 1234567890 (SMITH, SARAH A) is valid"
+        },
+        {
+          "rule_id": "P-PAYER-001",
+          "severity": "Info",
+          "description": "Payer identified",
+          "finding": "ACME HEALTH PLAN (PAYER001)"
+        }
+      ]
+    },
+
+    "inquiry_scope_validation": {
+      "status": "PASS",
+      "rules_checked": 3,
+      "rules_passed": 3,
+      "issues": [],
+      "findings": [
+        {
+          "rule_id": "I-EQ-001",
+          "severity": "Info",
+          "description": "Service type requested",
+          "finding": "EQ*30 - Health Benefit Plan Coverage"
+        }
+      ]
+    },
+
+    "business_logic_validation": {
+      "status": "PASS",
+      "rules_checked": 4,
+      "rules_passed": 4,
+      "issues": [],
+      "findings": [
+        {
+          "rule_id": "B-TIME-001",
+          "severity": "Info",
+          "description": "Inquiry timeliness",
+          "finding": "Inquiry submitted on same day as service date check (2024-03-15)"
+        }
+      ]
+    }
+  },
+
+  "eligibility_271_validation": {
+    "transaction_id": "ELIG20240315001",
+    "overall_status": "PASS",
+    "requires_human_review": false,
+    "validation_score": 100,
+    "coverage_status": "ACTIVE",
+
+    "structural_validation": {
+      "status": "PASS",
+      "rules_checked": 7,
+      "rules_passed": 7,
+      "issues": [],
+      "findings": [
+        {
+          "rule_id": "S-ENV-001",
+          "severity": "Info",
+          "description": "ISA segment validated",
+          "finding": "ISA envelope present and properly formatted"
+        },
+        {
+          "rule_id": "S-271-001",
+          "severity": "Info",
+          "description": "HL hierarchy validated",
+          "finding": "Valid HL structure for 271 response"
+        }
+      ]
+    },
+
+    "response_validation": {
+      "status": "PASS",
+      "rules_checked": 8,
+      "rules_passed": 8,
+      "issues": [],
+      "findings": [
+        {
+          "rule_id": "R-TRN-002",
+          "severity": "Info",
+          "description": "TRN matches inquiry",
+          "finding": "Response TRN (ELIG20240315001) matches inquiry TRN - Perfect match"
+        },
+        {
+          "rule_id": "R-TIME-001",
+          "severity": "Info",
+          "description": "Response timeliness",
+          "finding": "Response returned in 5 minutes - Excellent"
+        },
+        {
+          "rule_id": "R-EB-001",
+          "severity": "Info",
+          "description": "Eligibility benefits present",
+          "finding": "4 benefit segments returned with complete information"
+        }
+      ]
+    },
+
+    "member_validation": {
+      "status": "PASS",
+      "rules_checked": 6,
+      "rules_passed": 6,
+      "issues": [],
+      "findings": [
+        {
+          "rule_id": "M-MATCH-001",
+          "severity": "Info",
+          "description": "Member ID matches inquiry",
+          "finding": "Member ID MBR12345678 matches inquiry - Confirmed"
+        },
+        {
+          "rule_id": "M-DMG-001",
+          "severity": "Info",
+          "description": "Demographics validated",
+          "finding": "DOB and gender match inquiry data"
+        }
+      ]
+    },
+
+    "benefit_data_validation": {
+      "status": "PASS",
+      "rules_checked": 8,
+      "rules_passed": 8,
+      "issues": [],
+      "findings": [
+        {
+          "rule_id": "B-COV-001",
+          "severity": "Info",
+          "description": "Coverage active",
+          "finding": "EB*1 indicates active coverage for service type 30"
+        },
+        {
+          "rule_id": "B-DTP-001",
+          "severity": "Info",
+          "description": "Coverage dates present",
+          "finding": "Effective date: 2024-01-01 (coverage active)"
+        },
+        {
+          "rule_id": "B-BEN-001",
+          "severity": "Info",
+          "description": "Benefit amounts present",
+          "finding": "Copay: $500, Deductible: $1,500, OOP Max: $5,000"
+        },
+        {
+          "rule_id": "B-PLAN-001",
+          "severity": "Info",
+          "description": "Plan identified",
+          "finding": "GOLD PPO plan confirmed"
+        }
+      ]
+    },
+
+    "coverage_summary": {
+      "member_status": "ACTIVE",
+      "plan_name": "GOLD PPO",
+      "effective_date": "2024-01-01",
+      "termination_date": null,
+      "copay_amount": 500.00,
+      "deductible_amount": 1500.00,
+      "out_of_pocket_max": 5000.00,
+      "in_network": true,
+      "benefits_verified": true
+    }
+  },
+
+  "request_response_matching": {
+    "status": "PASS",
+    "trn_match": true,
+    "member_id_match": true,
+    "demographics_match": true,
+    "response_time_acceptable": true,
+    "response_time_minutes": 5,
+    "response_quality": "Excellent",
+    "overall_match_score": 100
+  }
+}

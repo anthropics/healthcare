@@ -1,0 +1,181 @@
+{
+  "metadata": {
+    "validation_timestamp": "2026-01-26T10:30:15Z",
+    "rubric_version": "claims-v1.0",
+    "total_claims_validated": 1,
+    "validation_summary": {
+      "pass": 0,
+      "warning": 0,
+      "exception": 1,
+      "error": 1
+    }
+  },
+  "claims_validation": [
+    {
+      "claim_id": "CLM98765",
+      "overall_status": "EXCEPTION",
+      "requires_human_review": true,
+      "validation_score": 65,
+      "exception_flags": [
+        "ELIGIBILITY_EXCEPTION",
+        "HIGH_DOLLAR_CLAIM"
+      ],
+
+      "structural_validation": {
+        "status": "PASS",
+        "rules_checked": 12,
+        "rules_passed": 12,
+        "issues": []
+      },
+
+      "eligibility_validation": {
+        "status": "ERROR",
+        "rules_checked": 8,
+        "rules_passed": 6,
+        "issues": [
+          {
+            "rule_id": "E-ELG-001",
+            "severity": "Error",
+            "field": "Service Date vs Coverage Dates",
+            "description": "Member not eligible on service date",
+            "finding": "Member coverage terminated 2024-03-01, service date 2024-03-05 (4 days after termination)",
+            "member_id": "MBR87654321",
+            "service_date": "2024-03-05",
+            "coverage_effective_date": "2024-01-01",
+            "coverage_termination_date": "2024-03-01",
+            "days_out_of_coverage": 4,
+            "claim_amount": 5500.00,
+
+            "intelligent_error": {
+              "context": {
+                "member_id": "MBR87654321",
+                "member_name": "SMITH, JANE K",
+                "service_date": "2024-03-05",
+                "coverage_terminated": "2024-03-01",
+                "days_after_termination": 4,
+                "claim_amount": "$5,500.00",
+                "service_type": "Emergency Department Visit",
+                "procedure_code": "99285",
+                "place_of_service": "21 - Inpatient Hospital",
+                "diagnoses": ["I10 - Hypertension", "E119 - Diabetes Type 2"]
+              },
+
+              "possible_causes": [
+                {
+                  "rank": 1,
+                  "likelihood": "60%",
+                  "confidence": "high",
+                  "cause": "Actual termination - Member genuinely not covered",
+                  "indicator": "✓ Most likely",
+                  "evidence": "Based on 152 similar cases - 65% were actual terminations",
+                  "next_step": "Verify member status in eligibility system"
+                },
+                {
+                  "rank": 2,
+                  "likelihood": "25%",
+                  "confidence": "medium",
+                  "cause": "Retroactive termination error - Awaiting 834 correction",
+                  "indicator": "⚠️ Possible",
+                  "evidence": "Pattern: Recent termination, only 4 days gap. Common with late 834 transmissions",
+                  "next_step": "Check for pending 834 corrections from employer"
+                },
+                {
+                  "rank": 3,
+                  "likelihood": "15%",
+                  "confidence": "low",
+                  "cause": "Emergency services exception applies",
+                  "indicator": "🔍 Consider",
+                  "evidence": "Detected: CPT 99285 (high-severity ER visit). Some plans cover emergency services with grace period",
+                  "next_step": "Review emergency services policy and grace period rules"
+                }
+              ],
+
+              "recommended_actions": [
+                "Step 1: Verify current member status in eligibility system",
+                "Step 2: Check if emergency services exception applies (review policy manual)",
+                "Step 3: If termination confirmed: Deny claim with member notice",
+                "Step 4: If awaiting correction: Pend claim for 7-14 days pending 834 update"
+              ],
+
+              "resolution_metrics": {
+                "estimated_time": "15 minutes",
+                "escalate_if": "Unclear eligibility status after system check",
+                "related_checklist": "Checklist 1: General Claims Exception Review - Step 2"
+              },
+
+              "historical_pattern": {
+                "similar_cases_this_month": 23,
+                "resolution_breakdown": {
+                  "denied_actual_term": 15,
+                  "approved_after_834_correction": 6,
+                  "approved_emergency_exception": 2
+                },
+                "trading_partner_pattern": "SUBMITTER001 has 12% eligibility exception rate (above 8% average)"
+              }
+            },
+
+            "remediation": "Verify member eligibility status; if termination is accurate, deny claim and notify member; if emergency exception applies, refer to emergency services policy"
+          }
+        ]
+      },
+
+      "provider_validation": {
+        "status": "PASS",
+        "rules_checked": 6,
+        "rules_passed": 6,
+        "issues": [],
+        "findings": [
+          {
+            "rule_id": "P-NPI-001",
+            "severity": "Info",
+            "description": "Billing Provider NPI validated",
+            "finding": "NPI 2345678901 (MERCY HOSPITAL) is valid and active"
+          },
+          {
+            "rule_id": "P-NPI-002",
+            "severity": "Info",
+            "description": "Rendering Provider NPI validated",
+            "finding": "NPI 3456789012 (WILLIAMS, ROBERT D) is valid and active"
+          }
+        ]
+      },
+
+      "code_set_validation": {
+        "status": "PASS",
+        "rules_checked": 10,
+        "rules_passed": 10,
+        "issues": [],
+        "findings": [
+          {
+            "rule_id": "C-DX-001",
+            "severity": "Info",
+            "description": "ICD-10-CM codes validated",
+            "finding": "All diagnosis codes (I10, E119) are valid and active"
+          },
+          {
+            "rule_id": "C-CPT-001",
+            "severity": "Info",
+            "description": "CPT/HCPCS codes validated",
+            "finding": "CPT 99285 is valid for service date 2024-03-05"
+          }
+        ]
+      },
+
+      "business_logic_validation": {
+        "status": "WARNING",
+        "rules_checked": 15,
+        "rules_passed": 14,
+        "issues": [
+          {
+            "rule_id": "B-AMT-001",
+            "severity": "Warning",
+            "field": "Claim Amount",
+            "description": "High-dollar claim flagged for additional review",
+            "finding": "Claim amount $5,500.00 exceeds high-dollar threshold of $5,000.00",
+            "remediation": "Apply high-dollar claim review checklist (Checklist 2)"
+          }
+        ]
+      }
+    }
+  ]
+}

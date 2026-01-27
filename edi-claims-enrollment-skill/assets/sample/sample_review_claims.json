@@ -1,0 +1,142 @@
+{
+  "metadata": {
+    "skill_version": "1.0.0",
+    "timestamp": "2024-03-15T14:45:00Z",
+    "transaction_type": "837P",
+    "subskill": "review",
+    "input_files": [
+      "waypoints/intake.json",
+      "waypoints/validation.json"
+    ]
+  },
+  "transactions": [
+    {
+      "transaction_id": "CLM12345",
+      "status": "pass",
+      "recommendation": "Process claim through normal adjudication workflow",
+      "priority": "standard",
+      "data": {
+        "claim_id": "CLM12345",
+        "patient_control_number": "CLM12345",
+        "member": {
+          "member_id": "MBR12345678",
+          "name": "DOE, JOHN M",
+          "date_of_birth": "1980-05-15",
+          "gender": "M"
+        },
+        "provider": {
+          "billing_npi": "1234567890",
+          "billing_name": "SMITH FAMILY PRACTICE",
+          "rendering_npi": "0987654321",
+          "rendering_name": "JONES, SARAH A"
+        },
+        "service_info": {
+          "service_date": "2024-03-10",
+          "place_of_service": "11",
+          "total_charge": 150.00,
+          "line_count": 2
+        },
+        "diagnosis_codes": ["Z1234", "Z5678"],
+        "procedure_codes": ["99213", "80053"]
+      },
+      "validation_summary": {
+        "total_issues": 1,
+        "errors": 0,
+        "warnings": 1,
+        "info": 2
+      },
+      "key_issues": [
+        {
+          "severity": "warning",
+          "message": "Diagnosis code format appears to be placeholder",
+          "action": "Verify during adjudication"
+        }
+      ],
+      "next_steps": [
+        "Verify diagnosis codes against ICD-10-CM code set during adjudication",
+        "Process with standard claim edits and pricing",
+        "No human review required unless additional issues identified"
+      ]
+    },
+    {
+      "transaction_id": "CLM98765",
+      "status": "exception",
+      "recommendation": "HUMAN REVIEW REQUIRED - Member eligibility issue",
+      "priority": "high",
+      "data": {
+        "claim_id": "CLM98765",
+        "patient_control_number": "CLM98765",
+        "member": {
+          "member_id": "MBR87654321",
+          "name": "SMITH, JANE K",
+          "date_of_birth": "1975-08-20",
+          "gender": "F"
+        },
+        "provider": {
+          "billing_npi": "2345678901",
+          "billing_name": "MERCY HOSPITAL",
+          "rendering_npi": "3456789012",
+          "rendering_name": "WILLIAMS, ROBERT D"
+        },
+        "service_info": {
+          "service_date": "2024-03-05",
+          "place_of_service": "23",
+          "total_charge": 5500.00,
+          "line_count": 1
+        },
+        "diagnosis_codes": ["I10", "E119"],
+        "procedure_codes": ["99285"]
+      },
+      "validation_summary": {
+        "total_issues": 3,
+        "errors": 1,
+        "warnings": 1,
+        "info": 1
+      },
+      "key_issues": [
+        {
+          "severity": "error",
+          "message": "Member not eligible on service date",
+          "action": "HUMAN REVIEW REQUIRED"
+        },
+        {
+          "severity": "warning",
+          "message": "High-dollar claim requires additional review",
+          "action": "Apply high-dollar review checklist"
+        },
+        {
+          "severity": "info",
+          "message": "Emergency department visit code detected",
+          "action": "Consider emergency services exception"
+        }
+      ],
+      "next_steps": [
+        "1. IMMEDIATE: Verify member eligibility through eligibility system",
+        "2. Check for retroactive reinstatement or coverage corrections",
+        "3. Verify if emergency services exception applies (may require out-of-network emergency coverage even if member terminated)",
+        "4. If emergency exception applies, process with emergency benefit rules",
+        "5. If no exception, deny claim with member not eligible reason code",
+        "6. Apply high-dollar review procedures (Checklist 2)",
+        "7. Document all review findings in claims system"
+      ],
+      "review_checklists_required": [
+        "Checklist 1: General Claims Exception Review",
+        "Checklist 2: High-Dollar Claims Review"
+      ]
+    }
+  ],
+  "summary": {
+    "total_count": 2,
+    "pass_count": 1,
+    "warning_count": 0,
+    "exception_count": 1,
+    "total_charges": 5650.00,
+    "exception_charges": 5500.00
+  },
+  "recommendations": {
+    "immediate_action_required": 1,
+    "standard_processing": 1,
+    "escalation_needed": 0,
+    "siu_referral_needed": 0
+  }
+}

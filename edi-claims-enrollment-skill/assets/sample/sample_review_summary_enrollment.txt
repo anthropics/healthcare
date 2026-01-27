@@ -1,0 +1,359 @@
+================================================================================
+EDI ENROLLMENT REVIEW SUMMARY
+================================================================================
+
+Generated: 2024-03-15 13:25:00 UTC
+Input File: enrollment_sample_834_retro.txt
+Transaction Type: 834 (Benefit Enrollment and Maintenance)
+Skill Version: 1.0.0
+
+================================================================================
+EXECUTIVE SUMMARY
+================================================================================
+
+Total Members Processed: 3
+  - Pass (Ready for Enrollment):       1 (33.3%)
+  - Warning (Non-blocking Issues):     1 (33.3%)
+  - Exception (Human Review Needed):   1 (33.3%)
+
+Member Type Breakdown:
+  - Subscribers: 1
+  - Dependents: 2
+
+Maintenance Type Breakdown:
+  - Additions (021): 3
+  - Changes (001): 0
+  - Terminations (024): 0
+  - Reinstatements (025): 0
+
+================================================================================
+EXCEPTIONS REQUIRING HUMAN REVIEW (1)
+================================================================================
+
+-------------------------------------------------------------------------------
+EXCEPTION #1: Retroactive Enrollment
+-------------------------------------------------------------------------------
+
+Transaction ID: ENROLL002-SUB2001
+Member Type: Subscriber
+Priority: HIGH
+Status: EXCEPTION - HUMAN REVIEW REQUIRED
+
+Member Information:
+  Subscriber ID: SUB2001
+  Name: MARTINEZ, CARLOS J
+  Date of Birth: 1978-07-10
+  Gender: Male
+  SSN: [Not provided in transaction]
+
+Contact Information:
+  Address: 456 PINE ROAD, METRO CITY, FL 33101
+  Phone: 555-987-6543
+  Email: CMARTINEZ@EMAIL.COM
+
+Group and Plan Information:
+  Group Number: GROUP67890
+  Employer: XYZ COMPANY
+  Plan ID: PLAN002
+  Plan Description: SILVER HMO
+  Maintenance Type: 021 (Addition - New Enrollment)
+
+Coverage Information:
+  Effective Date: 2023-12-01
+  Termination Date: [None - Active]
+  Insurance Line: HLT (Medical)
+
+Provider Assignment:
+  PCP NPI: 4567890123
+  PCP Name: ANDERSON, JAMES K
+  PCP Effective Date: 2023-12-01
+
+PRIMARY ISSUE:
+  Rule ID: D-RET-001
+  Severity: WARNING (REQUIRES HUMAN REVIEW)
+  Issue: Effective date is retroactive (> 90 days in past)
+
+  Details:
+    Transaction Date: 2024-03-15
+    Effective Date: 2023-12-01
+    Days Retroactive: 105 days
+    Retroactive Period: 3.5 months
+
+  Impact: HIGH - Retroactive enrollment may affect prior claims and premium
+
+ADDITIONAL ISSUES:
+  1. [WARNING] High-risk retroactive enrollment
+     Rule: D-RET-004
+     Detail: Retroactive period > 90 days requires escalation and enhanced review
+
+  2. [INFO] Effective date within group contract dates
+     Rule: B-GRP-002
+     Detail: Group contract covers period 2023-07-01 to 2024-06-30
+
+  3. [INFO] PCP assignment provided for HMO plan
+     Rule: V-PCP-001
+     Detail: PCP NPI 4567890123 assigned; requires network verification
+
+*** HUMAN REVIEW REQUIRED ***
+
+RECOMMENDED NEXT STEPS:
+  1. IMMEDIATE: Verify retroactive enrollment is allowed
+     - Review group contract provisions for retroactive enrollment
+     - Verify reason for retroactive effective date (late notification, QLF, etc.)
+     - Confirm employer/sponsor authorization for retroactive enrollment
+     - Check compliance with regulatory limits (ACA, HIPAA, state mandates)
+
+  2. Request and review supporting documentation:
+     - Qualifying life event documentation (if applicable)
+     - Employer notification and reason for delay
+     - Any error correction documentation
+     - Group contract retroactive enrollment provisions
+
+  3. Financial impact assessment:
+     - Search claims history for member SUB2001 during retroactive period
+       (2023-12-01 through 2024-03-15)
+     - Identify any claims previously denied for "member not eligible"
+     - Estimate claims to be reprocessed and paid: $__________
+     - Calculate premium adjustment needed: $__________
+       [ ] Employer owes additional premium
+       [ ] Refund due to employer
+
+  4. Claims coordination:
+     - Generate list of affected claims (if any) with claim IDs and amounts
+     - Route previously denied claims for reprocessing with updated eligibility
+     - Update claims system with enrollment effective date 2023-12-01
+     - Notify claims operations of retroactive eligibility change
+
+  5. Provider verification:
+     - Verify PCP NPI 4567890123 (ANDERSON, JAMES K) in provider directory
+     - Confirm PCP was in-network on effective date 2023-12-01
+     - Verify PCP accepting new patients
+     - Check PCP specialty is appropriate for adult subscriber
+
+  6. Member and employer notification:
+     - Confirm enrollment with member (welcome letter, ID card)
+     - Notify employer of enrollment processing
+     - Document retroactive effective date clearly on all correspondence
+     - Explain any premium adjustments
+
+  7. Approval requirements:
+     - Enrollment Manager approval: [ ] Approved [ ] Denied
+     - Compliance review (>180 days retro): [ ] Approved [ ] Denied [ ] N/A
+     - Document approval in enrollment system
+
+  8. If approved, process enrollment with effective date 2023-12-01
+     If denied, reject transaction and notify employer with reason
+
+REVIEW CHECKLISTS REQUIRED:
+  - Checklist 4: General Enrollment Exception Review
+  - Checklist 5: Retroactive Enrollment Changes Review
+
+Assigned To: _________________________ Date: _____________
+
+Review Outcome: [ ] Approve  [ ] Deny  [ ] Pend  [ ] Escalate
+
+Estimated Financial Impact: $____________ (claims) + $____________ (premium)
+
+Notes:
+_____________________________________________________________________________
+_____________________________________________________________________________
+_____________________________________________________________________________
+
+
+================================================================================
+WARNINGS - NON-BLOCKING (1)
+================================================================================
+
+The following member enrollment(s) have non-blocking issues that should be
+reviewed but do not prevent processing:
+
+-------------------------------------------------------------------------------
+Transaction ID: ENROLL002-DEP2001
+Member Type: Dependent (Child)
+Status: WARNING
+
+Member Information:
+  Member ID: DEP2001
+  Name: MARTINEZ, SOPHIA L
+  Date of Birth: 2000-03-25
+  Relationship: Child of SUB2001
+
+Coverage Information:
+  Effective Date: 2023-12-01 (retroactive - same as subscriber)
+  Plan: SILVER HMO
+
+Issues:
+  1. [WARNING] Dependent approaching age limit
+     Rule: B-ELG-001
+     Detail: Dependent age 23 years, 11 months. Standard limit is 26 years.
+     Recommendation: Monitor for age-out; verify student/disabled status if needed
+
+  2. [WARNING] Retroactive effective date
+     Rule: D-RET-001
+     Detail: Same retroactive issue as subscriber (105 days)
+     Recommendation: Process with subscriber if subscriber enrollment approved
+
+Recommended Action:
+  - Process dependent enrollment if subscriber enrollment approved
+  - Monitor dependent for approaching age 26
+  - No immediate action required on age limit (still under 26)
+  - Include in retroactive claims review with subscriber
+
+
+================================================================================
+ENROLLMENTS READY FOR PROCESSING (1)
+================================================================================
+
+The following member enrollment(s) have passed validation and are ready for
+standard enrollment processing:
+
+-------------------------------------------------------------------------------
+Transaction ID: ENROLL001-SUB1001 (Family Enrollment)
+Status: PASS
+
+Subscriber Information:
+  Subscriber ID: SUB1001
+  Name: JOHNSON, ROBERT L
+  Date of Birth: 1985-06-01
+  Gender: Male
+  Employment Status: Full Time
+
+Dependents:
+  1. DEP1001 - JOHNSON, MARY A (Spouse, DOB: 1987-04-15)
+  2. DEP1002 - JOHNSON, EMILY R (Child, DOB: 2010-09-20)
+
+Group and Plan Information:
+  Group Number: GROUP12345
+  Employer: ACME CORPORATION
+  Plan: GOLD PPO (PLAN001)
+  Maintenance Type: 021 (Addition - New Enrollment)
+
+Coverage Information:
+  Effective Date: 2024-04-01 (future effective, standard enrollment)
+  Insurance Line: Medical (HLT)
+
+Validation Results:
+  - Group contract verified and active
+  - Effective date 2024-04-01 is within contract period
+  - Standard enrollment cycle (1st of month)
+  - All required demographics present
+  - No PCP required (PPO plan)
+  - No retroactive issues
+  - All dependents age-appropriate
+
+Recommended Action:
+  - Process subscriber and dependents for effective date 2024-04-01
+  - Generate member ID cards
+  - Send welcome packets
+  - No human review required
+
+
+================================================================================
+NEXT STEPS SUMMARY
+================================================================================
+
+IMMEDIATE ACTION REQUIRED (1 subscriber + 1 dependent):
+  1. ENROLL002-SUB2001 (MARTINEZ, CARLOS J) - Retroactive enrollment review
+     Priority: HIGH
+     Retroactive Days: 105
+     Assign to: Enrollment Specialist
+
+  2. ENROLL002-DEP2001 (MARTINEZ, SOPHIA L) - Process with subscriber
+     Priority: HIGH (dependent of exception subscriber)
+     Assign to: Same as subscriber
+
+STANDARD PROCESSING (1 subscriber + 1 dependent):
+  1. ENROLL001-SUB1001 (JOHNSON, ROBERT L + family)
+     Priority: STANDARD
+     Effective Date: 2024-04-01
+     Members: 3 (subscriber + spouse + child)
+     Assign to: Standard enrollment processing queue
+
+ESCALATIONS:
+  - Retroactive enrollment > 90 days: Compliance review recommended
+  - Enrollment Manager approval required for retroactive enrollment
+
+CLAIMS COORDINATION NEEDED:
+  - If ENROLL002 approved: Search and reprocess claims for SUB2001 and DEP2001
+    from 2023-12-01 through 2024-03-15
+
+
+================================================================================
+OPERATIONAL METRICS
+================================================================================
+
+Processing Statistics:
+  - Total transactions parsed: 3
+  - Parsing errors: 0
+  - Validation errors: 0
+  - Validation warnings: 2
+  - Average processing time: N/A (demo mode)
+
+Exception Rate: 33.3%
+  Note: Retroactive enrollments are common and often require human review.
+  Production exception rates for enrollment typically range from 10-25%
+  depending on employer reporting practices and group size.
+
+Retroactive Enrollments:
+  - Count: 2 members (1 subscriber + 1 dependent)
+  - Average retroactive days: 105
+  - Requires premium adjustment: Yes
+  - Requires claims reprocessing: Potentially (subject to review)
+
+Coverage Effective Dates:
+  - Future effective (2024-04-01): 3 members
+  - Retroactive effective (2023-12-01): 2 members
+
+
+================================================================================
+COMPLIANCE AND AUDIT NOTES
+================================================================================
+
+- All enrollment transactions validated against structural and business rules
+- Exception enrollments flagged for human review per policy requirements
+- Retroactive enrollments > 90 days identified for enhanced review
+- Group contract dates verified for all enrollments
+- Dependent age limits checked per plan rules
+- All validation findings are draft recommendations only
+- Final enrollment decisions remain with authorized enrollment personnel
+- Complete audit trail available in JSON waypoint files:
+  - waypoints/intake.json
+  - waypoints/validation.json
+  - waypoints/review.json
+
+
+================================================================================
+IMPORTANT DISCLAIMERS
+================================================================================
+
+This review summary provides DRAFT RECOMMENDATIONS ONLY and does not constitute
+final enrollment authorization, member eligibility determination, or coverage
+guarantee.
+
+HUMAN REVIEW IS REQUIRED for all enrollment transactions flagged with Exception
+or Warning status before any final determination is made.
+
+The healthcare payer organization and its authorized personnel retain full and
+final responsibility for all enrollment decisions, including:
+  - Member eligibility determinations
+  - Group contract interpretation and administration
+  - Retroactive enrollment approvals
+  - Dependent eligibility and age limit exceptions
+  - Provider assignment and network verification
+  - Premium calculation and billing
+  - Compliance with federal, state, and contractual requirements
+
+All recommendations in this summary are subject to verification through
+authoritative systems and application of payer-specific enrollment policies.
+
+
+================================================================================
+END OF ENROLLMENT REVIEW SUMMARY
+================================================================================
+
+For questions or issues with this automated review, contact:
+  Enrollment Operations Team
+  Phone: [Your contact number]
+  Email: [Your contact email]
+
+Report generated by: EDI Claims and Enrollment Review Skill v1.0.0

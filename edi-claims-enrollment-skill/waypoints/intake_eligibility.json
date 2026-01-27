@@ -1,0 +1,197 @@
+{
+  "metadata": {
+    "transaction_type": "270/271",
+    "transaction_name": "Eligibility Inquiry and Response",
+    "source_files": [
+      "eligibility_sample_270.txt",
+      "eligibility_sample_271.txt"
+    ],
+    "processed_timestamp": "2026-01-26T10:45:00Z",
+    "total_inquiries": 1,
+    "total_responses": 1,
+    "matching_pairs": 1
+  },
+
+  "eligibility_inquiry_270": {
+    "interchange_control_number": "000000001",
+    "group_control_number": "1",
+    "transaction_control_number": "0001",
+    "trading_partner_sender": "PROVIDER001",
+    "trading_partner_receiver": "PAYER001",
+    "transmission_date": "2024-03-15",
+    "transmission_time": "1430",
+
+    "inquiry_details": {
+      "trace_number": "ELIG20240315001",
+      "trace_type": "1",
+      "originating_company_id": "PROVIDER001",
+      "reference_id": "ELIG20240315001",
+
+      "information_source": {
+        "entity_identifier": "PR",
+        "entity_type": "Non-Person",
+        "name": "ACME HEALTH PLAN",
+        "id_code_qualifier": "PI",
+        "id_code": "PAYER001"
+      },
+
+      "information_receiver": {
+        "entity_identifier": "1P",
+        "entity_type": "Person",
+        "last_name": "SMITH",
+        "first_name": "SARAH",
+        "middle_name": "A",
+        "id_code_qualifier": "XX",
+        "npi": "1234567890",
+        "provider_type": "Requesting Provider"
+      },
+
+      "subscriber": {
+        "entity_identifier": "IL",
+        "entity_type": "Person",
+        "last_name": "DOE",
+        "first_name": "JOHN",
+        "middle_name": "M",
+        "id_code_qualifier": "MI",
+        "member_id": "MBR12345678",
+        "date_of_birth": "1980-05-15",
+        "gender": "M",
+        "age": 43
+      },
+
+      "inquiry_date": "2024-03-15",
+
+      "service_type_requested": [
+        {
+          "code": "30",
+          "description": "Health Benefit Plan Coverage"
+        }
+      ]
+    }
+  },
+
+  "eligibility_response_271": {
+    "interchange_control_number": "000000002",
+    "group_control_number": "2",
+    "transaction_control_number": "0002",
+    "trading_partner_sender": "PAYER001",
+    "trading_partner_receiver": "PROVIDER001",
+    "transmission_date": "2024-03-15",
+    "transmission_time": "1435",
+    "response_time_minutes": 5,
+
+    "response_details": {
+      "trace_number": "ELIG20240315001",
+      "trace_type": "2",
+      "originating_company_id": "PAYER001",
+      "matches_inquiry_trn": true,
+
+      "information_source": {
+        "entity_identifier": "PR",
+        "entity_type": "Non-Person",
+        "name": "ACME HEALTH PLAN",
+        "id_code_qualifier": "PI",
+        "id_code": "PAYER001"
+      },
+
+      "information_receiver": {
+        "entity_identifier": "1P",
+        "entity_type": "Person",
+        "last_name": "SMITH",
+        "first_name": "SARAH",
+        "middle_name": "A",
+        "id_code_qualifier": "XX",
+        "npi": "1234567890"
+      },
+
+      "subscriber": {
+        "entity_identifier": "IL",
+        "entity_type": "Person",
+        "last_name": "DOE",
+        "first_name": "JOHN",
+        "middle_name": "M",
+        "id_code_qualifier": "MI",
+        "member_id": "MBR12345678",
+        "additional_id": "MBR12345678",
+        "address": {
+          "street": "456 OAK AVENUE",
+          "city": "ANYTOWN",
+          "state": "CA",
+          "zip": "90210"
+        },
+        "date_of_birth": "1980-05-15",
+        "gender": "M",
+        "age": 43
+      },
+
+      "insurance_information": {
+        "insurance_type": "Y",
+        "individual_relationship_code": "18",
+        "maintenance_type": "001",
+        "maintenance_reason": "20",
+        "benefit_status": "Active"
+      },
+
+      "coverage_dates": {
+        "coverage_effective_date": "2024-01-01",
+        "coverage_status": "Active"
+      },
+
+      "eligibility_benefits": [
+        {
+          "benefit_code": "1",
+          "coverage_level": "Active",
+          "service_type_code": "30",
+          "service_type_description": "Health Benefit Plan Coverage",
+          "plan_name": "GOLD PPO",
+          "message": "COVERAGE ACTIVE"
+        },
+        {
+          "benefit_code": "C",
+          "coverage_level": "Co-Payment",
+          "service_type_code": "1",
+          "service_type_description": "Medical Care",
+          "plan_name": "GOLD PPO",
+          "time_period_qualifier": "27",
+          "monetary_amount": 500.00,
+          "in_plan_network": "Y",
+          "description": "Copayment Amount",
+          "message": "COVERAGE ACTIVE"
+        },
+        {
+          "benefit_code": "C",
+          "coverage_level": "Deductible",
+          "service_type_code": "47",
+          "service_type_description": "Deductible",
+          "plan_name": "GOLD PPO",
+          "time_period_qualifier": "27",
+          "monetary_amount": 1500.00,
+          "description": "Individual Deductible",
+          "message": "INDIVIDUAL DEDUCTIBLE"
+        },
+        {
+          "benefit_code": "C",
+          "coverage_level": "Out of Pocket Maximum",
+          "service_type_code": "48",
+          "service_type_description": "Out of Pocket (Stop Loss)",
+          "plan_name": "GOLD PPO",
+          "time_period_qualifier": "27",
+          "monetary_amount": 5000.00,
+          "description": "Out of Pocket Maximum",
+          "message": "OUT OF POCKET MAXIMUM"
+        }
+      ]
+    }
+  },
+
+  "request_response_matching": {
+    "trn_match": true,
+    "inquiry_trn": "ELIG20240315001",
+    "response_trn": "ELIG20240315001",
+    "member_match": true,
+    "inquiry_member_id": "MBR12345678",
+    "response_member_id": "MBR12345678",
+    "response_time_minutes": 5,
+    "response_timeliness": "Excellent"
+  }
+}

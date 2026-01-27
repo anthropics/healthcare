@@ -1,0 +1,90 @@
+{
+  "metadata": {
+    "skill_version": "1.1.0",
+    "timestamp": "2024-03-15T14:35:00Z",
+    "transaction_type": "270",
+    "subskill": "intake",
+    "input_file": "eligibility_sample_270.txt"
+  },
+  "transactions": [
+    {
+      "transaction_id": "ELIG20240315001",
+      "control_number": "0001",
+      "status": "parsed",
+      "data": {
+        "envelope": {
+          "isa_control_number": "000000001",
+          "gs_control_number": "1",
+          "st_control_number": "0001",
+          "sender_id": "PROVIDER001",
+          "receiver_id": "PAYER001",
+          "transmission_date": "2024-03-15",
+          "transmission_time": "1430",
+          "transaction_set": "270"
+        },
+        "inquiry": {
+          "trace_number": "ELIG20240315001",
+          "trace_type": "1",
+          "purpose": "13",
+          "inquiry_date": "2024-03-15"
+        },
+        "information_source": {
+          "entity_type": "PR",
+          "entity_name": "ACME HEALTH PLAN",
+          "payer_id": "PAYER001",
+          "identifier_code": "PI"
+        },
+        "information_receiver": {
+          "entity_type": "1P",
+          "last_name": "SMITH",
+          "first_name": "SARAH",
+          "middle_initial": "A",
+          "npi": "1234567890",
+          "identifier_code": "XX"
+        },
+        "subscriber": {
+          "entity_type": "IL",
+          "last_name": "DOE",
+          "first_name": "JOHN",
+          "middle_initial": "M",
+          "member_id": "MBR12345678",
+          "member_id_type": "MI",
+          "date_of_birth": "1980-05-15",
+          "gender": "M",
+          "inquiry_date": "2024-03-15"
+        },
+        "inquiries": [
+          {
+            "service_type": "30",
+            "service_description": "Health Benefit Plan Coverage"
+          }
+        ]
+      },
+      "validation": {
+        "errors": [],
+        "warnings": [],
+        "info": [
+          {
+            "rule_id": "S-ENV-001",
+            "severity": "info",
+            "field": "ISA",
+            "message": "ISA segment present and valid",
+            "detail": "Envelope structure validated successfully"
+          },
+          {
+            "rule_id": "S-270-001",
+            "severity": "info",
+            "field": "HL",
+            "message": "HL hierarchy valid for 270 inquiry",
+            "detail": "Information Source → Information Receiver → Subscriber"
+          }
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "total_count": 1,
+    "parsed_count": 1,
+    "error_count": 0
+  }
+}

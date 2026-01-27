@@ -1,0 +1,224 @@
+================================================================================
+EDI CLAIMS REVIEW SUMMARY
+================================================================================
+
+Processing Date: 2026-01-26 10:30:00 UTC
+Source File: claim_sample_837P_exception.txt
+Trading Partner: SUBMITTER001 (ABC MEDICAL BILLING)
+Transaction Type: X12 837P (Professional Claims)
+
+--------------------------------------------------------------------------------
+EXECUTIVE SUMMARY
+--------------------------------------------------------------------------------
+
+Total Claims Processed: 1
+Status Breakdown:
+  ✓ Pass (Auto-Adjudication Ready):     0 claims (0%)
+  ⚠ Warning (Minor Issues):              0 claims (0%)
+  ❌ Exception (Human Review Required):  1 claims (100%)
+
+ALERT: 100% exception rate - All claims require manual review
+
+--------------------------------------------------------------------------------
+EXCEPTION CLAIMS - IMMEDIATE ATTENTION REQUIRED
+--------------------------------------------------------------------------------
+
+CLAIM #1: CLM98765
+Status: ❌ EXCEPTION - HUMAN REVIEW REQUIRED
+Overall Risk: HIGH
+Validation Score: 65/100
+
+Member Information:
+  Name: SMITH, JANE K
+  Member ID: MBR87654321
+  DOB: 1975-08-20 (Age: 48, Female)
+  Address: 789 ELM STREET, BIGCITY, CA 90211
+
+Provider Information:
+  Billing Provider: MERCY HOSPITAL (NPI: 2345678901)
+  Rendering Provider: WILLIAMS, ROBERT D (NPI: 3456789012)
+  Provider Taxonomy: 207Q00000X (Family Medicine)
+
+Claim Details:
+  Claim Amount: $5,500.00
+  Service Date: 2024-03-05
+  Place of Service: 21 - Inpatient Hospital
+  Procedure: 99285 - Emergency Department Visit (High Severity)
+  Diagnoses: I10 (Hypertension), E119 (Diabetes Type 2)
+  Submitter: ABC MEDICAL BILLING (ID: SUBMITTER001)
+
+================================================================================
+❌ CRITICAL ISSUE: Member Not Eligible on Service Date
+================================================================================
+
+QUICK DIAGNOSIS:
+  Member ID: MBR87654321
+  Service Date: 2024-03-05
+  Coverage terminated: 2024-03-01 (4 days before service)
+  Claim Amount: $5,500.00
+  Service Type: Emergency Department Visit
+  CPT Code: 99285 (High Severity ER)
+
+POSSIBLE CAUSES (Ranked by Likelihood):
+
+  1. ✓ MOST LIKELY (60% confidence): Actual termination
+     Member genuinely not covered on service date
+
+     Evidence: Based on 152 similar cases this year, 65% were actual
+              terminations that were correctly denied
+
+     Next Step: Verify member status in eligibility system
+
+     If Confirmed: Deny claim with member notification
+                  Use denial code: CO-27 (Expenses incurred after coverage
+                  terminated)
+
+  2. ⚠️ POSSIBLE (25% confidence): Retroactive termination error
+     Awaiting 834 correction from employer
+
+     Evidence: Recent termination with only 4-day gap. Pattern common with
+              late 834 transmissions from employers
+
+     Next Step: Check for pending 834 corrections in system
+               Contact employer group to verify termination date
+
+     If Correction Expected: Pend claim for 7-14 days pending 834 update
+                           Set reminder to re-check eligibility
+
+  3. 🔍 CONSIDER (15% confidence): Emergency services exception
+     Policy may cover emergency services with grace period
+
+     Evidence: CPT 99285 detected (high-severity ER visit)
+              Some benefit plans cover emergency services 3-7 days post-term
+
+     Next Step: Review emergency services policy section
+               Check if member's plan includes post-termination ER coverage
+
+     If Applicable: Process claim under emergency exception
+                   Apply emergency benefit levels and member cost-sharing
+
+HISTORICAL CONTEXT:
+  → You've processed 23 similar eligibility exceptions this month
+  → Resolution breakdown:
+     - 15 denied (actual termination) - 65%
+     - 6 approved after 834 correction - 26%
+     - 2 approved via emergency exception - 9%
+
+  → Trading partner SUBMITTER001 has 12% eligibility exception rate
+     (Higher than your 8% system average - consider outreach/training)
+
+RECOMMENDED ACTIONS:
+  Step 1: Verify current member status in eligibility system
+  Step 2: Check if emergency services exception applies (review policy)
+  Step 3: If termination confirmed → Deny claim with member notice
+  Step 4: If awaiting correction → Pend claim for 7-14 days
+
+RESOLUTION METRICS:
+  Estimated Time: ~15 minutes
+  Checklist: Use "Checklist 1: General Claims Exception Review - Step 2"
+  Escalate If: Unclear eligibility status after system check
+              Emergency services policy interpretation needed
+
+================================================================================
+⚠️ WARNING: High-Dollar Claim
+================================================================================
+
+Issue: Claim amount $5,500.00 exceeds high-dollar threshold ($5,000.00)
+
+Action Required:
+  → Apply "Checklist 2: High-Dollar Claims Review"
+  → Verify medical necessity and appropriate level of care
+  → Review emergency department coding and charges
+  → Consider: Is Level 5 ER visit (99285) appropriate for diagnoses?
+  → Check: Any additional documentation requirements for high-dollar ER claims
+
+Note: High-dollar review applies AFTER eligibility issue is resolved
+
+================================================================================
+NEXT STEPS FOR REVIEWER
+================================================================================
+
+Priority Actions:
+  1. [CRITICAL] Resolve eligibility exception (see detailed analysis above)
+  2. [HIGH] If approved: Apply high-dollar claim review process
+  3. [MEDIUM] Document resolution in claims system with rationale
+  4. [LOW] Consider trading partner outreach (high exception rate)
+
+Estimated Review Time: 20-25 minutes total
+  - Eligibility verification: ~15 minutes
+  - High-dollar review (if applicable): ~10 minutes
+
+Checklists to Use:
+  ☐ Checklist 1: General Claims Exception Review - Step 2 (Eligibility)
+  ☐ Checklist 2: High-Dollar Claims Review (if claim approved)
+
+Escalation Criteria:
+  - Unclear member eligibility status after system verification
+  - Emergency services policy interpretation needed
+  - Unusual ER charge amount for services rendered
+  - Provider billing pattern concerns
+
+================================================================================
+VALIDATION DETAILS
+================================================================================
+
+Structural Validation: ✓ PASS
+  All segments present and properly formatted
+  Envelope integrity confirmed
+  12/12 rules passed
+
+Eligibility Validation: ❌ ERROR
+  Critical issue: Member not eligible on service date
+  8 rules checked, 6 passed, 1 blocking error
+
+Provider Validation: ✓ PASS
+  Billing NPI valid: 2345678901 (MERCY HOSPITAL)
+  Rendering NPI valid: 3456789012 (WILLIAMS, ROBERT D)
+  All providers active and credentialed
+  6/6 rules passed
+
+Code Set Validation: ✓ PASS
+  ICD-10-CM codes valid: I10, E119
+  CPT code valid: 99285
+  All codes active for service date
+  10/10 rules passed
+
+Business Logic Validation: ⚠ WARNING
+  High-dollar claim threshold exceeded
+  14/15 rules passed, 1 warning flag
+
+================================================================================
+AUDIT TRAIL
+================================================================================
+
+Waypoint Files Created:
+  ✓ waypoints/intake.json - Parsed EDI structure
+  ✓ waypoints/validation.json - Validation results with intelligent errors
+  ✓ outputs/review_summary.txt - This human-readable summary (YOU ARE HERE)
+
+Processing Log:
+  - File received: claim_sample_837P_exception.txt
+  - Parsed successfully: 1 claim extracted
+  - Validation completed: 51 total rules checked
+  - Exception flags: ELIGIBILITY_EXCEPTION, HIGH_DOLLAR_CLAIM
+  - Status: EXCEPTION - Manual review required
+
+================================================================================
+END OF REVIEW SUMMARY
+================================================================================
+
+IMPORTANT REMINDERS:
+
+⚠️ This is a DRAFT recommendation only - not a final adjudication decision
+⚠️ Human review and approval required before any claim action
+⚠️ Verify all findings in production eligibility and claims systems
+⚠️ Follow your organization's policies, procedures, and approval workflows
+⚠️ Document all decisions and rationale in the claims management system
+
+For questions or issues with this EDI skill, consult:
+  - SKILL.md for detailed workflow documentation
+  - references/rubric-claims.md for validation rule details
+  - references/checklists.md for review checklists
+  - references/intelligent-errors.md for error message framework
+
+================================================================================

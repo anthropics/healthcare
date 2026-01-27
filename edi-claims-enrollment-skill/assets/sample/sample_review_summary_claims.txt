@@ -1,0 +1,246 @@
+================================================================================
+EDI CLAIMS REVIEW SUMMARY
+================================================================================
+
+Generated: 2024-03-15 14:45:00 UTC
+Input File: claim_sample_837P.txt
+Transaction Type: 837P (Professional Claims)
+Skill Version: 1.0.0
+
+================================================================================
+EXECUTIVE SUMMARY
+================================================================================
+
+Total Claims Processed: 2
+  - Pass (Ready for Adjudication):    1 (50.0%)
+  - Warning (Non-blocking Issues):    0 (0.0%)
+  - Exception (Human Review Needed):  1 (50.0%)
+
+Total Charges: $5,650.00
+  - Pass Claims Total:      $150.00
+  - Exception Claims Total: $5,500.00
+
+================================================================================
+EXCEPTIONS REQUIRING HUMAN REVIEW (1)
+================================================================================
+
+-------------------------------------------------------------------------------
+EXCEPTION #1: Member Eligibility Issue
+-------------------------------------------------------------------------------
+
+Claim ID: CLM98765
+Control Number: 0002
+Priority: HIGH
+Status: EXCEPTION - HUMAN REVIEW REQUIRED
+
+Member Information:
+  Member ID: MBR87654321
+  Name: SMITH, JANE K
+  Date of Birth: 1975-08-20
+  Gender: Female
+
+Provider Information:
+  Billing NPI: 2345678901
+  Billing Name: MERCY HOSPITAL
+  Rendering NPI: 3456789012
+  Rendering Name: WILLIAMS, ROBERT D
+
+Service Information:
+  Service Date: 2024-03-05
+  Place of Service: 23 (Emergency Room - Hospital)
+  Total Charge: $5,500.00
+  Procedure: 99285 (Emergency department visit, high severity)
+  Diagnosis: I10 (Essential hypertension), E119 (Type 2 diabetes mellitus)
+
+PRIMARY ISSUE:
+  Rule ID: E-ELG-001
+  Severity: ERROR
+  Issue: Member not eligible on service date
+
+  Details:
+    Member coverage terminated: 2024-03-01
+    Service date: 2024-03-05
+    Days after termination: 4 days
+
+  Impact: BLOCKING - Claim cannot be paid without eligibility verification
+
+ADDITIONAL ISSUES:
+  1. [WARNING] High-dollar claim requires additional review
+     Rule: B-CHG-002
+     Detail: Charge amount $5,500.00 exceeds standard threshold
+
+  2. [INFO] Emergency department visit code detected
+     Rule: C-CPT-001
+     Detail: CPT 99285 indicates high-severity emergency service
+
+*** HUMAN REVIEW REQUIRED ***
+
+RECOMMENDED NEXT STEPS:
+  1. IMMEDIATE: Verify member eligibility through eligibility system
+     - Check for retroactive reinstatement
+     - Review termination reason and date
+     - Verify no pending eligibility appeals
+
+  2. Evaluate emergency services exception:
+     - Emergency services may be covered even if member terminated
+     - Verify state and plan requirements for emergency coverage
+     - Determine if out-of-network emergency rules apply
+
+  3. If emergency exception applies:
+     - Process with emergency benefit rules
+     - Apply appropriate emergency cost-sharing
+     - Verify medical necessity for emergency level of care
+
+  4. If no exception applies and member confirmed ineligible:
+     - Deny claim with reason code: Member not eligible on date of service
+     - Generate provider correspondence
+     - Member may be responsible for charges
+
+  5. Apply high-dollar review procedures:
+     - Complete Checklist 2: High-Dollar Claims Review
+     - Verify charge amount is reasonable for emergency visit
+     - Review for potential case management involvement
+
+  6. Document all findings and final determination in claims system
+
+REVIEW CHECKLISTS REQUIRED:
+  - Checklist 1: General Claims Exception Review
+  - Checklist 2: High-Dollar Claims Review
+
+Assigned To: _________________________ Date: _____________
+
+Review Outcome: [ ] Approve  [ ] Deny  [ ] Pend  [ ] Escalate
+
+Notes:
+_____________________________________________________________________________
+_____________________________________________________________________________
+_____________________________________________________________________________
+
+
+================================================================================
+WARNINGS - NON-BLOCKING (0)
+================================================================================
+
+No claims with warning status. All non-exception claims have passed validation
+with only minor informational notes.
+
+
+================================================================================
+CLAIMS READY FOR ADJUDICATION (1)
+================================================================================
+
+The following claim(s) have passed validation and are ready for normal
+adjudication processing:
+
+Claim ID: CLM12345
+  Member: DOE, JOHN M (MBR12345678)
+  Provider: SMITH FAMILY PRACTICE (NPI: 1234567890)
+  Service Date: 2024-03-10
+  Total Charge: $150.00
+  Status: PASS
+
+  Services:
+    - 99213 (Office visit, established patient) - $100.00
+    - 80053 (Comprehensive metabolic panel) - $50.00
+
+  Minor Notes:
+    - [WARNING] Diagnosis code format may be placeholder (verify ICD-10 codes)
+    - Member eligibility confirmed for service date
+    - Provider verified in network and credentialed
+
+  Recommended Action: Process through standard adjudication workflow
+
+
+================================================================================
+NEXT STEPS SUMMARY
+================================================================================
+
+IMMEDIATE ACTION REQUIRED (1 claim):
+  1. CLM98765 - Member eligibility verification and emergency services review
+     Priority: HIGH
+     Dollar Amount: $5,500.00
+     Assign to: Eligibility Specialist / Claims Reviewer
+
+STANDARD PROCESSING (1 claim):
+  1. CLM12345 - Route to adjudication system
+     Priority: STANDARD
+     Dollar Amount: $150.00
+     Assign to: Auto-adjudication or standard claims processor
+
+ESCALATIONS:
+  - None at this time
+
+SIU REFERRALS:
+  - None at this time
+
+
+================================================================================
+OPERATIONAL METRICS
+================================================================================
+
+Processing Statistics:
+  - Total transactions parsed: 2
+  - Parsing errors: 0
+  - Validation errors: 1
+  - Validation warnings: 1
+  - Average processing time: N/A (demo mode)
+
+Exception Rate: 50.0%
+  Note: This high exception rate is expected in demo mode with sample data.
+  Production exception rates typically range from 5-15% depending on trading
+  partner data quality and configuration.
+
+Financial Impact:
+  - Total charges submitted: $5,650.00
+  - Charges pending human review: $5,500.00 (97.3%)
+  - Charges ready for auto-adjudication: $150.00 (2.7%)
+
+
+================================================================================
+COMPLIANCE AND AUDIT NOTES
+================================================================================
+
+- All claims have been validated against structural and business rules
+- Exception claims flagged for human review per policy requirements
+- High-dollar claims identified for enhanced review procedures
+- Emergency services exception considerations documented
+- All validation findings are draft recommendations only
+- Final claim adjudication decisions remain with authorized personnel
+- Complete audit trail available in JSON waypoint files:
+  - waypoints/intake.json
+  - waypoints/validation.json
+  - waypoints/review.json
+
+
+================================================================================
+IMPORTANT DISCLAIMERS
+================================================================================
+
+This review summary provides DRAFT RECOMMENDATIONS ONLY and does not constitute
+final claim adjudication, payment authorization, or denial.
+
+HUMAN REVIEW IS REQUIRED for all claims flagged with Exception status before
+any final determination is made.
+
+The healthcare payer organization and its authorized personnel retain full and
+final responsibility for all claim adjudication decisions, including:
+  - Member eligibility determinations
+  - Provider credentialing and network status verification
+  - Medical necessity and benefit coverage interpretations
+  - Payment, denial, or pending decisions
+  - Compliance with federal, state, and contractual requirements
+
+All recommendations in this summary are subject to verification through
+authoritative systems and application of payer-specific policies.
+
+
+================================================================================
+END OF CLAIMS REVIEW SUMMARY
+================================================================================
+
+For questions or issues with this automated review, contact:
+  EDI Operations Team
+  Phone: [Your contact number]
+  Email: [Your contact email]
+
+Report generated by: EDI Claims and Enrollment Review Skill v1.0.0
