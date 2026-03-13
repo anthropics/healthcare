@@ -1,0 +1,15 @@
+{
+  "name": "courtlistener",
+  "version": "1.0.0",
+  "description": "Search and retrieve legal opinions and court documents from CourtListener, a free legal research service providing access to millions of legal opinions from federal and state courts.",
+  "author": {
+    "name": "Anthropic",
+    "url": "https://www.anthropic.com/"
+  },
+  "mcpServers": {
+    "CourtListener": {
+      "type": "http",
+      "url": "https://courtlistener.mcp.claude.com/mcp"
+    }
+  }
+}

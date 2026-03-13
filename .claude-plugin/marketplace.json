@@ -69,6 +69,13 @@
       "description": "Access ICD-10-CM and ICD-10-PCS code sets",
       "category": "healthcare",
       "tags": ["icd-10", "diagnosis", "procedure", "billing", "medical-coding"]
+    },
+    {
+      "name": "courtlistener",
+      "source": "./courtlistener",
+      "description": "Search and retrieve legal opinions from CourtListener",
+      "category": "healthcare",
+      "tags": ["legal", "court", "opinions", "case-law", "healthcare-law"]
     }
   ]
 }
