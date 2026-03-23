@@ -1,0 +1,333 @@
+{
+  "version": "1.2",
+  "description": "Gold expectations: original 100-patient Synthea cohort plus 20 patients ingested from synthea_sample_data_fhir_latest (see evals/ingest_latest_synthea.py). Re-snapshot if analyzer changes.",
+  "thresholds": {
+    "trend_direction_accuracy_min": 0.9,
+    "safety_gap_precision_min": 0.85,
+    "safety_gap_recall_min": 0.85,
+    "insufficient_data_rate_max": 0.2
+  },
+  "variation_gate": {
+    "min_anchor_patients": 5,
+    "min_pre_post_cases": 20,
+    "min_rule_positive_cases": 4,
+    "min_rule_negative_cases": 5
+  },
+  "cases": [
+    {
+      "patient_id": "763a24b2-3655-44b7-a231-106b766b07a9",
+      "expected_trends": [
+        {
+          "medication": "Leucovorin 100 MG Injection",
+          "lab": "Pain severity - 0-10 verbal numeric rating [Score] - Reported",
+          "classification": "decrease"
+        },
+        {
+          "medication": "10 ML oxaliplatin 5 MG/ML Injection",
+          "lab": "Pain severity - 0-10 verbal numeric rating [Score] - Reported",
+          "classification": "decrease"
+        }
+      ],
+      "expected_safety_rules": []
+    },
+    {
+      "patient_id": "5e4b559d-6999-4c91-9256-7c9845d6e167",
+      "expected_trends": [
+        {
+          "medication": "Cisplatin 50 MG Injection",
+          "lab": "Oral temperature",
+          "classification": "decrease"
+        },
+        {
+          "medication": "PACLitaxel 100 MG Injection",
+          "lab": "Oral temperature",
+          "classification": "decrease"
+        }
+      ],
+      "expected_safety_rules": []
+    },
+    {
+      "patient_id": "5ec8bfac-b725-4658-aeaa-b1e328773adc",
+      "expected_trends": [],
+      "expected_safety_rules": [
+        "acei_missing_k"
+      ]
+    },
+    {
+      "patient_id": "ab691324-7b05-4cda-9918-8d776432bb0a",
+      "expected_trends": [],
+      "expected_safety_rules": [
+        "acei_missing_k"
+      ]
+    },
+    {
+      "patient_id": "2389dd31-c3e8-4590-897f-5a9d2f359e2d",
+      "expected_trends": [],
+      "expected_safety_rules": []
+    },
+    {
+      "patient_id": "57ca2c16-7008-41e5-b338-4758b2fc46f0",
+      "expected_trends": [
+        {
+          "medication": "Acetaminophen 325 MG Oral Tablet",
+          "lab": "Body Height",
+          "classification": "no_material_change"
+        },
+        {
+          "medication": "Acetaminophen 325 MG Oral Tablet",
+          "lab": "Body Mass Index",
+          "classification": "no_material_change"
+        }
+      ],
+      "expected_safety_rules": []
+    },
+    {
+      "patient_id": "e4cc544e-a459-1865-2a91-e398873736de",
+      "expected_trends": [
+        {
+          "medication": "Hydrochlorothiazide 25 MG Oral Tablet",
+          "lab": "Body Weight",
+          "classification": "increase"
+        },
+        {
+          "medication": "Hydrochlorothiazide 25 MG Oral Tablet",
+          "lab": "Calcium [Mass/volume] in Blood",
+          "classification": "increase"
+        }
+      ],
+      "expected_safety_rules": [
+        "acei_missing_k"
+      ]
+    },
+    {
+      "patient_id": "b9fbe0a0-c38a-9226-d3e8-d8d004db4164",
+      "expected_trends": [
+        {
+          "medication": "Acetaminophen 325 MG Oral Tablet",
+          "lab": "FEV1/FVC",
+          "classification": "increase"
+        },
+        {
+          "medication": "Acetaminophen 325 MG Oral Tablet",
+          "lab": "Heart rate",
+          "classification": "increase"
+        }
+      ],
+      "expected_safety_rules": [
+        "acei_missing_k"
+      ]
+    },
+    {
+      "patient_id": "2838f1db-106d-dbfd-cf95-4af92dbb0a24",
+      "expected_trends": [
+        {
+          "medication": "Unknown medication",
+          "lab": "Pain severity - 0-10 verbal numeric rating [Score] - Reported",
+          "classification": "increase"
+        }
+      ],
+      "expected_safety_rules": []
+    },
+    {
+      "patient_id": "dfad70b7-359a-5515-1699-d86a54b88fac",
+      "expected_trends": [
+        {
+          "medication": "Unknown medication",
+          "lab": "Pain severity - 0-10 verbal numeric rating [Score] - Reported",
+          "classification": "increase"
+        }
+      ],
+      "expected_safety_rules": []
+    },
+    {
+      "patient_id": "aea2692f-43c1-148a-d242-561998a09f91",
+      "expected_trends": [
+        {
+          "medication": "Unknown medication",
+          "lab": "Body Weight",
+          "classification": "increase"
+        },
+        {
+          "medication": "Unknown medication",
+          "lab": "Heart rate",
+          "classification": "decrease"
+        }
+      ],
+      "expected_safety_rules": []
+    },
+    {
+      "patient_id": "050679ea-a14d-c8bb-e932-63806142fc9a",
+      "expected_trends": [
+        {
+          "medication": "Unknown medication",
+          "lab": "Heart rate",
+          "classification": "increase"
+        },
+        {
+          "medication": "Unknown medication",
+          "lab": "Patient Health Questionnaire 2 item (PHQ-2) total score [Reported]",
+          "classification": "decrease"
+        }
+      ],
+      "expected_safety_rules": []
+    },
+    {
+      "patient_id": "40e96868-17cd-84dc-5ebd-d593befe782e",
+      "expected_trends": [
+        {
+          "medication": "Unknown medication",
+          "lab": "Heart rate",
+          "classification": "increase"
+        },
+        {
+          "medication": "Unknown medication",
+          "lab": "Pain severity - 0-10 verbal numeric rating [Score] - Reported",
+          "classification": "decrease"
+        }
+      ],
+      "expected_safety_rules": []
+    },
+    {
+      "patient_id": "d4f64bc9-b691-9feb-82a0-94e8dd8561f3",
+      "expected_trends": [
+        {
+          "medication": "Unknown medication",
+          "lab": "Calcium [Mass/volume] in Blood",
+          "classification": "decrease"
+        },
+        {
+          "medication": "Unknown medication",
+          "lab": "Carbon dioxide, total [Moles/volume] in Blood",
+          "classification": "increase"
+        }
+      ],
+      "expected_safety_rules": []
+    },
+    {
+      "patient_id": "8efb4626-2766-c003-3f65-2a9a741b049d",
+      "expected_trends": [
+        {
+          "medication": "Acetaminophen 325 MG Oral Tablet",
+          "lab": "Body Weight",
+          "classification": "increase"
+        },
+        {
+          "medication": "Acetaminophen 325 MG Oral Tablet",
+          "lab": "Heart rate",
+          "classification": "decrease"
+        }
+      ],
+      "expected_safety_rules": []
+    },
+    {
+      "patient_id": "21d0e966-c879-703a-3020-566bc8c051b3",
+      "expected_trends": [
+        {
+          "medication": "Acetaminophen 21.7 MG/ML / Dextromethorphan Hydrobromide 1 MG/ML / doxylamine succinate 0.417 MG/ML Oral Solution",
+          "lab": "Body Weight",
+          "classification": "increase"
+        },
+        {
+          "medication": "Acetaminophen 21.7 MG/ML / Dextromethorphan Hydrobromide 1 MG/ML / doxylamine succinate 0.417 MG/ML Oral Solution",
+          "lab": "Calcium [Mass/volume] in Blood",
+          "classification": "increase"
+        }
+      ],
+      "expected_safety_rules": []
+    },
+    {
+      "patient_id": "28982ae4-691d-8382-6de8-49b6ef367631",
+      "expected_trends": [
+        {
+          "medication": "Acetaminophen 325 MG Oral Tablet",
+          "lab": "Body Weight",
+          "classification": "increase"
+        },
+        {
+          "medication": "Acetaminophen 325 MG Oral Tablet",
+          "lab": "Heart rate",
+          "classification": "increase"
+        }
+      ],
+      "expected_safety_rules": []
+    },
+    {
+      "patient_id": "ff2c3829-d4a3-a67d-19ce-c84d8eb76a9b",
+      "expected_trends": [],
+      "expected_safety_rules": []
+    },
+    {
+      "patient_id": "d3e437cf-2a56-a977-43be-40ac7166bf81",
+      "expected_trends": [
+        {
+          "medication": "Clopidogrel 75 MG Oral Tablet",
+          "lab": "Body Weight",
+          "classification": "increase"
+        },
+        {
+          "medication": "Clopidogrel 75 MG Oral Tablet",
+          "lab": "Calcium [Mass/volume] in Blood",
+          "classification": "increase"
+        }
+      ],
+      "expected_safety_rules": []
+    },
+    {
+      "patient_id": "8b1b2cf1-0831-fb32-da5d-c65be9ef86da",
+      "expected_trends": [
+        {
+          "medication": "Unknown medication",
+          "lab": "Calcium [Mass/volume] in Blood",
+          "classification": "decrease"
+        },
+        {
+          "medication": "Unknown medication",
+          "lab": "Carbon dioxide, total [Moles/volume] in Blood",
+          "classification": "decrease"
+        }
+      ],
+      "expected_safety_rules": []
+    },
+    {
+      "patient_id": "5b556a04-5899-ec90-f607-f125c7871e8f",
+      "expected_trends": [],
+      "expected_safety_rules": []
+    },
+    {
+      "patient_id": "90bee091-8f2c-8e95-634e-c5447bccbb40",
+      "expected_trends": [],
+      "expected_safety_rules": []
+    },
+    {
+      "patient_id": "03d2e5e6-a126-d0de-0a38-3f0bad766b30",
+      "expected_trends": [],
+      "expected_safety_rules": []
+    },
+    {
+      "patient_id": "250389c3-eeec-fdc1-f2fb-b20269a27e03",
+      "expected_trends": [],
+      "expected_safety_rules": []
+    },
+    {
+      "patient_id": "182b5fa5-9a66-b61f-0ca4-0106c17f92a8",
+      "expected_trends": [
+        {
+          "medication": "Unknown medication",
+          "lab": "Erythrocyte [DistWidth] in Blood by Automated count",
+          "classification": "increase"
+        },
+        {
+          "medication": "Unknown medication",
+          "lab": "Erythrocytes [#/volume] in Blood by Automated count",
+          "classification": "increase"
+        }
+      ],
+      "expected_safety_rules": []
+    },
+    {
+      "patient_id": "d7c1fce2-02be-45de-b6a5-d4a7222ad1dd",
+      "expected_trends": [],
+      "expected_safety_rules": []
+    }
+  ]
+}

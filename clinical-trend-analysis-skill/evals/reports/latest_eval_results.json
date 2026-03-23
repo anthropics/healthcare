@@ -1,0 +1,5 @@
+{
+  "note": "Regenerate by running: python evals/run_clinical_trend_eval.py (with bundles in synthea-data/ or SYNTHEA_JSON_DIR)",
+  "command": "python evals/run_clinical_trend_eval.py",
+  "result": {}
+}
