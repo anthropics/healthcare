@@ -12,7 +12,7 @@ This subskill generates the operational, assessment, and statistical sections (8
 - `waypoints/02_protocol_foundation.md` (sections 1-5 from Step 2)
 - `waypoints/03_protocol_intervention.md` (sections 6-7 from Step 3)
 - `waypoints/02_protocol_metadata.json` (must show step_3_status: "completed")
-- `scripts/sample_size_calculator.py` (for sample size calculation)
+- `scripts/sample_size_calculator.py` or `scripts/sample_size_calculator.R` (for sample size calculation)
 
 ## What This Subskill Does
 
@@ -157,7 +157,7 @@ This will:
 Please wait while the calculation completes.
 ```
 
-**For continuous endpoints:**
+**For continuous endpoints (Python):**
 
 ```bash
 python scripts/sample_size_calculator.py \
@@ -171,7 +171,21 @@ python scripts/sample_size_calculator.py \
   --output waypoints/02_sample_size_calculation.json
 ```
 
-**For binary endpoints:**
+**For continuous endpoints (R alternative):**
+
+```bash
+Rscript scripts/sample_size_calculator.R \
+  --type continuous \
+  --effect-size [user provided value] \
+  --std-dev [user provided value] \
+  --alpha [user provided or 0.05] \
+  --power [user provided or 0.80] \
+  --dropout [user provided or 0.15] \
+  --design [superiority or noninferiority] \
+  --output waypoints/02_sample_size_calculation.json
+```
+
+**For binary endpoints (Python):**
 
 ```bash
 python scripts/sample_size_calculator.py \
@@ -184,6 +198,22 @@ python scripts/sample_size_calculator.py \
   --design [superiority or noninferiority] \
   --output waypoints/02_sample_size_calculation.json
 ```
+
+**For binary endpoints (R alternative):**
+
+```bash
+Rscript scripts/sample_size_calculator.R \
+  --type binary \
+  --p1 [control proportion] \
+  --p2 [treatment proportion] \
+  --alpha [user provided or 0.05] \
+  --power [user provided or 0.80] \
+  --dropout [user provided or 0.15] \
+  --design [superiority or noninferiority] \
+  --output waypoints/02_sample_size_calculation.json
+```
+
+Both scripts produce identical JSON output. Use whichever runtime is available.
 
 **AFTER running the calculator successfully, display this message to the user:**
 

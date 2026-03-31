@@ -79,7 +79,8 @@ references/
 
 ```
 scripts/
-└── sample_size_calculator.py   # Statistical power analysis (validated)
+├── sample_size_calculator.py   # Statistical power analysis (Python)
+└── sample_size_calculator.R    # Statistical power analysis (R alternative)
 ```
 
 ## Prerequisites
@@ -120,7 +121,9 @@ max_results - Default 25, max 100
 
 **Purpose:** Reference template for protocol structure and content guidance. The system automatically detects available templates and uses them dynamically.
 
-### 4. Python Dependencies (Required for Step 2)
+### 4. Statistical Calculator Dependencies (Required for Step 4)
+
+**Option A: Python (default)**
 
 **Installation:**
 ```bash
@@ -130,6 +133,11 @@ pip install -r requirements.txt
 **Dependencies:**
 - scipy >= 1.11.0 (statistical calculations)
 - numpy >= 1.24.0 (numerical operations)
+
+**Option B: R (alternative)**
+
+- R >= 4.0 with `jsonlite` package
+- Install: `Rscript -e "install.packages('jsonlite')"`
 
 **Purpose:** Accurate statistical sample size calculations for clinical protocols
 

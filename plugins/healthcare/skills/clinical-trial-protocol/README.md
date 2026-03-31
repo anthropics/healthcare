@@ -45,7 +45,7 @@ This Claude Code skill generates comprehensive clinical trial protocols based on
 
 ## Requirements
 
-- **Python Dependencies** - `scipy`, `numpy` for sample size calculations
+- **Statistical Calculator** - Python (`scipy`, `numpy`) or R (`jsonlite`) for sample size calculations
 - **ClinicalTrials.gov MCP Server** - For searching similar trials
 - **WebSearch** - For FDA guidance documents
 
