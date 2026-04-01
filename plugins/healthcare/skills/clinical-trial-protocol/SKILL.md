@@ -93,6 +93,8 @@ scripts/
 ├── survival_sample_size.R          # Time-to-event Schoenfeld sizing (R)
 ├── bayesian_assurance.py           # Bayesian assurance / expected power (Python)
 ├── bayesian_assurance.R            # Bayesian assurance / expected power (R)
+├── adaptive_design_oc.py           # Adaptive design operating characteristics (Python)
+├── adaptive_design_oc.R            # Adaptive design operating characteristics (R)
 └── tests/                          # Python/R parity tests
 ```
 
