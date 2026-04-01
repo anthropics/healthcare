@@ -87,6 +87,12 @@ scripts/
 ├── sensitivity_table_generator.R   # 2D sensitivity tables (R)
 ├── equivalence_sample_size.py      # TOST equivalence sizing (Python)
 ├── equivalence_sample_size.R       # TOST equivalence sizing (R)
+├── cluster_sample_size.py          # Cluster randomized trial sizing (Python)
+├── cluster_sample_size.R           # Cluster randomized trial sizing (R)
+├── survival_sample_size.py         # Time-to-event Schoenfeld sizing (Python)
+├── survival_sample_size.R          # Time-to-event Schoenfeld sizing (R)
+├── bayesian_assurance.py           # Bayesian assurance / expected power (Python)
+├── bayesian_assurance.R            # Bayesian assurance / expected power (R)
 └── tests/                          # Python/R parity tests
 ```
 
