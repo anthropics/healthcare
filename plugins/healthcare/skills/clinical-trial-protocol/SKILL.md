@@ -95,6 +95,8 @@ scripts/
 ├── bayesian_assurance.R            # Bayesian assurance / expected power (R)
 ├── adaptive_design_oc.py           # Adaptive design operating characteristics (Python)
 ├── adaptive_design_oc.R            # Adaptive design operating characteristics (R)
+├── multiplicity_adjustment.py      # Bonferroni/Holm/Hochberg p-value adjustment (Python)
+├── multiplicity_adjustment.R       # Bonferroni/Holm/Hochberg p-value adjustment (R)
 └── tests/                          # Python/R parity tests
 ```
 
