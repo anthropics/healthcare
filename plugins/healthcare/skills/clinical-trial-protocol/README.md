@@ -13,7 +13,9 @@ This Claude Code skill generates comprehensive clinical trial protocols based on
 - Device & Drug Support - Handles both medical devices (IDE) and drugs (IND)
 - Token-Efficient - Modular protocol development to stay within output limits
 - Resume from Any Step - Interrupted workflows can continue from any step
-- Sample Size Calculation - Interactive statistical power analysis
+- Sample Size Calculation - Interactive statistical power analysis (t-test, z-test, TOST equivalence)
+- Power Curves - Sweep effect size or sample size to visualize design robustness
+- Sensitivity Tables - 2D grids of sample sizes across assumption combinations
 - Research-Driven - Leverages ClinicalTrials.gov and FDA guidance documents
 
 ## Disclaimers

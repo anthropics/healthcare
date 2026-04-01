@@ -79,8 +79,15 @@ references/
 
 ```
 scripts/
-├── sample_size_calculator.py   # Statistical power analysis (Python)
-└── sample_size_calculator.R    # Statistical power analysis (R alternative)
+├── sample_size_calculator.py       # Sample size for t-test / z-test (Python)
+├── sample_size_calculator.R        # Sample size for t-test / z-test (R)
+├── power_curve_generator.py        # Power curves across parameter sweeps (Python)
+├── power_curve_generator.R         # Power curves across parameter sweeps (R)
+├── sensitivity_table_generator.py  # 2D sensitivity tables (Python)
+├── sensitivity_table_generator.R   # 2D sensitivity tables (R)
+├── equivalence_sample_size.py      # TOST equivalence sizing (Python)
+├── equivalence_sample_size.R       # TOST equivalence sizing (R)
+└── tests/                          # Python/R parity tests
 ```
 
 ## Prerequisites
