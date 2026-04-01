@@ -97,6 +97,8 @@ scripts/
 ├── adaptive_design_oc.R            # Adaptive design operating characteristics (R)
 ├── multiplicity_adjustment.py      # Bonferroni/Holm/Hochberg p-value adjustment (Python)
 ├── multiplicity_adjustment.R       # Bonferroni/Holm/Hochberg p-value adjustment (R)
+├── stratified_randomization.py     # Permuted block randomization planner (Python)
+├── stratified_randomization.R      # Permuted block randomization planner (R)
 └── tests/                          # Python/R parity tests
 ```
 
