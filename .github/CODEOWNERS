@@ -1,0 +1,15 @@
+# Code owners for the healthcare marketplace.
+# The branch ruleset on main requires code-owner review, so changes to the
+# paths below need approval from one of the listed owners.
+
+# Default owners for everything in the repo
+* @jwei-ant @jmm-ant
+
+# Marketplace storefront: install commands and MCP endpoint URLs that users
+# copy-paste. Endpoint changes must be reviewed by a marketplace maintainer.
+/README.md @jwei-ant @jmm-ant @nadine-anthropic
+/.claude-plugin/marketplace.json @jwei-ant @jmm-ant @nadine-anthropic
+/*/.claude-plugin/plugin.json @jwei-ant @jmm-ant @nadine-anthropic
+
+# CI and automation
+/.github/ @jwei-ant @jmm-ant
