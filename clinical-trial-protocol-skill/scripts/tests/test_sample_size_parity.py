@@ -7,8 +7,8 @@ Runs both scripts with identical inputs and verifies that all numeric outputs
 (e.g. "5.0" vs "5") are ignored.
 
 Usage:
-    python scripts/test_sample_size_parity.py
-    python scripts/test_sample_size_parity.py --python /path/to/python --rscript /path/to/Rscript
+    python scripts/tests/test_sample_size_parity.py
+    python scripts/tests/test_sample_size_parity.py --python /path/to/python --rscript /path/to/Rscript
 """
 
 import argparse

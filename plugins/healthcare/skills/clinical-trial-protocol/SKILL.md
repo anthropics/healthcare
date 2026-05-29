@@ -102,6 +102,10 @@ scripts/
 └── tests/                          # Python/R parity tests
 ```
 
+Each calculator is implemented in both Python and R with the same CLI flags and JSON output — use whichever runtime is available (run any script with `--help` for its full set of options). The `scripts/tests/` directory contains one parity test per calculator; to run them, both runtimes must be installed, then from the skill root run e.g. `python scripts/tests/test_sample_size_parity.py`.
+
+The sample size calculator is invoked as part of Step 4 (see `references/04-protocol-operations.md`); the remaining calculators are used as needed for specialized designs (equivalence, cluster, survival, adaptive) and for justifying assumptions in the statistical section (power curves, sensitivity tables, Bayesian assurance, multiplicity adjustment, randomization plans).
+
 ## Prerequisites
 
 ### 1. clinical trials MCP Server (Required)
@@ -146,7 +150,7 @@ max_results - Default 25, max 100
 
 **Installation:**
 ```bash
-pip install -r requirements.txt
+pip install "scipy>=1.11.0" "numpy>=1.24.0"
 ```
 
 **Dependencies:**

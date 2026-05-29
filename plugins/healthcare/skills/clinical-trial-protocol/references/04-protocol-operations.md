@@ -137,7 +137,7 @@ Would you like to customize these optional parameters? (Yes/No, default: No)
 
 **For TIME-TO-EVENT endpoints (if applicable):**
 
-Note: Sample size calculator may not support time-to-event. If primary endpoint is time-to-event, use pattern-based approach from similar trials in Phase 1, and add disclaimer.
+Use `scripts/survival_sample_size.py` (or `scripts/survival_sample_size.R`) instead of the standard calculator. Ask the user for the expected hazard ratio plus either an overall event probability (`--event-prob`) or a control-arm median survival and follow-up duration (`--median-control`, `--follow-up`, optional `--accrual`), along with the usual alpha/power/dropout/design parameters. If the user cannot provide a hazard ratio or event assumptions, fall back to the pattern-based approach from similar trials in Phase 1 and add a disclaimer.
 
 #### 2.4 Run Sample Size Calculator Script
 
@@ -214,6 +214,24 @@ Rscript scripts/sample_size_calculator.R \
 ```
 
 Both scripts produce identical JSON output. Use whichever runtime is available.
+
+#### 2.4.1 Specialized Design Calculators (use when applicable)
+
+The standard calculator covers two-arm superiority/non-inferiority designs with continuous or binary endpoints. For other designs, or to strengthen the justification in Section 9, use the matching specialized script. Every script exists as both `.py` and `.R` with identical flags and JSON output; run it with `--help` to see all options, and pass `--output waypoints/02_<name>.json` so results can be cited in the protocol text.
+
+| Situation | Script | Use it for |
+|-----------|--------|------------|
+| Time-to-event primary endpoint | `survival_sample_size` | Required events (Schoenfeld) and total N from hazard ratio + event assumptions |
+| Equivalence design (not superiority/NI) | `equivalence_sample_size` | TOST-based sizing from equivalence margin and expected difference |
+| Cluster randomized trial | `cluster_sample_size` | Inflates individual-level N by the design effect (ICC, cluster size) |
+| Group-sequential / sample size re-estimation | `adaptive_design_oc` | Simulated operating characteristics (power, type I error, expected N) for the adaptive design description |
+| Probability of success given uncertainty in effect size | `bayesian_assurance` | Bayesian assurance / expected power to report alongside frequentist power |
+| Multiple primary/key secondary endpoints | `multiplicity_adjustment` | Bonferroni/Holm/Hochberg adjusted alphas for the multiplicity strategy in Section 9 |
+| Randomization section (Section 9) | `stratified_randomization` | Permuted-block randomization plan across strata (block sizes, allocation ratio) |
+| Justifying the chosen power/effect size | `power_curve_generator` | Power across a sweep of one parameter (effect size, N, etc.) |
+| Showing robustness of the sample size | `sensitivity_table_generator` | 2D table of required N across two varying assumptions |
+
+When one of these is used, summarize its inputs and outputs in Section 9.2 the same way as the standard calculation (assumptions, resulting N, dropout adjustment), and keep the JSON file in `waypoints/` for traceability.
 
 **AFTER running the calculator successfully, display this message to the user:**
 
