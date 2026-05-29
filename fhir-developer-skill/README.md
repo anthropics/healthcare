@@ -55,7 +55,7 @@ Complete validation examples in Python/FastAPI and TypeScript/Express showing:
 - **ETag conflicts** - Return 412 (not 400) for If-Match header mismatches
 - **Optional fields** - Don't require `subject` or `period` on Encounter (they're 0..1)
 - **Encounter.class** - It's a Coding object, not a string
-- **SMART scopes** - Proper format is `patient/Observation.read` not `read:observation`
+- **SMART scopes** - Proper format is `patient/Observation.rs` (SMART v2; `patient/Observation.read` in v1) not `read:observation`
 
 ## Related MCP Connectors
 
