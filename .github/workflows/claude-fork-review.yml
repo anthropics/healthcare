@@ -17,14 +17,37 @@ name: Claude Fork Review
 #     the review reads the PR diff through the GitHub API (`gh pr diff`).
 #     See claude-code-action's docs/security.md for this pattern.
 #   - Edit/write/web tools are disallowed for the review session.
+#
+# A second job posts a one-time notice on newly opened fork PRs explaining
+# how to trigger the review (fixed string — no untrusted interpolation).
 
 on:
   pull_request_target:
-    types: [labeled]
+    types: [opened, labeled]
 
 jobs:
+  fork-notice:
+    if: >-
+      github.event.action == 'opened' &&
+      github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Post fork review instructions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} \
+            --repo ${{ github.repository }} \
+            --body "Thanks for the contribution! Because this PR comes from a fork, the automatic Claude code review can't run on it (GitHub withholds the credentials it needs from fork-triggered workflows).
+
+          A maintainer can trigger the same review by applying the \`claude-review\` label to this PR. The review posts its findings as comments, and the label is removed automatically when it finishes — re-applying it requests a fresh review. Maintainers can also mention \`@claude\` in a comment to ask questions about the changes interactively."
+
   claude-review:
-    if: github.event.label.name == 'claude-review'
+    if: >-
+      github.event.action == 'labeled' &&
+      github.event.label.name == 'claude-review'
     runs-on: ubuntu-latest
     concurrency:
       group: claude-fork-review-${{ github.event.pull_request.number }}
