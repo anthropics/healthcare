@@ -12,7 +12,7 @@ Thanks for your interest in contributing! This repository contains Claude Code s
 
 - **Documentation fixes** — typos, broken links, missing entries in the README or marketplace manifest. Keep them small and easy to verify.
 - **Improvements to existing skills** — bug fixes in scripts, clearer references, better examples, added language support.
-- **New skills** — see the checklist below. Looking for ideas? [ROADMAP.md](ROADMAP.md) is the team's prioritized backlog of the skills we most want built; contributions that target a backlog item are the most likely to be accepted.
+- **New skills** — see the checklist below.
 - **MCP connector metadata fixes** — corrections to descriptions or tags. Endpoint URL changes get extra scrutiny (see below).
 
 ## Repository layout
@@ -27,7 +27,7 @@ Thanks for your interest in contributing! This repository contains Claude Code s
 
 ## Adding a new skill
 
-Check [ROADMAP.md](ROADMAP.md) first — it lists the prioritized backlog, known constraints (e.g. code-set licensing), and the MCP connectors skills should reuse. Then, before opening a PR for a new skill, make sure it meets all of the following:
+Before opening a PR for a new skill, make sure it meets all of the following:
 
 1. **Layout** matches the existing skills: `SKILL.md` and `README.md` at the skill root, with supporting material under `references/`, `scripts/`, and `assets/`.
 2. **`SKILL.md` frontmatter** contains `name` and `description`, and the description includes concrete "Use when…" trigger phrasing so the skill activates reliably. Don't add unsupported frontmatter keys.
