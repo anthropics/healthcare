@@ -1,0 +1,70 @@
+name: Claude Fork Review
+
+# Label-gated code review for fork PRs.
+#
+# The same-repo "Claude Code Review" workflow can't run on fork PRs: GitHub
+# withholds `id-token: write` from fork-triggered `pull_request` runs, so the
+# workload identity exchange has no token to start from. This workflow uses
+# `pull_request_target`, which runs the base repo's workflow file with base
+# repo permissions — gated so it never runs untrusted input automatically:
+#
+#   - Triggers only on the `claude-review` label, which requires triage or
+#     better on this repo to apply. Applying the label is the human approval:
+#     a maintainer reads the diff first.
+#   - Pushing new commits does NOT re-run the review. The label is removed
+#     when the run finishes, so each review needs a fresh, deliberate label.
+#   - The fork's code is never checked out. Only the base ref lands on disk;
+#     the review reads the PR diff through the GitHub API (`gh pr diff`).
+#     See claude-code-action's docs/security.md for this pattern.
+#   - Edit/write/web tools are disallowed for the review session.
+
+on:
+  pull_request_target:
+    types: [labeled]
+
+jobs:
+  claude-review:
+    if: github.event.label.name == 'claude-review'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: claude-fork-review-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      pull-requests: write # remove the gate label when done
+      issues: read
+      id-token: write
+
+    steps:
+      - name: Checkout base repository
+        # No `ref:` — this checks out the BASE branch, never the fork's code.
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run Claude Code Review
+        id: claude-review
+        uses: anthropics/claude-code-action@v1
+        with:
+          # Auth via workload identity federation: the workflow's GitHub OIDC token is
+          # exchanged for short-lived Claude API credentials (requires id-token: write).
+          anthropic_federation_rule_id: ${{ vars.ANTHROPIC_FEDERATION_RULE_ID }}
+          anthropic_organization_id: ${{ vars.ANTHROPIC_ORGANIZATION_ID }}
+          plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
+          plugins: 'code-review@claude-code-plugins'
+          prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
+          # The code-review command's own allowed-tools are read-only gh
+          # commands plus inline review comments; deny edit/write/web tools
+          # outright so a malicious diff can't talk the session into them.
+          claude_args: '--disallowedTools "Edit,Write,NotebookEdit,WebFetch,WebSearch"'
+
+      - name: Remove gate label
+        # Re-arm the gate whether the review passed or failed, so the next
+        # review of this PR requires a fresh maintainer approval.
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} \
+            --repo ${{ github.repository }} \
+            --remove-label claude-review
