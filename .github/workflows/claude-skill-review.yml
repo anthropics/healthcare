@@ -56,7 +56,12 @@ jobs:
 
   review-skill:
     needs: detect-skills
-    if: needs.detect-skills.outputs.has_skills == 'true'
+    # Skip fork PRs: GitHub withholds id-token from fork-triggered runs, so the
+    # WIF exchange can't run. Fork PRs are reviewed via the label-gated
+    # claude-fork-review.yml workflow instead.
+    if: >-
+      needs.detect-skills.outputs.has_skills == 'true' &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     strategy:
       matrix:
