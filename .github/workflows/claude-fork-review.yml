@@ -53,11 +53,15 @@ jobs:
       pull-requests: write
       id-token: write # Anthropic Workload Identity Federation
     steps:
-      - name: Checkout PR head
+      # Check out the BASE ref, never the fork's head. The code-review plugin
+      # reads the PR through `gh pr diff` (API), so fork-controlled files —
+      # including .claude/, .mcp.json, and CLAUDE.md, which would otherwise
+      # configure this WIF-credentialed session — never reach the runner.
+      - name: Checkout base repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          ref: refs/pull/${{ inputs.pr_number }}/head
+          fetch-depth: 1
+          persist-credentials: false
 
       - name: Run Claude Code Review
         uses: anthropics/claude-code-action@v1
@@ -70,7 +74,12 @@ jobs:
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
           prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ inputs.pr_number }}'
-          # Read-only review: gh/git inspection, file reads, and posting the
-          # review — no edit/write/web/execution tools. Matches the cookbooks
-          # allowlist so a malicious diff can't escalate during review.
-          claude_args: '--allowedTools "SlashCommand,Task,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*),Bash(gh pr review:*),Bash(git diff:*),Bash(git log:*),Read,Glob,Grep"'
+          # Read-only review. The code-review plugin needs SlashCommand + Task
+          # (it fans out to subagents) and gh/git inspection + gh pr comment to
+          # post. The --disallowedTools backstop hard-blocks mutation/exfil
+          # tools and wins over the allowlist inside spawned subagents too.
+          # `gh pr review` is intentionally NOT granted — the bot must not be
+          # able to approve or request-changes on a fork PR under injection.
+          claude_args: >-
+            --allowedTools "SlashCommand,Task,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*),Bash(git diff:*),Bash(git log:*),Read,Glob,Grep"
+            --disallowedTools "Edit,Write,NotebookEdit,WebFetch,WebSearch"
