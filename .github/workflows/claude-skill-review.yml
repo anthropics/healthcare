@@ -5,8 +5,10 @@ on:
     types: [opened, synchronize, ready_for_review, reopened]
   workflow_call:
     secrets:
+      # Deprecated: auth now uses workload identity federation (see review-skill job).
+      # Kept optional so existing callers that still pass the secret don't break.
       CLAUDE_CODE_OAUTH_TOKEN:
-        required: true
+        required: false
 
 jobs:
   detect-skills:
@@ -54,7 +56,12 @@ jobs:
 
   review-skill:
     needs: detect-skills
-    if: needs.detect-skills.outputs.has_skills == 'true'
+    # Skip fork PRs: GitHub withholds id-token from fork-triggered runs, so the
+    # WIF exchange can't run. Fork PRs are reviewed via the label-gated
+    # claude-fork-review.yml workflow instead.
+    if: >-
+      needs.detect-skills.outputs.has_skills == 'true' &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -75,7 +82,10 @@ jobs:
       - name: Run Claude Skill Review
         uses: anthropics/claude-code-action@v1
         with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Auth via workload identity federation: the workflow's GitHub OIDC token is
+          # exchanged for short-lived Claude API credentials (requires id-token: write).
+          anthropic_federation_rule_id: ${{ vars.ANTHROPIC_FEDERATION_RULE_ID }}
+          anthropic_organization_id: ${{ vars.ANTHROPIC_ORGANIZATION_ID }}
           plugin_marketplaces: 'https://github.com/anthropics/skills.git'
           plugins: 'example-skills@anthropic-agent-skills'
           claude_args: '--allowedTools "Bash(gh pr comment:*),Bash(git:*),Read,Glob,Grep,Skill"'
