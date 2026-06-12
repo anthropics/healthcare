@@ -1,0 +1,6 @@
+{
+  "name": "healthcare",
+  "version": "2.0.0",
+  "description": "Claude for Healthcare — skills for payer, provider, pharma, and general healthcare work, with hosted MCP connections to CMS Coverage, ICD-10, NPI Registry, Clinical Trials, and PubMed.",
+  "author": { "name": "Anthropic", "url": "https://www.anthropic.com/" }
+}
