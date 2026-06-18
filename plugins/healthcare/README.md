@@ -12,6 +12,7 @@ One plugin for healthcare work. Skills only load when relevant, so the bundle st
 | Skill | Audience | What it does |
 |---|---|---|
 | `skills/prior-auth` | payer, provider | Review prior authorization requests with clinical documentation synthesis |
+| `skills/icd10-cm` | payer, provider | Turn clinical notes into claim-ready ICD-10-CM diagnosis codes via the ICD-10 connector |
 | `skills/clinical-trial-protocol` | pharma | Generate FDA/NIH-compliant clinical trial protocols for devices or drugs |
 | `skills/fhir-developer` | general | FHIR API development — R4 resources, SMART authorization, endpoint patterns |
 

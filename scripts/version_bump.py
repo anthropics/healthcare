@@ -34,11 +34,23 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
+# `git diff --name-only` and `git show REF:PATH` emit paths relative to the repo
+# toplevel; `git add PATH` resolves relative to cwd. Anchoring every git call at
+# the toplevel (and making rel() toplevel-relative) keeps those consistent when
+# ROOT is a subdirectory of a larger repo. When ROOT is itself the toplevel,
+# GIT_ROOT == ROOT and nothing changes.
+_toplevel = subprocess.run(
+    ["git", "-C", str(ROOT), "rev-parse", "--show-toplevel"],
+    capture_output=True,
+    text=True,
+).stdout.strip()
+GIT_ROOT = Path(_toplevel) if _toplevel else ROOT
+
 
 def git(*args: str) -> str:
     """Run a git command, returning stdout (stripped). Raises on failure."""
     return subprocess.run(
-        ["git", "-C", str(ROOT), *args],
+        ["git", "-C", str(GIT_ROOT), *args],
         capture_output=True,
         text=True,
         check=True,
@@ -74,7 +86,7 @@ def plugin_root(plugin_json: Path) -> Path:
 
 
 def rel(p: Path) -> str:
-    return str(p.relative_to(ROOT))
+    return str(p.relative_to(GIT_ROOT))
 
 
 def parse_semver(v: str) -> tuple[int, int, int] | None:

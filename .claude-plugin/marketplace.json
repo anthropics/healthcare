@@ -5,7 +5,7 @@
     "email": "support@anthropic.com"
   },
   "metadata": {
-    "version": "2.0.0",
+    "version": "2.1.0",
     "description": "Claude for Healthcare — one plugin bundling payer, provider, pharma, and general healthcare skills over hosted MCP servers"
   },
   "plugins": [
@@ -13,9 +13,9 @@
       "name": "healthcare",
       "displayName": "Claude for Healthcare",
       "source": "./plugins/healthcare",
-      "description": "Prior auth, clinical trial protocols, FHIR development — with CMS Coverage, ICD-10, NPI Registry, Clinical Trials, and PubMed connected",
+      "description": "Prior auth, ICD-10-CM medical coding, clinical trial protocols, FHIR development — with CMS Coverage, ICD-10, NPI Registry, Clinical Trials, and PubMed connected",
       "category": "healthcare",
-      "tags": ["healthcare", "payer", "provider", "pharma", "prior-auth", "fhir", "clinical-trials"]
+      "tags": ["healthcare", "payer", "provider", "pharma", "prior-auth", "medical-coding", "fhir", "clinical-trials"]
     },
     {
       "name": "clinical-trial-protocol",
