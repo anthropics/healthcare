@@ -15,6 +15,7 @@ One plugin for healthcare work. Skills only load when relevant, so the bundle st
 | `skills/icd10-cm` | payer, provider | Turn clinical notes into claim-ready ICD-10-CM diagnosis codes via the ICD-10 connector |
 | `skills/clinical-trial-protocol` | pharma | Generate FDA/NIH-compliant clinical trial protocols for devices or drugs |
 | `skills/fhir-developer` | general | FHIR API development — R4 resources, SMART authorization, endpoint patterns |
+| `skills/fraud-detection` | payer | FWA detection: 22-detector deterministic sweep + LLM adjudication + investigator packets |
 
 Connected MCP servers (`.mcp.json`), hosted, no setup: CMS Coverage, ICD-10 Codes, NPI Registry, Clinical Trials, PubMed.
 

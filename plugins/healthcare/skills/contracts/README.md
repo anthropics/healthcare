@@ -6,7 +6,7 @@ Answers questions across a corpus of contract documents with verified citations.
 
 ## Prerequisites
 
-- [bun](https://bun.sh) installed
+- [bun](https://bun.sh) — the skill auto-installs it to `~/.bun` on first run if it isn't already on your machine
 - A `corpora/<name>/` folder of contract documents — **PDF, DOCX, XLSX, PPTX, plain text, markdown, or HTML** (one file per document). This folder is **read-only input** — the skill never writes into it. PDF/DOCX/XLSX/PPTX are converted automatically to page-anchored text on first ingest via [liteparse](https://www.npmjs.com/package/@llamaindex/liteparse) (pulled by `bun install`); PDFs additionally fall back to `pdftotext -layout` if liteparse is unavailable. Extractions are cached under `<DATA>/parsed/`, keyed by the source file's content hash, so the same file anywhere on disk is parsed once. If you've already extracted a document yourself, drop the `.txt` alongside (or instead of) the source — your text takes precedence.
 - Budget: the skill shows a cost estimate before starting (roughly $0.20–0.40 per document for a full-corpus question with the default model; narrow lookups are much less — see `agents/conductor.md` step 1b)
 
@@ -48,7 +48,7 @@ The skill ingests the corpus on first use, shows you its understanding of the qu
 
 This is **single-user, local-only** today:
 
-- State (db, reports, observations log) lives at `~/.claude/data/healthcare/contracts/` — machine-global so learned knowledge and cost calibration carry across projects, persists across plugin upgrades. Override with `ANT_CONTRACTS_DATA`.
+- State (db, reports, observations log) lives at `~/.claude/data/healthcare/contracts/` — machine-global so learned knowledge and cost calibration carry across projects, persists across plugin upgrades. Override the parent dir with `$CLAUDE_HEALTHCARE_DATA` (the skill appends `/contracts`).
 - The schema is still moving; if you upgrade to a newer alpha, delete `~/.claude/data/healthcare/contracts/` and the corpus will be re-ingested automatically on the next `/contracts` (there's no migration).
 - The corpus must be on the **local filesystem**. MCP connectors and other data-access patterns are planned; today it reads files from `corpora/`.
 
@@ -58,6 +58,7 @@ The engine reads contract text as untrusted input and runs as a Claude Code suba
 
 Accepted for alpha (design partners, own machines, corpora they control):
 
+- **On first run, if [bun](https://bun.sh) isn't already installed, the bootstrap runs the official installer (`curl -fsSL https://bun.sh/install | bash`) automatically.** This is the same command the README previously asked you to run by hand; it executes a remote script from bun.sh over HTTPS. If you'd rather install bun yourself first (e.g. via `brew install oven-sh/bun/bun`), do so before invoking `/contracts` and the auto-install is skipped.
 - The inspector binds `127.0.0.1:6226` with **no auth and no origin check**. Don't expose the port, and don't browse untrusted sites while it's running — a page could DNS-rebind to read run data or POST feedback/ratify.
 - `Read`/`Grep` and `cli ingest` are not confined to the corpus path; they reach wherever your session can.
 - **Don't run this on a corpus you don't trust.**

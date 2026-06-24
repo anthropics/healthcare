@@ -7,11 +7,14 @@ import { z } from "zod";
 export const ROOT = dirname(dirname(new URL(import.meta.url).pathname));
 export const CORPORA = process.env.ANT_CONTRACTS_CORPORA ?? join(process.cwd(), "corpora");
 // User allowlists ~/.claude/data/healthcare via sandbox.filesystem.allowWrite
-// (README quick-start); subagents and Workflow workers inherit it.
-export const DATA =
-  process.env.ANT_CONTRACTS_DATA ??
-  join(process.env.HOME ?? ".", ".claude", "data", "healthcare", "contracts");
-export const DB_PATH = process.env.ANT_CONTRACTS_DB ?? join(DATA, "data.sqlite");
+// (README quick-start); subagents and Workflow workers inherit it. Plugin-wide
+// convention: $CLAUDE_HEALTHCARE_DATA overrides the parent dir; each skill
+// appends its own name (see plugins/healthcare/CLAUDE.md).
+const DATA_ROOT =
+  process.env.CLAUDE_HEALTHCARE_DATA ??
+  join(process.env.HOME ?? ".", ".claude", "data", "healthcare");
+export const DATA = join(DATA_ROOT, "contracts");
+export const DB_PATH = join(DATA, "data.sqlite");
 export const PARSED = join(DATA, "parsed");
 export const RUN_ID_RE = /^(?!.*\.\.)[A-Za-z0-9_.:-]{1,64}$/;
 export const SCHEMA_VERSION = 3;
