@@ -1,6 +1,6 @@
 {
   "name": "healthcare",
-  "version": "2.2.2",
-  "description": "Claude for Healthcare — skills for payer, provider, pharma, and general healthcare work (prior auth, ICD-10-CM coding, trial protocols, FHIR), with hosted MCP connections to CMS Coverage, ICD-10, NPI Registry, Clinical Trials, and PubMed.",
+  "version": "2.3.1",
+  "description": "Claude for Healthcare — skills for payer, provider, pharma, and general healthcare work (prior auth, ICD-10-CM coding, clinical-note extraction, trial protocols, FHIR), with hosted MCP connections to CMS Coverage, ICD-10, NPI Registry, Clinical Trials, and PubMed.",
   "author": { "name": "Anthropic", "url": "https://www.anthropic.com/" }
 }

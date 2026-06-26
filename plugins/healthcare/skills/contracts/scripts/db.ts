@@ -32,16 +32,22 @@ try {
 }
 export const db = new Database(DB_PATH, { create: true, strict: true });
 db.run("PRAGMA foreign_keys = ON");
-db.run("PRAGMA busy_timeout = 8000");
+db.run("PRAGMA journal_mode = WAL"); // persists in file header; no-op after first set
+db.run("PRAGMA synchronous = NORMAL"); // per-connection; safe under WAL
+db.run("PRAGMA busy_timeout = 30000");
 {
   // schema.sql is CREATE IF NOT EXISTS, so a pre-existing DB keeps its old table shapes.
-  // Check BEFORE applying schema.sql (which writes user_version unconditionally).
   // v==0 means either a fresh DB or a pre-versioning one — distinguish by whether tables exist.
   const v = (db.query("PRAGMA user_version").get() as { user_version: number }).user_version;
   const hasTables = db
     .query("SELECT 1 FROM sqlite_master WHERE type='table' AND name='documents'")
     .get();
-  if (v !== SCHEMA_VERSION && !(v === 0 && !hasTables)) {
+  if (v === SCHEMA_VERSION) {
+    // Already current — skip schema.sql so cold spawns under sweep don't each take a
+    // write lock for the unconditional `PRAGMA user_version` at the end of the file.
+  } else if (v === 0 && !hasTables) {
+    db.run(readFileSync(join(ROOT, "schema.sql"), "utf8"));
+  } else {
     console.error(
       JSON.stringify({
         error: `FAIL: schema version ${v} != ${SCHEMA_VERSION}`,
@@ -51,7 +57,6 @@ db.run("PRAGMA busy_timeout = 8000");
     process.exit(2);
   }
 }
-db.run(readFileSync(join(ROOT, "schema.sql"), "utf8"));
 
 export const setSchemas = {
   runs: { pk: "run_id", cols: ["status", "round", "session_id"] },

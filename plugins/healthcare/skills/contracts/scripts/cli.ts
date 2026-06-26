@@ -535,7 +535,16 @@ const commands: Record<string, Handler> = {
 export async function run(cmd: string, a: string[], stdin?: string): Promise<unknown> {
   const handler = commands[cmd];
   if (!handler) die(`usage: ${Object.keys(commands).join(" | ")}`);
-  return handler(a, stdin);
+  for (let i = 0; ; i++) {
+    try {
+      return await handler(a, stdin);
+    } catch (e) {
+      // busy_timeout=30000 handles most contention; this is the backstop for the burst
+      // when many sweep workers commit at once.
+      if ((e as { code?: string })?.code !== "SQLITE_BUSY" || i >= 2) throw e;
+      await new Promise((r) => setTimeout(r, 100 * 2 ** i));
+    }
+  }
 }
 
 function startServer(port: number) {
