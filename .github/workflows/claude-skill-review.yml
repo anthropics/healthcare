@@ -84,6 +84,9 @@ jobs:
       - name: Run Claude Skill Review
         uses: anthropics/claude-code-action@v1
         with:
+          # sync PRs are pushed by the healthcare-sync GitHub App; without this the
+          # action refuses bot-initiated runs and every sync PR fails these checks
+          allowed_bots: 'healthcare-sync'
           # Auth via workload identity federation: the workflow's GitHub OIDC token is
           # exchanged for short-lived Claude API credentials (requires id-token: write).
           anthropic_federation_rule_id: ${{ vars.ANTHROPIC_FEDERATION_RULE_ID }}
