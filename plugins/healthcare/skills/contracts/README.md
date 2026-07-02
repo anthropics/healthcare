@@ -73,7 +73,8 @@ Chat shows the question, the brief, the queue, and the final report — that's e
 
 - `SKILL.md` — the chat front-end: bootstraps paths, spawns the engine subagent, relays its pauses and report to the user.
 - `agents/conductor.md` — the engine subagent: system prompt + tool allowlist + the run flow (reformulate → confirm-brief → scope → sweep → triage → synthesize). Spawned via the Agent tool; inherits the user's Claude Code auth and sandbox. **This is the file to read or edit to understand or change run behavior.** The six `skills/*/SKILL.md` it references are its steps.
-- `scripts/cli.ts` — the only write channel to the database (`schema`, `sql`, `write`, `set`, `cite`, `find`, `preprocess`, `sync`, `ingest`, `drop`, `ui`).
+- `scripts/cli.ts` — the only write channel to the database (`schema`, `sql`, `write`, `set`, `cite`, `find`, `dump`, `preprocess`, `sync`, `ingest`, `drop`, `ui`).
 - `scripts/db.ts` — opens SQLite, applies `schema.sql`, exports paths and the zod write-schemas.
 - `schema.sql` — tables, views, triggers. Citations verify against `documents.content` at insert time; if the row exists, the quote is real.
 - `package.json` — zod + liteparse (PDF extraction); `bun install` runs once on first use.
+- Document-to-text extraction itself lives in the shared `../doc-extract` skill (`scripts/extract.ts`); `cli.ts` imports `extract`/`resolveLit` from there. Caching of parsed text stays here.

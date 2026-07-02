@@ -4,6 +4,10 @@
     "ICD10 Codes": { "type": "http", "url": "https://hcls.mcp.claude.com/icd10_codes/mcp" },
     "NPI Registry": { "type": "http", "url": "https://hcls.mcp.claude.com/npi_registry/mcp" },
     "Clinical Trials": { "type": "http", "url": "https://hcls.mcp.claude.com/clinical_trials/mcp" },
-    "PubMed": { "type": "http", "url": "https://pubmed.mcp.claude.com/mcp" }
+    "PubMed": { "type": "http", "url": "https://pubmed.mcp.claude.com/mcp" },
+    "fhir": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/servers/fhir.js"]
+    }
   }
 }

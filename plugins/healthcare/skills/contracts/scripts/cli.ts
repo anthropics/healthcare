@@ -1,11 +1,13 @@
-import { spawnSync } from "node:child_process";
+#!/usr/bin/env bun
 import { createHash } from "node:crypto";
-import { readFileSync, readdirSync, existsSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { join, relative, sep, extname } from "node:path";
 
 import { z } from "zod";
 
+import { extract, resolveLit } from "../../doc-extract/scripts/extract";
 import {
+  DATA,
   db,
   DB_PATH,
   PARSED,
@@ -26,11 +28,11 @@ export function die(msg: string): never {
   throw new Error(msg);
 }
 
-function locate(content: string, quote: string, near?: number): number {
-  if (near === undefined) return content.indexOf(quote);
+function nearestIndex(haystack: string, needle: string, near?: number): number {
+  if (near === undefined) return haystack.indexOf(needle);
   let best = -1;
   let bestD = Infinity;
-  for (let i = content.indexOf(quote); i >= 0; i = content.indexOf(quote, i + 1)) {
+  for (let i = haystack.indexOf(needle); i >= 0; i = haystack.indexOf(needle, i + 1)) {
     const d = Math.abs(i - near);
     if (d < bestD) {
       best = i;
@@ -38,6 +40,62 @@ function locate(content: string, quote: string, near?: number): number {
     } else if (best >= 0) break;
   }
   return best;
+}
+
+// Fold the differences that break verbatim matching between what a worker read
+// (grep window, dumped file) and documents.content: NBSP and whitespace runs,
+// curly vs straight quotes/dashes, markdown emphasis. Offset map lets a
+// normalized hit resolve back to the original span, so the stored quote is
+// still verbatim content and kind stays 'exact'.
+function normalizeWithMap(s: string): { norm: string; map: number[] } {
+  const norm: string[] = [];
+  const map: number[] = [];
+  let lastWasSpace = false;
+  for (let i = 0; i < s.length; i++) {
+    let c = s[i];
+    if (c === "*") continue;
+    if (/\s| /.test(c)) {
+      if (lastWasSpace) continue;
+      c = " ";
+      lastWasSpace = true;
+    } else {
+      lastWasSpace = false;
+      if (c === "‘" || c === "’") c = "'";
+      else if (c === "“" || c === "”") c = '"';
+      else if (c === "–" || c === "—") c = "-";
+    }
+    norm.push(c);
+    map.push(i);
+  }
+  return { norm: norm.join(""), map };
+}
+
+// Exact match first; on miss, retry on normalized text and map the hit back to
+// the original content span.
+function locate(content: string, quote: string, near?: number): [number, number] | null {
+  const at = nearestIndex(content, quote, near);
+  if (at >= 0) return [at, at + quote.length];
+  const h = normalizeWithMap(content);
+  const { norm: nq } = normalizeWithMap(quote.trim());
+  if (!nq) return null;
+  // Translate near into normalized space via binary search on the map.
+  let nearN: number | undefined;
+  if (near !== undefined) {
+    let lo = 0,
+      hi = h.map.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (h.map[mid] < near) lo = mid + 1;
+      else hi = mid;
+    }
+    nearN = lo;
+  }
+  const atN = nearestIndex(h.norm, nq, nearN);
+  if (atN < 0) return null;
+  const s = h.map[atN];
+  const endN = atN + nq.length - 1;
+  const e = h.map[endN] + 1;
+  return [s, e];
 }
 
 function mintCitation(
@@ -53,7 +111,7 @@ function mintCitation(
     )
     .get(docId);
   if (!doc) die(`cite: unknown doc_id ${docId}`);
-  const ins = (kind: "exact" | "judged", s: number, e: number, j: number | null) =>
+  const ins = (kind: "exact" | "judged", q: string, s: number, e: number, j: number | null) =>
     db
       .query(
         `INSERT INTO citations (doc_id,brief_id,kind,quote,start_off,end_off,doc_sha256,judgement_audit_id,created_by)
@@ -63,15 +121,17 @@ function mintCitation(
         d: docId,
         b: briefId,
         k: kind,
-        q: quote,
+        q,
         s,
         e,
         h: doc.sha256,
         j,
         by,
       } as Bind) as Minted;
-  const at = locate(doc.content, quote, opts.near ?? opts.span?.[0]);
-  if (at >= 0) return ins("exact", at, at + quote.length, null);
+  const span = locate(doc.content, quote, opts.near ?? opts.span?.[0]);
+  // Store the canonical slice: on a normalized match the worker's quote differs
+  // in whitespace/punctuation, and citations.quote must be verbatim content.
+  if (span) return ins("exact", doc.content.slice(span[0], span[1]), span[0], span[1], null);
   if (opts.span && opts.audit) {
     const [s, e] = opts.span;
     if (e - s > 4000) die(`cite: span is ${e - s} chars; cap is 4000. Narrow to the passage.`);
@@ -79,10 +139,18 @@ function mintCitation(
       .query<{ id: number }, [number]>(`SELECT id FROM audits WHERE id=? AND kind='citation_judge'`)
       .get(opts.audit);
     if (!a) die(`cite: --audit ${opts.audit} not found or not kind=citation_judge`);
-    return ins("judged", s, e, a.id);
+    return ins("judged", quote, s, e, a.id);
   }
+  // The content snippet below goes only to the local invoking process, which
+  // already has unrestricted read access to this document via sql/dump — no
+  // boundary is crossed. Do not route cite errors to any shared or remote sink.
+  const nearOff = opts.near ?? opts.span?.[0];
+  const hint =
+    nearOff !== undefined
+      ? ` Content near offset ${nearOff}: «${doc.content.slice(Math.max(0, nearOff - 150), nearOff + 150).replace(/\s+/g, " ")}»`
+      : "";
   die(
-    "cite: quote not a verbatim substring. For non-contiguous content (tables, reflow, smart-quotes): write an audits row (kind='citation_judge') attesting the values are present, then retry with the span and `--audit <id>`.",
+    `cite: quote not found, even after whitespace/quote normalization. For non-contiguous content (tables, reflow): write an audits row (kind='citation_judge') attesting the values are present, then retry with the span and \`--audit <id>\`.${hint}`,
   );
 }
 
@@ -182,10 +250,71 @@ function drop(a: string[]): unknown {
       : a.length
         ? a
         : die("drop: usage: drop <run_id...> | drop --prefix <P>");
-  for (const id of ids) if (!RUN_ID_RE.test(id)) die(`drop: invalid run_id '${id}'`);
+  for (const id of ids) if (!RUN_ID_RE.test(id) || id === ".") die(`drop: invalid run_id '${id}'`);
   const del = db.query(`DELETE FROM runs WHERE run_id = ?`);
-  db.transaction(() => ids.forEach((id) => del.run(id)))();
-  return { dropped: ids };
+  // Run deletion SET-NULLs citations.brief_id (so ratified knowledge keeps its
+  // provenance); sweep the ones nothing references, and the documents they pinned.
+  const { orphans } = db.transaction(() => {
+    ids.forEach((id) => del.run(id));
+    const citations = db
+      .query(
+        `DELETE FROM citations WHERE brief_id IS NULL
+           AND id NOT IN (SELECT citation_id FROM finding_citations)
+           AND id NOT IN (SELECT citation_id FROM queue_citations)
+           AND id NOT IN (SELECT citation_id FROM claim_citations)
+           AND id NOT IN (SELECT citation_id FROM knowledge_citations)
+         RETURNING id`,
+      )
+      .all().length;
+    const documents = db
+      .query(
+        `DELETE FROM documents WHERE id NOT IN (SELECT doc_id FROM corpus_documents)
+           AND id NOT IN (SELECT doc_id FROM citations) RETURNING id`,
+      )
+      .all().length;
+    return { orphans: { citations, documents } };
+  })();
+  for (const id of ids) rmSync(join(DATA, "shards", id), { recursive: true, force: true });
+  return { dropped: ids, ...(orphans.citations || orphans.documents ? { swept: orphans } : {}) };
+}
+
+// Sweep workers materialize their shard's text to files here instead of SELECTing
+// full content through stdout, which overflows the tool-result limit. The dir lives
+// under DATA (the one location the setup flow verifies as sandbox-writable) and is
+// run-scoped, so shard labels can't collide across runs. Corpus-scoped like the
+// SELECT it replaces; unknown/out-of-corpus ids are reported, not fatal.
+function dump(a: string[]): unknown {
+  const [runId, label, ...idsS] = a;
+  if (!runId || !label || !idsS.length) die("dump: usage: dump <run_id> <label> <doc_id...>");
+  if (!RUN_ID_RE.test(runId) || runId === ".") die(`dump: invalid run_id '${runId}'`);
+  if (!/^(?!.*\.\.)[A-Za-z0-9_.-]{1,64}$/.test(label)) die(`dump: invalid label '${label}'`);
+  const ids = idsS.map((s) => (/^\d+$/.test(s) ? Number(s) : die(`dump: bad doc_id '${s}'`)));
+  if (!db.query(`SELECT 1 FROM runs WHERE run_id = ?`).get(runId))
+    die(`dump: unknown run_id '${runId}'`);
+  const dir = join(DATA, "shards", runId, label);
+  mkdirSync(dir, { recursive: true, mode: 0o700 });
+  const q = db.query<
+    { id: number; content: string; uri: string; family: string },
+    [number, string]
+  >(
+    `SELECT d.id, d.content, cd.uri, d.family
+     FROM documents d JOIN corpus_documents cd ON cd.doc_id = d.id
+     WHERE d.id = ? AND cd.corpus = (SELECT corpus FROM runs WHERE run_id = ?)`,
+  );
+  const written: { doc_id: number; path: string; chars: number; uri: string; family: string }[] =
+    [];
+  const missing: number[] = [];
+  for (const id of ids) {
+    const doc = q.get(id, runId);
+    if (!doc) {
+      missing.push(id);
+      continue;
+    }
+    const path = join(dir, `doc${id}.txt`);
+    writeFileSync(path, doc.content, { mode: 0o600 });
+    written.push({ doc_id: id, path, chars: doc.content.length, uri: doc.uri, family: doc.family });
+  }
+  return { written, ...(missing.length ? { missing } : {}) };
 }
 
 const PREPROCESS_EXT = /\.(pdf|docx|xlsx|pptx)$/i;
@@ -242,42 +371,6 @@ function scanCorpus(dir: string): CorpusFile[] {
   return out;
 }
 
-function resolveLit(): string | undefined {
-  // Prefer the liteparse `lit` bin that `bun install` drops in node_modules, then PATH.
-  const candidates = [join(ROOT, "node_modules", ".bin", "lit"), "lit"];
-  return candidates.find((p) => spawnSync(p, ["--version"], { stdio: "ignore" }).status === 0);
-}
-
-function extract(lit: string | undefined, src: string): string | null {
-  if (lit) {
-    // OCR on by default; retry --no-ocr so text-layer extraction still lands if the OCR path fails.
-    for (const extra of [[], ["--no-ocr"]]) {
-      const r = spawnSync(
-        lit,
-        ["parse", src, "--format", "text", "--max-pages", "2000", ...extra],
-        {
-          encoding: "utf8",
-          maxBuffer: 256 * 1024 * 1024,
-        },
-      );
-      if (r.status === 0 && r.stdout.trim())
-        return r.stdout.replace(/^--- (?:Page|Slide|Sheet) (\d+) ---$/gm, "\n=== [page $1] ===\n");
-    }
-  }
-  // Only PDFs have a no-liteparse fallback.
-  if (!/\.pdf$/i.test(src)) return null;
-  // Fallback: pdftotext -layout, page-anchored via form-feed splits.
-  const r = spawnSync("pdftotext", ["-layout", src, "-"], {
-    encoding: "utf8",
-    maxBuffer: 256 * 1024 * 1024,
-  });
-  if (r.status !== 0) return null;
-  return r.stdout
-    .split("\f")
-    .map((page, i) => `\n\n=== [page ${i + 1}] ===\n\n${page}`)
-    .join("");
-}
-
 type ParseStatus = "ok" | "empty" | "failed";
 type PreprocessResult = {
   extractor: string;
@@ -293,7 +386,7 @@ type PreprocessResult = {
 // corpora/<name>/ is read-only input. Parsed text lands in <DATA>/parsed/<sha[:2]>/<sha>.txt,
 // keyed by the SOURCE file's sha256 so identical files anywhere share one cache entry.
 function preprocessFiles(files: CorpusFile[], force: boolean): PreprocessResult {
-  const lit = resolveLit();
+  const lit = resolveLit([ROOT]);
   const extractor = lit
     ? `liteparse (${lit})`
     : "pdftotext -layout (liteparse not found — PDF only; .docx/.xlsx/.pptx require liteparse)";
@@ -527,6 +620,7 @@ const commands: Record<string, Handler> = {
   cite,
   find,
   drop,
+  dump,
   preprocess,
   sync,
   ingest,

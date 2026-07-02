@@ -1,0 +1,27 @@
+{
+  "name": "@anthropic-ai/mcp-server-fhir",
+  "version": "0.0.1",
+  "description": "MCP server for reading clinical data from any FHIR R4 endpoint via SMART on FHIR.",
+  "license": "MIT",
+  "author": "Anthropic",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "bundle": "bun build src/index.ts --target=node --outfile=../fhir.js",
+    "dev": "tsx src/index.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/fhir": "0.0.44",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
