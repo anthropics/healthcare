@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "dist",
+    "rootDir": "src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "types": [
+      "node"
+    ],
+    "declaration": false,
+    "sourceMap": false,
+    "lib": [
+      "ES2024"
+    ]
+  },
+  "include": [
+    "src/**/*"
+  ]
+}

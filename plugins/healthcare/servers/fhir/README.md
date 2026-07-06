@@ -27,9 +27,11 @@ Ships bundled inside the `healthcare` plugin (`servers/fhir.js`, single file, de
 
 **Read** (annotated `readOnlyHint`): `status()` · `capability()` · `search_patients` · `get_patient` · `search_conditions` · `search_observations` · `search_medication_requests` · `search_allergies` · `search_document_references` · `get_document_content` · `search_resource(type, params)` · `read_resource(type, id)`
 
+**Local file write** (no `readOnlyHint`, so it prompts): `save_document_for_extraction(doc_ref_id)` — writes a binary attachment to a server-chosen tmpdir file (0600) and returns the path for an external extractor (the plugin's `doc-extract` skill); the caller deletes the file after.
+
 **Write** (annotated `destructiveHint`; 403 unless `connect()` was passed a write scope like `user/*.cruds`): `create_resource(type, body)` · `update_resource(type, id, body)`
 
-`get_document_content` follows `attachment.url` → `Binary/{id}` (same-origin only), decodes text/html/xhtml/rtf, returns `{id, content_type, text, untrusted: true}`; non-text → `{text: null, reason: "binary_not_extracted"}`.
+`get_document_content` follows `attachment.url` → `Binary/{id}` (same-origin only) and decodes text-family types in-process — plain text, markdown, HTML/XHTML, RTF/richtext, and XML/C-CDA (narrative sections; a CDA wrapping a base64 body is treated as binary). Returns `{id, content_type, text, untrusted: true}`; binary types (PDF, DOCX, images, ...) → `{text: null, reason: "binary_not_extracted"}`, recoverable via `save_document_for_extraction` + doc-extract (OCR included). Multi-rendition documents: `get_document_content` picks the text rendition, `save_document_for_extraction` the binary one. Save accepts any content type — unknown ones get a magic-byte-sniffed or subtype-derived temp-file extension and the extractor decides.
 
 ## Auth
 
@@ -39,8 +41,8 @@ The connection (base URL + access token, ≤1h TTL) is cached to `os.tmpdir()` (
 
 ## Limitations
 
-- **RTF decode is a stub.** Real RTF clinical notes (common on some EHRs) get a naive strip; proper decode is fixture-tested separately and not yet shipped. HTML/XHTML and plain text work.
-- **PDFs and images are not extracted** — `get_document_content` returns `{text: null, reason: "binary_not_extracted"}`.
+- **RTF decode is minimal, not a full parser.** Group-aware strip with cp1252/`\uN`/`\bin` handling — fine for EHR note bodies; exotic RTF (nested tables, fields) degrades to plain text.
+- **PDFs/images need the extraction hop** — `get_document_content` returns `binary_not_extracted`; recover via `save_document_for_extraction` + the doc-extract skill.
 - **No DELETE.** `create_resource`/`update_resource` only.
 - **No bulk export** (`$export`). Per-resource reads scoped by the clinician's auth only.
 - **SSRF guard is hostname-pattern, not socket-level.** Literal private/link-local IPs and known metadata hostnames are rejected; a hostname that DNS-resolves to a private IP is not (TOCTOU). Mitigated by the user's-own-machine threat model; full socket-level filtering is a follow-up.
@@ -51,7 +53,7 @@ The connection (base URL + access token, ≤1h TTL) is cached to `os.tmpdir()` (
 
 ```sh
 bun install
-bun run build    # tsc → dist/
+bun run build    # tsc --noEmit typecheck
 bun run bundle   # → ../../plugins/healthcare/servers/fhir.js
 bun run dev      # tsx stdio
 ```

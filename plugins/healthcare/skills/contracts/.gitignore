@@ -3,5 +3,4 @@ bun.lock
 bun.lockb
 .data/
 corpora/
-engine-*.log
 .healthcare/

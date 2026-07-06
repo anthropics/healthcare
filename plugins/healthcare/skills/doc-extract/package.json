@@ -3,7 +3,6 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@llamaindex/liteparse": "^2.0.8",
-    "rtf-to-text": "^0.1.0"
+    "@llamaindex/liteparse": "^2.0.8"
   }
 }

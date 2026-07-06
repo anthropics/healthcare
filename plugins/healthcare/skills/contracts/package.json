@@ -1,9 +1,0 @@
-{
-  "name": "@anthropic-ai/healthcare-contracts-skill",
-  "private": true,
-  "type": "module",
-  "dependencies": {
-    "@llamaindex/liteparse": "^2.0.8",
-    "zod": "4.4.3"
-  }
-}

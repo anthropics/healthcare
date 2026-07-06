@@ -2,6 +2,8 @@ import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
+import { decodeRtf, decodeXml } from "./decoders.js";
+
 const SKILL_ROOT = dirname(dirname(new URL(import.meta.url).pathname));
 
 export function resolveLit(roots: string[] = []): string | undefined {
@@ -69,17 +71,47 @@ export function extract(
   return extractWithMethod(lit, src, isPdf)?.text ?? null;
 }
 
+// mime axis — must cover every extension the fhir server's CONTENT_TYPES
+// registry can emit (servers/fhir/src/documents.ts)
 const KIND_BY_MIME: Record<string, string> = {
   "application/pdf": "pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
   "application/vnd.openxmlformats-officedocument.presentationml.presentation": "pptx",
+  "application/msword": "doc",
   "application/rtf": "rtf",
   "text/rtf": "rtf",
   "text/plain": "txt",
   "text/markdown": "md",
   "text/html": "html",
+  "text/xml": "xml",
+  "application/xml": "xml",
+  "application/hl7-cda+xml": "xml",
+  "image/tiff": "tif",
+  "image/jpeg": "jpg",
+  "image/png": "png",
 };
+
+// the filename-extension axis; kinds derive from this single map
+const EXT_TO_KIND: Record<string, string> = {
+  pdf: "pdf",
+  doc: "doc",
+  docx: "docx",
+  xlsx: "xlsx",
+  pptx: "pptx",
+  rtf: "rtf",
+  txt: "txt",
+  md: "md",
+  htm: "html",
+  html: "html",
+  xml: "xml",
+  tif: "tif",
+  tiff: "tif",
+  jpg: "jpg",
+  jpeg: "jpg",
+  png: "png",
+};
+const SUPPORTED_KINDS = [...new Set(Object.values(EXT_TO_KIND))].join(", ");
 
 function die(msg: string): never {
   console.error(JSON.stringify({ error: msg }));
@@ -96,18 +128,20 @@ if (import.meta.main) {
   const mimeKind = contentType
     ? KIND_BY_MIME[contentType.split(";")[0]!.trim().toLowerCase()]
     : undefined;
-  const extKind = input.match(/\.(pdf|docx|xlsx|pptx|rtf|txt|md|html?)$/i)?.[1]?.toLowerCase();
-  const kind = mimeKind ?? (extKind === "htm" ? "html" : extKind);
+  const ext = input.match(/\.([a-z0-9]+)$/i)?.[1]?.toLowerCase();
+  const kind = mimeKind ?? EXT_TO_KIND[ext ?? ""];
   if (!kind)
     die(
-      `cannot determine format of ${input} — pass --content-type (supported: pdf, docx, xlsx, pptx, rtf, txt, md, html)`,
+      `cannot determine format of ${input} — pass --content-type (supported: ${SUPPORTED_KINDS})`,
     );
 
   if (kind === "rtf") {
-    // Lazy import: callers of resolveLit/extract (e.g. contracts) don't need rtf-to-text installed.
-    const { stripRtf } = await import("rtf-to-text");
-    const text = stripRtf(readFileSync(input, "utf8"));
-    console.log(JSON.stringify({ text, method: "rtf-to-text" }));
+    console.log(JSON.stringify({ text: decodeRtf(readFileSync(input, "utf8")), method: "rtf" }));
+  } else if (kind === "xml") {
+    const text = decodeXml(readFileSync(input, "utf8"));
+    if (text === null)
+      die("XML embeds a base64 binary and has no text narrative — nothing extractable as text");
+    console.log(JSON.stringify({ text, method: "xml" }));
   } else if (kind === "txt" || kind === "md" || kind === "html") {
     console.log(JSON.stringify({ text: readFileSync(input, "utf8"), method: "passthrough" }));
   } else {

@@ -1,6 +1,6 @@
 ---
 name: doc-extract
-description: Extract plain text from a document file - PDF, DOCX, XLSX, PPTX, RTF, or plain text/markdown/HTML. Use when a binary document needs to be turned into text, for example a contract PDF or an EHR DocumentReference attachment. Other skills (contracts, fhir) invoke scripts/extract.ts directly.
+description: Extract plain text from a document file - PDF, DOCX, XLSX, PPTX, RTF, or plain text/markdown/HTML. Use when a binary document needs to be turned into text, for example a contract PDF or an EHR DocumentReference attachment. Other skills (fhir) invoke scripts/extract.ts directly; the contracts MCP server bundles its own copy (servers/documents/src/extract.ts) so its bundle stays self-contained — port fixes to both.
 ---
 
 # doc-extract

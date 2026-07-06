@@ -1,0 +1,3 @@
+# Builds must resolve through the public registry regardless of any
+# user-level npm/bun config, so the committed lockfile stays reproducible.
+install.registry = "https://registry.npmjs.org"

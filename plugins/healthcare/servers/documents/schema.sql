@@ -8,7 +8,6 @@ CREATE TABLE IF NOT EXISTS documents (
   content       TEXT    NOT NULL,
   sha256        TEXT    NOT NULL UNIQUE,    -- sha256(content); dedup key; what citations verify against
   family        TEXT    NOT NULL,           -- folder-per-deal grouping hint (first-ingest path; per-doc by design)
-  summary       TEXT,                       -- search hint; ranks but never excludes, never cited
   created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -37,11 +36,14 @@ CREATE INDEX IF NOT EXISTS corpus_documents_doc ON corpus_documents(doc_id);
 CREATE INDEX IF NOT EXISTS corpus_documents_corpus_doc ON corpus_documents(corpus, doc_id);
 
 -- Convenience view: what most queries used to get from `documents WHERE corpus=?`.
-CREATE VIEW IF NOT EXISTS v_corpus_documents AS
-SELECT cd.corpus, d.id, cd.uri, d.content, d.sha256, cd.source_sha256,
+DROP VIEW IF EXISTS v_corpus_documents;
+CREATE VIEW v_corpus_documents AS
+-- No raw content here: this view is the conductor's query surface, and one
+-- SELECT * would otherwise drag the whole corpus into model context.
+SELECT cd.corpus, d.id, cd.uri, d.sha256, cd.source_sha256,
        cd.parse_status, cd.parsed_at,
-       cd.publisher, cd.category, cd.dated, cd.source_url, d.family, d.summary, d.created_at,
-       length(d.content) AS bytes,
+       cd.publisher, cd.category, cd.dated, cd.source_url, d.family, d.created_at,
+       length(d.content) AS bytes, length(d.content) AS chars,
        (length(d.content) - length(replace(d.content, '=== [page ', ''))) / length('=== [page ') AS pages
 FROM corpus_documents cd JOIN documents d ON d.id = cd.doc_id;
 
@@ -109,8 +111,14 @@ CREATE TABLE IF NOT EXISTS audits (
   kind      TEXT    NOT NULL CHECK (kind IN ('mechanical','semantic_sample','recall_sample','citation_judge','preprocess')),
   sample_n  INTEGER NOT NULL DEFAULT 0,
   result    TEXT    NOT NULL,
+  -- A citation_judge verdict is about ONE span of ONE document. Recording which
+  -- is what stops a verdict on some other passage from authorizing this quote.
+  doc_id    INTEGER REFERENCES documents(id) ON DELETE CASCADE,
+  start_off INTEGER,
+  end_off   INTEGER,
   created_at TEXT   NOT NULL DEFAULT (datetime('now')),
-  CHECK ((kind = 'preprocess' AND corpus IS NOT NULL) OR (kind != 'preprocess' AND run_id IS NOT NULL))
+  CHECK ((kind = 'preprocess' AND corpus IS NOT NULL) OR (kind != 'preprocess' AND run_id IS NOT NULL)),
+  CHECK (kind != 'citation_judge' OR (doc_id IS NOT NULL AND start_off IS NOT NULL AND end_off IS NOT NULL))
 );
 
 CREATE TABLE IF NOT EXISTS citations (
@@ -130,7 +138,8 @@ CREATE TABLE IF NOT EXISTS citations (
 CREATE INDEX IF NOT EXISTS citations_doc ON citations(doc_id);
 
 -- An unverifiable citation cannot exist.
-CREATE TRIGGER IF NOT EXISTS citations_verify BEFORE INSERT ON citations
+DROP TRIGGER IF EXISTS citations_verify;
+CREATE TRIGGER citations_verify BEFORE INSERT ON citations
 BEGIN
   SELECT CASE
     WHEN (SELECT sha256 FROM documents WHERE id = NEW.doc_id) IS NULL
@@ -145,11 +154,23 @@ BEGIN
       THEN RAISE(ABORT, 'cite: exact quote does not match documents.content at [start_off,end_off)')
     WHEN NEW.kind = 'judged' AND NEW.judgement_audit_id IS NULL
       THEN RAISE(ABORT, 'cite: judged kind requires judgement_audit_id (model verdict)')
+    -- A judged citation is only as good as the verdict behind it, and a verdict
+    -- is about one span of one document. Without this, any citation_judge row
+    -- authorizes any quote on any document — which is the whole promise, gone.
+    WHEN NEW.kind = 'judged' AND NOT EXISTS (
+      SELECT 1 FROM audits a
+       WHERE a.id = NEW.judgement_audit_id
+         AND a.kind = 'citation_judge'
+         AND a.doc_id = NEW.doc_id
+         AND a.start_off = NEW.start_off
+         AND a.end_off = NEW.end_off)
+      THEN RAISE(ABORT, 'cite: judged citation must reference a citation_judge audit of the SAME document and span')
   END;
 END;
 
 -- Write-once; column-scoped so FK SET NULL on judgement_audit_id doesn't abort.
-CREATE TRIGGER IF NOT EXISTS citations_no_update
+DROP TRIGGER IF EXISTS citations_no_update;
+CREATE TRIGGER citations_no_update
 BEFORE UPDATE OF doc_id, kind, quote, start_off, end_off, doc_sha256, created_by ON citations
 BEGIN SELECT RAISE(ABORT, 'citations are immutable'); END;
 
@@ -189,12 +210,14 @@ CREATE TABLE IF NOT EXISTS queue_citations (
   PRIMARY KEY (queue_item_id, citation_id)
 );
 
-CREATE TRIGGER IF NOT EXISTS queue_self_resolved_upd BEFORE UPDATE OF status ON queue_items
+DROP TRIGGER IF EXISTS queue_self_resolved_upd;
+CREATE TRIGGER queue_self_resolved_upd BEFORE UPDATE OF status ON queue_items
 WHEN NEW.status = 'self_resolved' AND NEW.answered_by IS NULL
 BEGIN
   SELECT RAISE(ABORT, 'queue: self_resolved requires answered_by (set to ''agent'')');
 END;
-CREATE TRIGGER IF NOT EXISTS queue_self_resolved_ins BEFORE INSERT ON queue_items
+DROP TRIGGER IF EXISTS queue_self_resolved_ins;
+CREATE TRIGGER queue_self_resolved_ins BEFORE INSERT ON queue_items
 WHEN NEW.status = 'self_resolved' AND NEW.answered_by IS NULL
 BEGIN
   SELECT RAISE(ABORT, 'queue: self_resolved requires answered_by (set to ''agent'')');
@@ -234,21 +257,12 @@ CREATE TABLE IF NOT EXISTS knowledge_citations (
   PRIMARY KEY (knowledge_id, citation_id)
 );
 
-CREATE TRIGGER IF NOT EXISTS knowledge_ratify_guard BEFORE UPDATE OF status ON knowledge
+DROP TRIGGER IF EXISTS knowledge_ratify_guard;
+CREATE TRIGGER knowledge_ratify_guard BEFORE UPDATE OF status ON knowledge
 WHEN NEW.status = 'ratified' AND (NEW.ratified_by IS NULL OR trim(NEW.ratified_by) = '')
 BEGIN
   SELECT RAISE(ABORT, 'knowledge: ratified requires ratified_by (a human identifier)');
 END;
-
-CREATE TABLE IF NOT EXISTS feedback (
-  id         INTEGER PRIMARY KEY,
-  run_id     TEXT    NOT NULL REFERENCES runs(run_id) ON DELETE CASCADE,
-  report_id  INTEGER REFERENCES reports(id) ON DELETE SET NULL,
-  rating     TEXT    CHECK (rating IN ('up','down')),
-  note       TEXT,
-  by         TEXT    NOT NULL,
-  created_at TEXT    NOT NULL DEFAULT (datetime('now'))
-);
 
 CREATE TABLE IF NOT EXISTS run_events (
   id        INTEGER PRIMARY KEY,
@@ -257,14 +271,16 @@ CREATE TABLE IF NOT EXISTS run_events (
   to_status   TEXT  NOT NULL,
   at          TEXT  NOT NULL DEFAULT (datetime('now'))
 );
-CREATE TRIGGER IF NOT EXISTS runs_log_status AFTER UPDATE OF status ON runs
+DROP TRIGGER IF EXISTS runs_log_status;
+CREATE TRIGGER runs_log_status AFTER UPDATE OF status ON runs
 WHEN OLD.status != NEW.status
 BEGIN
   INSERT INTO run_events(run_id, from_status, to_status) VALUES (NEW.run_id, OLD.status, NEW.status);
   UPDATE runs SET updated_at = datetime('now') WHERE run_id = NEW.run_id;
 END;
 
-CREATE VIEW IF NOT EXISTS v_run_status AS
+DROP VIEW IF EXISTS v_run_status;
+CREATE VIEW v_run_status AS
 SELECT r.run_id, r.status, r.round, r.question, r.corpus, r.session_id, r.cost_usd, r.turns, r.updated_at,
        (SELECT id FROM briefs b WHERE b.run_id = r.run_id AND b.status='active'
         ORDER BY version DESC LIMIT 1) AS brief_id,
@@ -277,24 +293,28 @@ SELECT r.run_id, r.status, r.round, r.question, r.corpus, r.session_id, r.cost_u
        (SELECT count(*) FROM v_uncited_findings uf WHERE uf.run_id = r.run_id) AS uncited_findings
 FROM runs r;
 
-CREATE VIEW IF NOT EXISTS v_uncited_claims AS
+DROP VIEW IF EXISTS v_uncited_claims;
+CREATE VIEW v_uncited_claims AS
 SELECT rc.id AS claim_id, rc.report_id, r.run_id, rc.claim
 FROM report_claims rc JOIN reports r ON r.id = rc.report_id
 WHERE NOT EXISTS (SELECT 1 FROM claim_citations cc WHERE cc.claim_id = rc.id);
 
-CREATE VIEW IF NOT EXISTS v_uncited_findings AS
+DROP VIEW IF EXISTS v_uncited_findings;
+CREATE VIEW v_uncited_findings AS
 SELECT f.id AS finding_id, f.run_id, f.worker, f.kind, f.claim
 FROM findings f
 WHERE NOT EXISTS (SELECT 1 FROM finding_citations fc WHERE fc.finding_id = f.id);
 
 -- Computed (never agent-supplied) so recall_sample can't be skipped by omission.
-CREATE VIEW IF NOT EXISTS v_scope_excluded AS
+DROP VIEW IF EXISTS v_scope_excluded;
+CREATE VIEW v_scope_excluded AS
 SELECT s.id AS scope_id, s.run_id,
        (SELECT count(*) FROM corpus_documents cd WHERE cd.corpus = r.corpus)
        - (SELECT count(*) FROM scope_documents sd WHERE sd.scope_id = s.id) AS excluded
 FROM scopes s JOIN runs r ON r.run_id = s.run_id;
 
-CREATE VIEW IF NOT EXISTS v_coverage_gaps AS
+DROP VIEW IF EXISTS v_coverage_gaps;
+CREATE VIEW v_coverage_gaps AS
 SELECT s.run_id, sd.scope_id, sd.doc_id, cd.uri
 FROM scope_documents sd
 JOIN scopes s ON s.id = sd.scope_id
@@ -307,6 +327,25 @@ WHERE NOT EXISTS (
 
 -- Uncited claims/findings are surfaced, not enforced — a hard gate would wedge on uncitable synthesis.
 
+-- Registered corpus roots: the only place a filesystem path enters the system.
+-- corpus_register canonicalizes and validates the directory before writing here;
+-- every other operation resolves paths through this table.
+CREATE TABLE IF NOT EXISTS corpora (
+  name       TEXT PRIMARY KEY,
+  root       TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- queue_items.answered_at was always NULL: nothing set it, so human latency was
+-- only recoverable by joining run_events. Stamp it where it can't be forgotten.
+DROP TRIGGER IF EXISTS queue_answered_stamp;
+CREATE TRIGGER queue_answered_stamp
+AFTER UPDATE OF status ON queue_items
+WHEN NEW.status = 'answered' AND NEW.answered_at IS NULL
+BEGIN
+  UPDATE queue_items SET answered_at = datetime('now') WHERE id = NEW.id;
+END;
+
 -- Bump on any breaking change; db.ts checks this against SCHEMA_VERSION and fails
 -- with a clear "delete <DATA> and re-ingest" message rather than a cryptic SQL error.
-PRAGMA user_version = 3;
+PRAGMA user_version = 4;
