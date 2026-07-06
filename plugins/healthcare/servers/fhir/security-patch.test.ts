@@ -42,7 +42,7 @@ import {
   resolveAttachmentRef,
   type FhirSession,
 } from "./src/fhir-client.js";
-import { registerTools } from "./src/tools.js";
+import { HANDLERS } from "./src/tools.js";
 
 const uid = process.getuid?.() ?? -1;
 // mirrors perUidTmpDir on purpose: a layout change that moves saves out of
@@ -273,18 +273,16 @@ describe("S1b — auth-path fetches never follow redirects (parity with the S1 d
   });
 });
 
-// Captures the REAL tool handlers off registerTools without the MCP SDK:
-// server.tool's last argument is always the handler, whatever the overload.
+// The handlers are a direct export now (the SDK and its registration
+// indirection are gone), so the old fake-McpServer capture reduces to a map.
 type ToolResult = { content: { type: string; text: string }[] };
 function loadToolHandlers(): Map<string, (args: unknown) => Promise<ToolResult>> {
-  const handlers = new Map<string, (args: unknown) => Promise<ToolResult>>();
-  const fake = {
-    tool: (...a: unknown[]) => {
-      handlers.set(a[0] as string, a[a.length - 1] as (args: unknown) => Promise<ToolResult>);
-    },
-  };
-  registerTools(fake as never);
-  return handlers;
+  return new Map(
+    Object.entries(HANDLERS).map(([name, fn]) => [
+      name,
+      (args: unknown) => fn((args ?? {}) as Record<string, unknown>) as Promise<ToolResult>,
+    ]),
+  );
 }
 
 describe("S3 — patient identifiers never enter request URLs (POST _search)", () => {

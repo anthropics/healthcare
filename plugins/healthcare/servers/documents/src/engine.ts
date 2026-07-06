@@ -12,9 +12,9 @@ import {
 } from "node:fs";
 import { dirname, extname, join, relative, sep } from "node:path";
 
-import { z } from "zod";
 
 import { DATA, NAME_RE, PARSED, RUN_ID_RE, db, setSchemas, tx, writeSchemas, type WritableTable } from "./db.js";
+import { checkAndStrip, check } from "../../shared/validate.js";
 import { extract, resolveLit } from "./extract.js";
 
 type Bind = Record<string, string | number | bigint | null>;
@@ -169,7 +169,7 @@ function locate(
   return [s, e];
 }
 
-/** span arrives as a zod-validated length-2 array; `asSpan` narrows it. */
+/** span arrives as a validated length-2 array; `asSpan` narrows it. */
 export type CiteOpts = { near?: number; span?: [number, number]; audit?: number };
 
 export const asSpan = (s?: number[]): [number, number] | undefined =>
@@ -325,22 +325,47 @@ export function citeMany(briefId: number, by: string, rows: CiteRow[]): unknown 
 // Worker write surface: findings and coverage
 // ---------------------------------------------------------------------------
 
-export const findInput = writeSchemas.findings.extend({
-  doc_id: z.number().int(),
-  quote: z.string().min(1),
-  near: z.number().int().optional(),
-  // A length-2 array, not a zod tuple: tuples emit draft-07's array-form
-  // `items`, which the tool-schema validator (draft 2020-12) rejects.
-  span: z.array(z.number().int()).length(2).optional(),
-  audit: z.number().int().optional(),
-});
+export interface FindInput {
+  run_id: string; brief_id: number; round: number; worker: string;
+  kind: "finding" | "unknown"; claim: string; doc_id: number; quote: string;
+  near?: number; span?: number[]; audit?: number;
+}
+export type FindRowInput = Omit<FindInput, "run_id" | "brief_id" | "round" | "worker">;
+
+// Validation for the two find forms — same JSON-schema grammar as everything
+// else (src/validate.ts). span is a length-2 array, not a tuple: tuples emit
+// draft-07's array-form `items`, which the wire validator rejects.
+const spanSchema = { type: "array", items: { type: "integer" }, minItems: 2, maxItems: 2 };
+const findRowSchema = {
+  type: "object",
+  required: ["kind", "claim", "doc_id", "quote"],
+  properties: {
+    kind: { type: "string", enum: ["finding", "unknown"] },
+    claim: { type: "string" }, doc_id: { type: "integer" },
+    quote: { type: "string", minLength: 1 }, near: { type: "integer" },
+    span: spanSchema, audit: { type: "integer" },
+  },
+};
+const findSchema = {
+  type: "object",
+  required: ["run_id", "brief_id", "round", "worker", "kind", "claim", "doc_id", "quote"],
+  properties: {
+    run_id: { type: "string" }, brief_id: { type: "integer" },
+    round: { type: "integer" }, worker: { type: "string" },
+    ...(findRowSchema.properties as Record<string, unknown>),
+  },
+};
+export const checkFind = (v: unknown): FindInput =>
+  checkAndStrip("find", findSchema, v) as unknown as FindInput;
+export const checkFindRow = (v: unknown): FindRowInput =>
+  checkAndStrip("find row", findRowSchema, v) as unknown as FindRowInput;
 
 // Citation + finding + link, no transaction of its own — the callers own it:
 // find() wraps one row in tx; findMany() wraps all rows and savepoints each.
 // Either way a failed findings insert (dropped run, bad brief FK) rolls the
 // citation back too, or it lingers with a non-NULL brief_id that drop's
 // orphan sweep never reclaims.
-function findCore(m: z.infer<typeof findInput>): { citation_id: number; finding_id: number; kind: string; start_off: number } {
+function findCore(m: FindInput): { citation_id: number; finding_id: number; kind: string; start_off: number } {
   const c = mintCitation(m.doc_id, m.brief_id, m.worker, m.quote, {
     near: m.near,
     span: asSpan(m.span),
@@ -355,18 +380,17 @@ function findCore(m: z.infer<typeof findInput>): { citation_id: number; finding_
   return { citation_id: c.id, finding_id: f.id, kind: c.kind, start_off: c.start_off };
 }
 
-export function find(m: z.infer<typeof findInput>): unknown {
+export function find(m: FindInput): unknown {
   return tx(() => findCore(m));
 }
 
-export const findRowInput = findInput.omit({ run_id: true, brief_id: true, round: true, worker: true });
 export type FindContext = { run_id: string; brief_id: number; round: number; worker: string };
 
 /** Many findings in one call, partial success: each row runs in its own
  *  savepoint through the SAME code path as the single form — same citation
  *  verification, same triggers, same quote-not-found hint. Good rows commit;
  *  bad rows come back in `rejected` with their index and error. */
-export function findMany(ctx: FindContext, rows: z.infer<typeof findRowInput>[]): unknown {
+export function findMany(ctx: FindContext, rows: FindRowInput[]): unknown {
   if (!rows.length) die(`find: rows is empty`);
   return tx(() => {
     const inserted: { index: number; citation_id: number; finding_id: number; kind: string; start_off: number }[] = [];
@@ -391,8 +415,8 @@ export function findMany(ctx: FindContext, rows: z.infer<typeof findRowInput>[])
  *  Takes one row or many — a worker stamps its whole shard at once instead of
  *  spending a model turn per document at the tail of the critical path. */
 export function coverage(
-  m: z.infer<(typeof writeSchemas)["shard_coverage"]> | undefined,
-  rows: z.infer<(typeof writeSchemas)["shard_coverage"]>[] | undefined,
+  m: Record<string, unknown> | undefined,
+  rows: Record<string, unknown>[] | undefined,
 ): unknown {
   if ((m === undefined) === (rows === undefined)) die(`coverage: pass exactly one of row fields or rows`);
   const all = m ? [m] : (rows ?? []);
@@ -402,7 +426,7 @@ export function coverage(
      ON CONFLICT(scope_id, doc_id, worker) DO UPDATE SET status = excluded.status, note = excluded.note`,
   );
   return tx(() => {
-    for (const r of all) stmt.run(r.scope_id, r.doc_id, r.worker, r.status, r.note ?? null);
+    for (const r of all) stmt.run(r.scope_id as number, r.doc_id as number, r.worker as string, r.status as string, (r.note as string | null | undefined) ?? null);
     return { ok: true, stamped: all.length };
   });
 }
@@ -455,7 +479,7 @@ export function sqlMany(queries: string[]): unknown {
 function insertRow(table: WritableTable, rowJson: unknown): unknown {
   const ws = writeSchemas[table];
   if (!ws) die(`write: unknown table '${table}' (allow: ${Object.keys(writeSchemas).join(", ")})`);
-  const row = ws.parse(rowJson);
+  const row = checkAndStrip(`write ${table}`, ws, rowJson);
   const cols = Object.keys(row).filter((k) => row[k as keyof typeof row] !== undefined);
   return db
     .prepare(

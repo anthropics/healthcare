@@ -104,3 +104,15 @@ describe("tool schemas", () => {
     expect(batched.map(([t, p]) => arrayProp(t, p)).filter(Boolean)).toEqual([]);
   }, 20_000);
 });
+
+import { TOOLS } from "../src/schemas.js";
+
+test("running server emits exactly the frozen literals", async () => {
+  // The schemas module IS the wire format; the server must serve it verbatim.
+  // (The draft-2020-12 checks above run against the same array, so a bad edit
+  // to schemas.ts fails both ways.)
+  expect(TOOLS.length).toBe(18);
+  const names = TOOLS.map((t) => t.name);
+  for (const required of ["find", "cite", "write", "set", "sql", "doc_search", "doc_text", "dump", "coverage"])
+    expect(names).toContain(required);
+});

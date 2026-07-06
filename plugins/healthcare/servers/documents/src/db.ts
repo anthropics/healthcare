@@ -3,7 +3,6 @@ import { join } from "node:path";
 import { createRequire } from "node:module";
 import type { DatabaseSync as DatabaseSyncT } from "node:sqlite";
 
-import { z } from "zod";
 
 import schemaSql from "../schema.sql";
 
@@ -123,89 +122,58 @@ export const setSchemas = {
   knowledge: { pk: "id", cols: ["status", "ratified_by"] },
 } as const satisfies Record<string, { pk: string; cols: readonly string[] }>;
 
-/** Insert validation per table; the key set is also the insert allowlist. */
-export const writeSchemas = {
-  runs: z.object({
-    run_id: z.string().regex(RUN_ID_RE),
-    question: z.string(),
-    corpus: z.string(),
-    status: z.string().optional(),
-    round: z.number().int().optional(),
-    session_id: z.string().nullish(),
+/** Insert validation per table; the key set is also the insert allowlist.
+ *  Plain JSON Schema, checked by src/validate.ts — same grammar as the tool
+ *  schemas, one validator for everything. `nullable` fields use type arrays
+ *  (internal only; nothing here is emitted on the wire). */
+const str = { type: "string" } as const;
+const int = { type: "integer" } as const;
+const nstr = { type: ["string", "null"] } as const;
+const nint = { type: ["integer", "null"] } as const;
+const row = (required: string[], properties: Record<string, unknown>) =>
+  ({ type: "object", required, properties }) as Record<string, unknown>;
+
+export const writeSchemas: Record<string, Record<string, unknown>> = {
+  runs: row(["run_id", "question", "corpus"], {
+    run_id: { type: "string", pattern: RUN_ID_RE.source },
+    question: str, corpus: str, status: str, round: int, session_id: nstr,
   }),
-  briefs: z.object({
-    run_id: z.string(),
-    version: z.number().int(),
-    rubric: z.string(),
-    assumptions: z.string(),
-    done_criteria: z.string(),
-    scope_intent: z.string(),
-    status: z.string().optional(),
+  briefs: row(["run_id", "version", "rubric", "assumptions", "done_criteria", "scope_intent"], {
+    run_id: str, version: int, rubric: str, assumptions: str,
+    done_criteria: str, scope_intent: str, status: str,
   }),
-  scopes: z.object({
-    run_id: z.string(),
-    brief_id: z.number().int(),
-    predicate: z.string(),
-    terms: z.string(),
-    cap: z.number().int().nullish(),
-    excluded_count: z.number().int().optional(),
-    rationale: z.string(),
+  scopes: row(["run_id", "brief_id", "predicate", "terms", "rationale"], {
+    run_id: str, brief_id: int, predicate: str, terms: str,
+    cap: nint, excluded_count: int, rationale: str,
   }),
-  shard_coverage: z.object({
-    scope_id: z.number().int(),
-    doc_id: z.number().int(),
-    worker: z.string(),
-    status: z.enum(["read", "error"]),
-    note: z.string().nullish(),
+  shard_coverage: row(["scope_id", "doc_id", "worker", "status"], {
+    scope_id: int, doc_id: int, worker: str,
+    status: { type: "string", enum: ["read", "error"] }, note: nstr,
   }),
-  scope_documents: z.object({
-    scope_id: z.number().int(),
-    doc_id: z.number().int(),
-    rank: z.number().int(),
+  scope_documents: row(["scope_id", "doc_id", "rank"], { scope_id: int, doc_id: int, rank: int }),
+  findings: row(["run_id", "brief_id", "round", "worker", "kind", "claim"], {
+    run_id: str, brief_id: int, round: int, worker: str,
+    kind: { type: "string", enum: ["finding", "unknown"] }, claim: str,
   }),
-  findings: z.object({
-    run_id: z.string(),
-    brief_id: z.number().int(),
-    round: z.number().int(),
-    worker: z.string(),
-    kind: z.enum(["finding", "unknown"]),
-    claim: z.string(),
+  finding_citations: row(["finding_id", "citation_id"], { finding_id: int, citation_id: int }),
+  queue_items: row(["run_id", "brief_id", "round", "question"], {
+    run_id: str, brief_id: int, round: int, question: str, context: str,
+    blocking: { type: "integer", minimum: 0, maximum: 1 }, status: str,
+    answer: nstr, answered_by: nstr, answered_at: nstr,
   }),
-  finding_citations: z.object({ finding_id: z.number().int(), citation_id: z.number().int() }),
-  queue_items: z.object({
-    run_id: z.string(),
-    brief_id: z.number().int(),
-    round: z.number().int(),
-    question: z.string(),
-    context: z.string().optional(),
-    blocking: z.number().int().min(0).max(1).optional(),
-    status: z.string().optional(),
-    answer: z.string().nullish(),
-    answered_by: z.string().nullish(),
-    answered_at: z.string().nullish(),
+  queue_citations: row(["queue_item_id", "citation_id"], { queue_item_id: int, citation_id: int }),
+  reports: row(["run_id", "brief_id", "body"], { run_id: str, brief_id: int, body: str }),
+  report_claims: row(["report_id", "claim"], { report_id: int, claim: str }),
+  claim_citations: row(["claim_id", "citation_id"], { claim_id: int, citation_id: int }),
+  knowledge: row(["corpus", "fact"], {
+    corpus: str, fact: str, status: str, ratified_by: nstr,
+    source_run_id: nstr, source_queue_item_id: nint,
   }),
-  queue_citations: z.object({ queue_item_id: z.number().int(), citation_id: z.number().int() }),
-  reports: z.object({ run_id: z.string(), brief_id: z.number().int(), body: z.string() }),
-  report_claims: z.object({ report_id: z.number().int(), claim: z.string() }),
-  claim_citations: z.object({ claim_id: z.number().int(), citation_id: z.number().int() }),
-  knowledge: z.object({
-    corpus: z.string(),
-    fact: z.string(),
-    status: z.string().optional(),
-    ratified_by: z.string().nullish(),
-    source_run_id: z.string().nullish(),
-    source_queue_item_id: z.number().int().nullish(),
+  knowledge_citations: row(["knowledge_id", "citation_id"], { knowledge_id: int, citation_id: int }),
+  audits: row(["kind", "result"], {
+    doc_id: int, start_off: int, end_off: int, run_id: nstr, corpus: nstr,
+    kind: { type: "string", enum: ["mechanical", "semantic_sample", "recall_sample", "citation_judge", "preprocess"] },
+    sample_n: int, result: str,
   }),
-  knowledge_citations: z.object({ knowledge_id: z.number().int(), citation_id: z.number().int() }),
-  audits: z.object({
-    doc_id: z.number().int().optional(),
-    start_off: z.number().int().optional(),
-    end_off: z.number().int().optional(),
-    run_id: z.string().nullish(),
-    corpus: z.string().nullish(),
-    kind: z.enum(["mechanical", "semantic_sample", "recall_sample", "citation_judge", "preprocess"]),
-    sample_n: z.number().int().optional(),
-    result: z.string(),
-  }),
-} as const;
-export type WritableTable = keyof typeof writeSchemas;
+};
+export type WritableTable = string; // validated against writeSchemas keys at call time
