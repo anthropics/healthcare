@@ -23,6 +23,82 @@ import {
 } from "node:fs";
 import { extname, join as join2, relative, sep } from "node:path";
 
+// ../shared/validate.ts
+function fail(path, msg) {
+  throw new Error(`${path || "arguments"} ${msg}`);
+}
+var TYPE = {
+  string: (v) => typeof v === "string",
+  integer: (v) => typeof v === "number" && Number.isInteger(v),
+  number: (v) => typeof v === "number",
+  boolean: (v) => typeof v === "boolean",
+  object: (v) => typeof v === "object" && v !== null && !Array.isArray(v),
+  array: (v) => Array.isArray(v),
+  null: (v) => v === null
+};
+function check(schema, v, path = "") {
+  if (Array.isArray(schema.anyOf)) {
+    const errs = [];
+    for (const sub of schema.anyOf) {
+      try {
+        check(sub, v, path);
+        return;
+      } catch (e) {
+        errs.push(e.message);
+      }
+    }
+    fail(path, `matches none of the allowed forms (${errs.join(" | ")})`);
+  }
+  const types = schema.type === undefined ? [] : Array.isArray(schema.type) ? schema.type : [schema.type];
+  if (types.length && !types.some((t) => TYPE[t]?.(v)))
+    fail(path, `must be ${types.join(" or ")}`);
+  if (Array.isArray(schema.enum) && !schema.enum.includes(v))
+    fail(path, `must be one of: ${schema.enum.join(", ")}`);
+  if (typeof v === "string") {
+    if (typeof schema.minLength === "number" && v.length < schema.minLength)
+      fail(path, `must be at least ${schema.minLength} character(s)`);
+    if (typeof schema.pattern === "string" && !new RegExp(schema.pattern).test(v))
+      fail(path, `does not match required pattern ${schema.pattern}`);
+  }
+  if (typeof v === "number") {
+    if (typeof schema.minimum === "number" && v < schema.minimum)
+      fail(path, `must be >= ${schema.minimum}`);
+    if (typeof schema.maximum === "number" && v > schema.maximum)
+      fail(path, `must be <= ${schema.maximum}`);
+  }
+  if (Array.isArray(v)) {
+    if (typeof schema.minItems === "number" && v.length < schema.minItems)
+      fail(path, `needs at least ${schema.minItems} item(s)`);
+    if (typeof schema.maxItems === "number" && v.length > schema.maxItems)
+      fail(path, `allows at most ${schema.maxItems} item(s)`);
+    if (schema.items)
+      v.forEach((x, i) => check(schema.items, x, `${path}[${i}]`));
+  }
+  if (TYPE.object(v) && schema.properties) {
+    const obj = v;
+    for (const k of schema.required ?? [])
+      if (obj[k] === undefined)
+        fail(path, `is missing required field '${k}'`);
+    for (const [k, sub] of Object.entries(schema.properties)) {
+      if (obj[k] !== undefined)
+        check(sub, obj[k], path ? `${path}.${k}` : k);
+    }
+  }
+}
+function checkAndStrip(name, schema, value) {
+  const v = value ?? {};
+  try {
+    check(schema, v);
+  } catch (e) {
+    throw new Error(`${name}: ${e.message}`);
+  }
+  const out = {};
+  for (const k of Object.keys(schema.properties ?? {}))
+    if (v[k] !== undefined)
+      out[k] = v[k];
+  return out;
+}
+
 // src/db.ts
 import { mkdirSync, existsSync, renameSync } from "node:fs";
 import { join } from "node:path";
@@ -528,82 +604,6 @@ var writeSchemas = {
   })
 };
 
-// ../shared/validate.ts
-function fail(path, msg) {
-  throw new Error(`${path || "arguments"} ${msg}`);
-}
-var TYPE = {
-  string: (v) => typeof v === "string",
-  integer: (v) => typeof v === "number" && Number.isInteger(v),
-  number: (v) => typeof v === "number",
-  boolean: (v) => typeof v === "boolean",
-  object: (v) => typeof v === "object" && v !== null && !Array.isArray(v),
-  array: (v) => Array.isArray(v),
-  null: (v) => v === null
-};
-function check(schema, v, path = "") {
-  if (Array.isArray(schema.anyOf)) {
-    const errs = [];
-    for (const sub of schema.anyOf) {
-      try {
-        check(sub, v, path);
-        return;
-      } catch (e) {
-        errs.push(e.message);
-      }
-    }
-    fail(path, `matches none of the allowed forms (${errs.join(" | ")})`);
-  }
-  const types = schema.type === undefined ? [] : Array.isArray(schema.type) ? schema.type : [schema.type];
-  if (types.length && !types.some((t) => TYPE[t]?.(v)))
-    fail(path, `must be ${types.join(" or ")}`);
-  if (Array.isArray(schema.enum) && !schema.enum.includes(v))
-    fail(path, `must be one of: ${schema.enum.join(", ")}`);
-  if (typeof v === "string") {
-    if (typeof schema.minLength === "number" && v.length < schema.minLength)
-      fail(path, `must be at least ${schema.minLength} character(s)`);
-    if (typeof schema.pattern === "string" && !new RegExp(schema.pattern).test(v))
-      fail(path, `does not match required pattern ${schema.pattern}`);
-  }
-  if (typeof v === "number") {
-    if (typeof schema.minimum === "number" && v < schema.minimum)
-      fail(path, `must be >= ${schema.minimum}`);
-    if (typeof schema.maximum === "number" && v > schema.maximum)
-      fail(path, `must be <= ${schema.maximum}`);
-  }
-  if (Array.isArray(v)) {
-    if (typeof schema.minItems === "number" && v.length < schema.minItems)
-      fail(path, `needs at least ${schema.minItems} item(s)`);
-    if (typeof schema.maxItems === "number" && v.length > schema.maxItems)
-      fail(path, `allows at most ${schema.maxItems} item(s)`);
-    if (schema.items)
-      v.forEach((x, i) => check(schema.items, x, `${path}[${i}]`));
-  }
-  if (TYPE.object(v) && schema.properties) {
-    const obj = v;
-    for (const k of schema.required ?? [])
-      if (obj[k] === undefined)
-        fail(path, `is missing required field '${k}'`);
-    for (const [k, sub] of Object.entries(schema.properties)) {
-      if (obj[k] !== undefined)
-        check(sub, obj[k], path ? `${path}.${k}` : k);
-    }
-  }
-}
-function checkAndStrip(name, schema, value) {
-  const v = value ?? {};
-  try {
-    check(schema, v);
-  } catch (e) {
-    throw new Error(`${name}: ${e.message}`);
-  }
-  const out = {};
-  for (const k of Object.keys(schema.properties ?? {}))
-    if (v[k] !== undefined)
-      out[k] = v[k];
-  return out;
-}
-
 // src/extract.ts
 import { spawnSync } from "node:child_process";
 var MAX_BUFFER = 256 * 1024 * 1024;
@@ -987,7 +987,10 @@ function write(table, rowJson, rowsJson) {
     die(`write: rows is empty`);
   if (rows.length > 1000)
     die(`write: ${rows.length} rows; cap is 1000`);
-  return tx(() => ({ inserted: rows.length, ids: rows.map((r) => insertRow(table, r).id) }));
+  return tx(() => ({
+    inserted: rows.length,
+    ids: rows.map((r) => insertRow(table, r).id)
+  }));
 }
 function set(table, id, col, val) {
   const t = setSchemas[table];
@@ -1043,7 +1046,11 @@ function docSearch(corpus, pattern, opts = {}) {
        JOIN corpus_documents cd ON cd.doc_id = d.id
        WHERE cd.corpus = $corpus
          AND ${fold ? `d.content LIKE '%' || $like || '%' ESCAPE '\\'` : `instr(d.content, $raw) > 0`}
-       ORDER BY d.id LIMIT $lim`).all({ corpus, [fold ? "like" : "raw"]: fold ? escaped : pattern, lim: maxDocs + 1 });
+       ORDER BY d.id LIMIT $lim`).all({
+    corpus,
+    [fold ? "like" : "raw"]: fold ? escaped : pattern,
+    lim: maxDocs + 1
+  });
   const truncated = rows.length > maxDocs;
   let snippetBudget = 20000;
   const needle = fold ? pattern.toLowerCase() : pattern;
@@ -1109,7 +1116,14 @@ function docTextMany(docs, limit = 40000) {
   const out = docs.map((d) => {
     const offset = d.offset ?? 0;
     if (budget <= 0)
-      return { doc_id: d.doc_id, offset, chars: 0, next_offset: offset, text: "", budget_exhausted: true };
+      return {
+        doc_id: d.doc_id,
+        offset,
+        chars: 0,
+        next_offset: offset,
+        text: "",
+        budget_exhausted: true
+      };
     try {
       const r = docText(d.doc_id, offset, budget);
       budget -= r.chars;
@@ -1179,7 +1193,13 @@ function scanCorpus(dir) {
   for (const f of all) {
     if (PREPROCESS_EXT.test(f.name)) {
       const override = textStems.has(f.rel.replace(PREPROCESS_EXT, ""));
-      out.push({ path: f.path, rel: f.rel, kind: "source", srcSha: sha256(readFileSync(f.path)), override });
+      out.push({
+        path: f.path,
+        rel: f.rel,
+        kind: "source",
+        srcSha: sha256(readFileSync(f.path)),
+        override
+      });
     } else if (DIRECT_TEXT_EXT.test(f.name)) {
       out.push({ path: f.path, rel: f.rel, kind: "text", srcSha: null });
     }
@@ -1256,7 +1276,16 @@ ${text}`);
   const elapsed_ms = Math.round(performance.now() - t0);
   if (total > 0)
     progress(true);
-  return { extractor, parsed_dir: PARSED, extracted: done, skipped, empty, failed, elapsed_ms, status };
+  return {
+    extractor,
+    parsed_dir: PARSED,
+    extracted: done,
+    skipped,
+    empty,
+    failed,
+    elapsed_ms,
+    status
+  };
 }
 var promptPath = (runId, label) => join2(DATA, "shards", runId, `${label}.prompt.md`);
 function shardPromptText(runId, sh, rubric, files, brief, round, scope) {
@@ -1278,7 +1307,8 @@ TURN PLAN — a model turn is the expensive unit; batch INTO the tool first, par
 1. FIRST message: Read every document above in parallel — EXCEPT any flagged large (grep those for the rubric's terms and Read windows around the hits instead). A truncated Read means keep reading from the reported offset; finishing a document is not re-reading it. If these paths won't open (this prompt reached you over a connection, not a shared disk): for a shard of five documents or fewer, ONE doc_text call with \`docs: [{doc_id, offset}, …]\`, paging each with its next_offset until it reports null; for a larger or flagged-large shard, doc_search (pattern takes an array — every probe in one call) and doc_text the hits, again via \`docs\`. Never treat one page as the whole document.
 2. Per document, ONE \`find\` call with \`rows: [{kind, claim, doc_id, quote, near?}, …]\` — every finding for that document in one call; spill into a second call rather than trimming quotes. On a document you work through incrementally, flush a rows batch every ~10 findings as you go; never hold a long document's finds to the end.
 3. \`find\` returns {inserted, rejected}: each rejected row carries its index, error, and hint. Resend ONLY the rejected rows, fixed, in your next call — alongside the next document's rows.
-4. LAST message, after every find has landed or been retired: the \`coverage\` batch for every doc_id, one call. Never stamp coverage in a message that still carries find retries.`;
+4. LAST message, after every find has landed or been retired: the \`coverage\` batch for every doc_id, one call. Never stamp coverage in a message that still carries find retries.
+5. YOUR REPLY — exactly one line: \`shard=${sh.label} status=ok|partial|error\`. ok = every doc stamped 'read'; partial = some 'read', the rest stamped 'error'; error = nothing usable landed. Findings go in \`find\` rows and reasons in \`coverage\` notes (coverage's own status enum is 'read'|'error' — never these reply tokens), not in your reply. One exception: if the \`coverage\` call itself failed, append the reason to your reply line — otherwise it is recorded nowhere.`;
 }
 function dump(runId, shards, opts = {}) {
   if (!shards.length)
@@ -1399,7 +1429,11 @@ function ingest(corpus, force = false) {
       const contentSha = sha256(content);
       const stem = f.rel.replace(extname(f.rel), "");
       const m = manifest.get(f.rel) ?? PREPROCESS_EXTS.map((e) => manifest.get(`${stem}.${e}`)).find(Boolean) ?? {};
-      const doc = insDoc.get({ content, sha256: contentSha, family: f.rel.split(sep)[0] ?? "" });
+      const doc = insDoc.get({
+        content,
+        sha256: contentSha,
+        family: f.rel.split(sep)[0] ?? ""
+      });
       if (!doc)
         die(`ingest: upsert failed for ${f.rel}`);
       insCorpus.run({

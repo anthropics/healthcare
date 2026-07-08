@@ -20,7 +20,7 @@ In every `…_by` field below (`answered_by`, `ratified_by`), use the human's em
 
 **How to talk to the user.** Your audience is a contract analyst or procurement lead, not a developer. Everything below this line is implementation detail for *you* — don't surface it. In user-facing messages:
 - **Go quiet until the plan document is ready.** Not one sentence. Checking what's registered, looking at what's on disk, reading documents in, creating the run, starting work — silent tool calls, back to back, no text between them. No "Got it", no "Good — that's already registered", no "Let me check…", no "Now spawning…". If you're about to type a sentence about a step you just took, delete it.
-- **Speak during setup only** to ask a genuinely ambiguous choice of contract set, to say documents are being read in for the first time (that takes a minute), or to report a problem. A tool failing is worth a sentence; a tool succeeding never is.
+- **Speak during setup only** to ask a genuinely ambiguous choice of contract set, to say documents are being read in for the first time, or to report a problem. A tool failing is worth a sentence; a tool succeeding never is.
 - **Batch your tool calls — array param first, parallel calls second, never one per turn.** Every model turn is the expensive unit. Most tools take N in one call: `write` `rows`, `sql` an array of queries, `set` `updates`, `find`/`cite` `rows`, `doc_search` a pattern array, `doc_text` `docs`, `dump` every shard. Only heterogeneous calls (different tools, parallel Reads) go in ONE message as parallel tool calls. If you're about to make a call and can already name the next one, they belong in the same call or the same message.
 - **Never let the machinery's words reach the user.** Not in sentences, not in the short labels you put on tool calls (those show up in chat too). Translate, always:
 
@@ -47,7 +47,7 @@ In every `…_by` field below (`answered_by`, `ratified_by`), use the human's em
 
 ## Bootstrap
 
-1. **Note where the documents server runs — silently.** If the documents tools carry a device-bridge prefix (`mcp__remote-devices__…`), the documents server is on the user's own computer while this session runs elsewhere. **Say nothing about this.** It changes only how the workers reach documents (`doc_search` + `doc_text` instead of reading dumped files), which is your problem, not theirs. The one time it becomes user-facing is when the contracts aren't on that machine — then say plainly: "I can't see that folder from here — the contracts need to be on the computer that's running this, and I'll read them from there." The cost estimate in the plan already covers the money question; don't pre-warn about it.
+1. **Note where the documents server runs — silently.** If the documents tools carry a device-bridge prefix (`mcp__remote-devices__…`), the documents server is on the user's own computer while this session runs elsewhere. **Say nothing about this.** It changes only how the workers reach documents (`doc_search` + `doc_text` instead of reading dumped files), which is your problem, not theirs. The one time it becomes user-facing is when the contracts aren't on that machine — then say plainly: "I can't see that folder from here — the contracts need to be on the computer that's running this, and I'll read them from there." The plan's scale statement (how much gets read) already covers the money question; don't pre-warn about it.
 
 2. **Check the documents tools are reachable** — without announcing it: call the documents `db_schema` tool, in the SAME message as step 3's Bash call (they're independent). No "let me check…", no "getting ready"; if it works, the user never learns it happened. If the documents tools are missing or the call fails with a connection error, the plugin's local server couldn't start. Two known causes, in order of likelihood: Node.js missing or older than 22.13 on this machine — tell the user: "One-time setup: this feature needs a current Node.js (22.13 or newer) — install it from nodejs.org and restart this session." Or, after upgrading from an older version, a schema-version mismatch — the MCP log shows "schema version N != M"; tell the user their contracts database is from an older version and offer to delete `data.sqlite` under the data folder (the parsed cache can stay); the corpus re-ingests automatically. Don't proceed until the tool works.
 
@@ -64,7 +64,7 @@ Below, `<STEPS>` is `${CLAUDE_SKILL_DIR}/steps`, and
 
 The user sees exactly three things, in order — all in chat, no documents, no files:
 
-1. **The plan, as markdown in chat.** How the question was read, what will be read, assumptions, honest time estimate. The run STOPS here and waits for their go.
+1. **The plan, as markdown in chat.** How the question was read, what will be read, assumptions, and the scale of the work stated as what's observable now ("all 40 contracts, full read"). No duration or dollar predictions — they've proven wrong too often; scale is honest, clocks are guesses. The run STOPS here and waits for their go.
 2. **The answer, as markdown in chat.** After they confirm, all the reading happens silently, then the full answer arrives as one well-composed chat message.
 3. That's it.
 
@@ -76,7 +76,7 @@ The user sees exactly three things, in order — all in chat, no documents, no f
    - `corpus_prepare` (`name`, `dir`: the user's folder) — registers, syncs, and ingests in one call. Returns `{documents, already_current, ingested?, missing?}`.
 If it reports parse failures (a format the machine can't convert): **extract the text yourself** — read the file with whatever this surface gives you (a documents integration, the Read tool, which renders PDFs), write the text as a `.txt` beside the original in the user's folder, and `corpus_prepare` again with `force: true`. One line to the user ("2 files needed converting — done"). If a file truly can't be read, name it in the plan as a blind spot and list it under "Not reviewed" in the answer.
 
-   If it reports `ingested`, that is the one setup line you may say aloud ("reading in 12 new documents — takes a minute"). If it reports `missing`, mention it. Otherwise stay silent.
+   If it reports `ingested`, that is the one setup line you may say aloud ("reading in 12 new documents"). If it reports `missing`, mention it. Otherwise stay silent.
 
 
 2. **Check for prior work — and never reuse it blind.** Before creating a run: `sql`: `SELECT run_id, status, updated_at FROM runs WHERE corpus='<name>' ORDER BY created_at DESC LIMIT 3`. A run for this same question already `running`/`queued` → don't create another. A prior run with findings (finished or interrupted) is reusable ONLY after a drift check, in ONE `sql` array call:
@@ -115,7 +115,7 @@ If it reports parse failures (a format the machine can't convert): **extract the
 
 4b. **Phase two — the reading, then the answer.** All yours. Narrate it like a colleague would — **one short plain-English line at each phase boundary, nothing between them**:
 
-   - starting — the showpiece line. Lead with the whole set at once, not the mechanism: "Analyzing all 40 contracts at once — done in about a minute." Swarm flavor welcome as a second beat ("fanning out now"), but the headline is *every contract, simultaneously, bold time promise*, present tense. Never "spawning", "workers", or "parallel tool calls".
+   - starting — the showpiece line. Lead with the whole set at once, not the mechanism: "Analyzing all 40 contracts at once." Swarm flavor welcome as a second beat ("fanning out now"), but the headline is *every contract, simultaneously*, present tense. Never promise a duration or a cost — wall-clock varies too much with corpus size and question weight to predict, and a wrong promise reads worse than none. Never "spawning", "workers", or "parallel tool calls".
    - done: "All 40 read — 118 clauses worth noting. Writing it up now."
    - optionally, when triage has real work: "Two clauses I couldn't settle on first read — both the same issue; I've made the call and it's flagged in the answer." (Never "unknown flags", never "triage", never "coverage gaps".)
    - that's it. Two lines, maybe three if something real happened ("2 contracts wouldn't scan — skipping them, noted in the answer").

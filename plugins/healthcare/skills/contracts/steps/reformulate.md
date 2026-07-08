@@ -22,7 +22,7 @@ Learn the corpus before fixing terms — **searches only, no full reads, ALL pro
 
 Four parts, no schema beyond the table columns:
 
-- **Rubric** — the comparison/judgment rules workers apply. **Say what counts as a finding** ("one per contract: its cap, or that it's uncapped" / "every distinct rate, with its service"). Be honest with yourself about breadth: a comparison question needs every comparable fact extracted, and that's what makes it cost more than a lookup — say so in the cost line rather than under-extracting to look fast. What identity must be resolved before comparing? What supersedes what (amendments win)? When does a worker return `unknown` instead of guessing?
+- **Rubric** — the comparison/judgment rules workers apply. **Say what counts as a finding** ("one per contract: its cap, or that it's uncapped" / "every distinct rate, with its service"). Be honest with yourself about breadth: a comparison question needs every comparable fact extracted, and that's what makes it heavier than a lookup — say so in the plan's scale statement rather than under-extracting to look fast. What identity must be resolved before comparing? What supersedes what (amendments win)? When does a worker return `unknown` instead of guessing?
 - **Assumptions** — what you're treating as true that the user could correct. Active contracts only? A specific date window? A SKU treated as identical across vendors?
 - **Done criteria** — what makes the run complete. Be concrete enough that you'll know when to stop sweeping.
 - **Scope intent** — which slice of the corpus likely holds the answer, stated as an assumption ("Ohio Medicaid managed-care families, 2018-2024") the user can correct. The scope step turns this into the actual read set.

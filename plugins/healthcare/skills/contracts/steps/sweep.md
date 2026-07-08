@@ -70,4 +70,4 @@ Workers wrote directly; nothing to merge. Reconcile coverage — run this and th
 sql: SELECT * FROM v_coverage_gaps WHERE run_id='<RUN_ID>'
 ```
 
-Everything's a gap → the spawns failed outright; read the error and re-spawn. Partial gaps → a worker crashed mid-shard; spawn one reader for the missing doc_ids. No gaps → proceed to `triage`.
+Everything's a gap → the spawns failed outright; diagnose from the reply lines (`shard=<label> status=…`, with any coverage-failure reason appended) plus `shard_coverage` notes (`status='error'` rows carry the reason). All-error replies with NO coverage rows at all means the environment or bridge died — apply the Rescue wave-of-≤5 rule, don't re-spawn ten. Partial gaps → a worker crashed mid-shard; spawn one reader for the missing doc_ids. No gaps → proceed to `triage`.

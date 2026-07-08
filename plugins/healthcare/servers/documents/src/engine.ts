@@ -12,9 +12,18 @@ import {
 } from "node:fs";
 import { dirname, extname, join, relative, sep } from "node:path";
 
-
-import { DATA, NAME_RE, PARSED, RUN_ID_RE, db, setSchemas, tx, writeSchemas, type WritableTable } from "./db.js";
 import { checkAndStrip, check } from "../../shared/validate.js";
+import {
+  DATA,
+  NAME_RE,
+  PARSED,
+  RUN_ID_RE,
+  db,
+  setSchemas,
+  tx,
+  writeSchemas,
+  type WritableTable,
+} from "./db.js";
 import { extract, resolveLit } from "./extract.js";
 
 type Bind = Record<string, string | number | bigint | null>;
@@ -57,7 +66,8 @@ function corpusRoot(name: string): string {
     | { root: string }
     | undefined;
   if (!row) die(`unknown corpus '${name}' — call corpus_register first`);
-  if (!existsSync(row.root)) die(`corpus '${name}' root ${row.root} no longer exists — re-register`);
+  if (!existsSync(row.root))
+    die(`corpus '${name}' root ${row.root} no longer exists — re-register`);
   return row.root;
 }
 
@@ -155,7 +165,10 @@ function locate(
   contentNorm?: { norm: string; map: number[] },
 ): [number, number] | null {
   const at = nearestIndex(content, quote, near);
-  if (at === -2) die(`cite: quote appears more than once in this document — pass 'near' (an approximate offset) so the right occurrence is cited`);
+  if (at === -2)
+    die(
+      `cite: quote appears more than once in this document — pass 'near' (an approximate offset) so the right occurrence is cited`,
+    );
   if (at >= 0) return [at, at + quote.length];
   const h = contentNorm ?? normalizeWithMap(content);
   const { norm: nq } = normalizeWithMap(quote.trim());
@@ -241,7 +254,13 @@ function toCodePoints(doc: CachedDoc, utf16: number): number {
   return utf16 - lo;
 }
 
-function mintCitation(docId: number, briefId: number, by: string, quote: string, opts: CiteOpts): Minted {
+function mintCitation(
+  docId: number,
+  briefId: number,
+  by: string,
+  quote: string,
+  opts: CiteOpts,
+): Minted {
   const doc = loadDoc(docId);
   // s/e arrive as UTF-16 offsets from locate(); stored offsets are code points.
   const ins = (kind: "exact" | "judged", q: string, s: number, e: number, j: number | null) =>
@@ -270,19 +289,27 @@ function mintCitation(docId: number, briefId: number, by: string, quote: string,
     const [s, e] = opts.span; // UTF-16, from the caller's own reading; converted in ins()
     if (e - s > 4000) die(`cite: span is ${e - s} chars; cap is 4000. Narrow to the passage.`);
     const a = db
-      .prepare(`SELECT id, doc_id, start_off, end_off FROM audits WHERE id=? AND kind='citation_judge'`)
+      .prepare(
+        `SELECT id, doc_id, start_off, end_off FROM audits WHERE id=? AND kind='citation_judge'`,
+      )
       .get(opts.audit) as { doc_id: number; start_off: number; end_off: number } | undefined;
     if (!a) die(`cite: audit ${opts.audit} not found or not kind=citation_judge`);
     // The verdict must be about this document and this span — otherwise one
     // audit row authorizes anything. (The trigger enforces this too; this is
     // where the worker gets a sentence they can act on.)
-    if (a.doc_id !== docId || toCodePoints(doc, s) !== a.start_off || toCodePoints(doc, e) !== a.end_off)
+    if (
+      a.doc_id !== docId ||
+      toCodePoints(doc, s) !== a.start_off ||
+      toCodePoints(doc, e) !== a.end_off
+    )
       die(
         `cite: audit ${opts.audit} judged doc ${a.doc_id} [${a.start_off},${a.end_off}) — ` +
           `not this document and span. Write an audit for the span you actually read.`,
       );
     if (!spanSupportsQuote(doc.content.slice(s, e), quote))
-      die(`cite: the judged span doesn't contain the words of this quote — you cannot cite what isn't there`);
+      die(
+        `cite: the judged span doesn't contain the words of this quote — you cannot cite what isn't there`,
+      );
     return ins("judged", quote, s, e, opts.audit);
   }
   dieQuoteNotFound(doc.content, nearOff);
@@ -298,7 +325,13 @@ export function cite(
   return mintCitation(docId, briefId, by, quote, opts);
 }
 
-export type CiteRow = { doc_id: number; quote: string; near?: number; span?: number[]; audit?: number };
+export type CiteRow = {
+  doc_id: number;
+  quote: string;
+  near?: number;
+  span?: number[];
+  audit?: number;
+};
 
 /** Mint many citations in one call. Each mint is a single INSERT, so rows are
  *  independent: good rows land, bad rows come back in `rejected` with the same
@@ -326,9 +359,17 @@ export function citeMany(briefId: number, by: string, rows: CiteRow[]): unknown 
 // ---------------------------------------------------------------------------
 
 export interface FindInput {
-  run_id: string; brief_id: number; round: number; worker: string;
-  kind: "finding" | "unknown"; claim: string; doc_id: number; quote: string;
-  near?: number; span?: number[]; audit?: number;
+  run_id: string;
+  brief_id: number;
+  round: number;
+  worker: string;
+  kind: "finding" | "unknown";
+  claim: string;
+  doc_id: number;
+  quote: string;
+  near?: number;
+  span?: number[];
+  audit?: number;
 }
 export type FindRowInput = Omit<FindInput, "run_id" | "brief_id" | "round" | "worker">;
 
@@ -341,17 +382,22 @@ const findRowSchema = {
   required: ["kind", "claim", "doc_id", "quote"],
   properties: {
     kind: { type: "string", enum: ["finding", "unknown"] },
-    claim: { type: "string" }, doc_id: { type: "integer" },
-    quote: { type: "string", minLength: 1 }, near: { type: "integer" },
-    span: spanSchema, audit: { type: "integer" },
+    claim: { type: "string" },
+    doc_id: { type: "integer" },
+    quote: { type: "string", minLength: 1 },
+    near: { type: "integer" },
+    span: spanSchema,
+    audit: { type: "integer" },
   },
 };
 const findSchema = {
   type: "object",
   required: ["run_id", "brief_id", "round", "worker", "kind", "claim", "doc_id", "quote"],
   properties: {
-    run_id: { type: "string" }, brief_id: { type: "integer" },
-    round: { type: "integer" }, worker: { type: "string" },
+    run_id: { type: "string" },
+    brief_id: { type: "integer" },
+    round: { type: "integer" },
+    worker: { type: "string" },
     ...(findRowSchema.properties as Record<string, unknown>),
   },
 };
@@ -365,7 +411,12 @@ export const checkFindRow = (v: unknown): FindRowInput =>
 // Either way a failed findings insert (dropped run, bad brief FK) rolls the
 // citation back too, or it lingers with a non-NULL brief_id that drop's
 // orphan sweep never reclaims.
-function findCore(m: FindInput): { citation_id: number; finding_id: number; kind: string; start_off: number } {
+function findCore(m: FindInput): {
+  citation_id: number;
+  finding_id: number;
+  kind: string;
+  start_off: number;
+} {
   const c = mintCitation(m.doc_id, m.brief_id, m.worker, m.quote, {
     near: m.near,
     span: asSpan(m.span),
@@ -393,7 +444,13 @@ export type FindContext = { run_id: string; brief_id: number; round: number; wor
 export function findMany(ctx: FindContext, rows: FindRowInput[]): unknown {
   if (!rows.length) die(`find: rows is empty`);
   return tx(() => {
-    const inserted: { index: number; citation_id: number; finding_id: number; kind: string; start_off: number }[] = [];
+    const inserted: {
+      index: number;
+      citation_id: number;
+      finding_id: number;
+      kind: string;
+      start_off: number;
+    }[] = [];
     const rejected: { index: number; doc_id: number; error: string }[] = [];
     rows.forEach((r, index) => {
       db.exec("SAVEPOINT find_row");
@@ -418,7 +475,8 @@ export function coverage(
   m: Record<string, unknown> | undefined,
   rows: Record<string, unknown>[] | undefined,
 ): unknown {
-  if ((m === undefined) === (rows === undefined)) die(`coverage: pass exactly one of row fields or rows`);
+  if ((m === undefined) === (rows === undefined))
+    die(`coverage: pass exactly one of row fields or rows`);
   const all = m ? [m] : (rows ?? []);
   if (!all.length) die(`coverage: rows is empty`);
   const stmt = db.prepare(
@@ -426,7 +484,14 @@ export function coverage(
      ON CONFLICT(scope_id, doc_id, worker) DO UPDATE SET status = excluded.status, note = excluded.note`,
   );
   return tx(() => {
-    for (const r of all) stmt.run(r.scope_id as number, r.doc_id as number, r.worker as string, r.status as string, (r.note as string | null | undefined) ?? null);
+    for (const r of all)
+      stmt.run(
+        r.scope_id as number,
+        r.doc_id as number,
+        r.worker as string,
+        r.status as string,
+        (r.note as string | null | undefined) ?? null,
+      );
     return { ok: true, stamped: all.length };
   });
 }
@@ -500,7 +565,10 @@ export function write(table: WritableTable, rowJson?: unknown, rowsJson?: unknow
   const rows = rowsJson ?? [];
   if (!rows.length) die(`write: rows is empty`);
   if (rows.length > 1000) die(`write: ${rows.length} rows; cap is 1000`);
-  return tx(() => ({ inserted: rows.length, ids: rows.map((r) => (insertRow(table, r) as { id: number }).id) }));
+  return tx(() => ({
+    inserted: rows.length,
+    ids: rows.map((r) => (insertRow(table, r) as { id: number }).id),
+  }));
 }
 
 export function set(table: string, id: string, col: string, val: string | number | null): unknown {
@@ -516,7 +584,9 @@ export function set(table: string, id: string, col: string, val: string | number
 
 /** Several updates in one transaction — all land or none do. A transition
  *  (run status + round, or a batch of answered queue items) is one call. */
-export function setMany(updates: { table: string; id: string; col: string; value: string }[]): unknown {
+export function setMany(
+  updates: { table: string; id: string; col: string; value: string }[],
+): unknown {
   if (!updates.length) die(`set: updates is empty`);
   return tx(() => ({ updated: updates.map((u) => set(u.table, u.id, u.col, u.value)) }));
 }
@@ -531,9 +601,11 @@ function assertRunId(op: string, id: string): void {
 
 export function drop(runIds: string[], prefix?: string): unknown {
   const ids = prefix
-    ? (db.prepare(`SELECT run_id FROM runs WHERE run_id GLOB ? || '*'`).all(prefix) as {
-        run_id: string;
-      }[]).map((r) => r.run_id)
+    ? (
+        db.prepare(`SELECT run_id FROM runs WHERE run_id GLOB ? || '*'`).all(prefix) as {
+          run_id: string;
+        }[]
+      ).map((r) => r.run_id)
     : runIds;
   if (!ids.length) die("drop: nothing matched");
   for (const id of ids) assertRunId("drop", id);
@@ -599,7 +671,11 @@ export function docSearch(
          AND ${fold ? `d.content LIKE '%' || $like || '%' ESCAPE '\\'` : `instr(d.content, $raw) > 0`}
        ORDER BY d.id LIMIT $lim`,
     )
-    .all({ corpus, [fold ? "like" : "raw"]: fold ? escaped : pattern, lim: maxDocs + 1 } as Bind) as {
+    .all({
+      corpus,
+      [fold ? "like" : "raw"]: fold ? escaped : pattern,
+      lim: maxDocs + 1,
+    } as Bind) as {
     id: number;
     content: string;
     uri: string;
@@ -687,7 +763,14 @@ export function docTextMany(docs: { doc_id: number; offset?: number }[], limit =
   const out = docs.map((d) => {
     const offset = d.offset ?? 0;
     if (budget <= 0)
-      return { doc_id: d.doc_id, offset, chars: 0, next_offset: offset, text: "", budget_exhausted: true };
+      return {
+        doc_id: d.doc_id,
+        offset,
+        chars: 0,
+        next_offset: offset,
+        text: "",
+        budget_exhausted: true,
+      };
     try {
       const r = docText(d.doc_id, offset, budget) as { chars: number };
       budget -= r.chars;
@@ -714,7 +797,8 @@ function dumpShard(runId: string, label: string, ids: number[]): unknown {
      FROM documents d JOIN corpus_documents cd ON cd.doc_id = d.id
      WHERE d.id = ? AND cd.corpus = (SELECT corpus FROM runs WHERE run_id = ?)`,
   );
-  const written: { doc_id: number; path: string; chars: number; uri: string; family: string }[] = [];
+  const written: { doc_id: number; path: string; chars: number; uri: string; family: string }[] =
+    [];
   const missing: number[] = [];
   for (const id of ids) {
     const doc = q.get(id, runId) as
@@ -772,7 +856,8 @@ function scanCorpus(dir: string): CorpusFile[] {
     for (const e of readdirSync(d, { withFileTypes: true })) {
       const p = join(d, e.name);
       if (e.isDirectory()) walk(p);
-      else if (e.name !== "MANIFEST.jsonl") all.push({ path: p, rel: relative(dir, p), name: e.name });
+      else if (e.name !== "MANIFEST.jsonl")
+        all.push({ path: p, rel: relative(dir, p), name: e.name });
     }
   };
   walk(dir);
@@ -783,7 +868,13 @@ function scanCorpus(dir: string): CorpusFile[] {
   for (const f of all) {
     if (PREPROCESS_EXT.test(f.name)) {
       const override = textStems.has(f.rel.replace(PREPROCESS_EXT, ""));
-      out.push({ path: f.path, rel: f.rel, kind: "source", srcSha: sha256(readFileSync(f.path)), override });
+      out.push({
+        path: f.path,
+        rel: f.rel,
+        kind: "source",
+        srcSha: sha256(readFileSync(f.path)),
+        override,
+      });
     } else if (DIRECT_TEXT_EXT.test(f.name)) {
       out.push({ path: f.path, rel: f.rel, kind: "text", srcSha: null });
     }
@@ -852,7 +943,9 @@ function preprocessFiles(files: CorpusFile[], force: boolean): PreprocessResult 
         out,
         `[extraction failed — liteparse required for ${extname(f.rel)}; install liteparse (lit on PATH or $LITEPARSE_PATH), or supply ${f.rel.replace(PREPROCESS_EXT, ".txt")}]`,
       );
-      process.stderr.write(`preprocess: SKIP  ${f.rel} — liteparse required for .docx/.xlsx/.pptx\n`);
+      process.stderr.write(
+        `preprocess: SKIP  ${f.rel} — liteparse required for .docx/.xlsx/.pptx\n`,
+      );
       continue;
     }
     const text = extract(lit, f.path);
@@ -866,7 +959,10 @@ function preprocessFiles(files: CorpusFile[], force: boolean): PreprocessResult 
     if (text.replace(/\s|\[page \d+\]|=/g, "").length < 200) {
       empty++;
       status.set(f.srcSha, "empty");
-      writeFileSync(out, `[no text extracted — page may be blank or unreadable after OCR]\n${text}`);
+      writeFileSync(
+        out,
+        `[no text extracted — page may be blank or unreadable after OCR]\n${text}`,
+      );
       process.stderr.write(`preprocess: EMPTY ${f.rel} (liteparse/OCR returned no text)\n`);
       continue;
     }
@@ -877,7 +973,16 @@ function preprocessFiles(files: CorpusFile[], force: boolean): PreprocessResult 
   }
   const elapsed_ms = Math.round(performance.now() - t0);
   if (total > 0) progress(true);
-  return { extractor, parsed_dir: PARSED, extracted: done, skipped, empty, failed, elapsed_ms, status };
+  return {
+    extractor,
+    parsed_dir: PARSED,
+    extracted: done,
+    skipped,
+    empty,
+    failed,
+    elapsed_ms,
+    status,
+  };
 }
 
 // Read-only: compare what's on disk under the registered root to what the DB holds.
@@ -917,7 +1022,8 @@ TURN PLAN — a model turn is the expensive unit; batch INTO the tool first, par
 1. FIRST message: Read every document above in parallel — EXCEPT any flagged large (grep those for the rubric's terms and Read windows around the hits instead). A truncated Read means keep reading from the reported offset; finishing a document is not re-reading it. If these paths won't open (this prompt reached you over a connection, not a shared disk): for a shard of five documents or fewer, ONE doc_text call with \`docs: [{doc_id, offset}, …]\`, paging each with its next_offset until it reports null; for a larger or flagged-large shard, doc_search (pattern takes an array — every probe in one call) and doc_text the hits, again via \`docs\`. Never treat one page as the whole document.
 2. Per document, ONE \`find\` call with \`rows: [{kind, claim, doc_id, quote, near?}, …]\` — every finding for that document in one call; spill into a second call rather than trimming quotes. On a document you work through incrementally, flush a rows batch every ~10 findings as you go; never hold a long document's finds to the end.
 3. \`find\` returns {inserted, rejected}: each rejected row carries its index, error, and hint. Resend ONLY the rejected rows, fixed, in your next call — alongside the next document's rows.
-4. LAST message, after every find has landed or been retired: the \`coverage\` batch for every doc_id, one call. Never stamp coverage in a message that still carries find retries.`;
+4. LAST message, after every find has landed or been retired: the \`coverage\` batch for every doc_id, one call. Never stamp coverage in a message that still carries find retries.
+5. YOUR REPLY — exactly one line: \`shard=${sh.label} status=ok|partial|error\`. ok = every doc stamped 'read'; partial = some 'read', the rest stamped 'error'; error = nothing usable landed. Findings go in \`find\` rows and reasons in \`coverage\` notes (coverage's own status enum is 'read'|'error' — never these reply tokens), not in your reply. One exception: if the \`coverage\` call itself failed, append the reason to your reply line — otherwise it is recorded nowhere.`;
 }
 
 /**
@@ -966,7 +1072,8 @@ export function shardPrompt(runId: string, label: string): unknown {
   assertRunId("shard_prompt", runId);
   if (!NAME_RE.test(label)) die(`shard_prompt: invalid label '${label}'`);
   const pp = promptPath(runId, label);
-  if (!existsSync(pp)) die(`shard_prompt: no prompt for shard '${label}' — was dump given a rubric?`);
+  if (!existsSync(pp))
+    die(`shard_prompt: no prompt for shard '${label}' — was dump given a rubric?`);
   return { label, prompt: readFileSync(pp, "utf8") };
 }
 
@@ -984,10 +1091,13 @@ export function corpusPrepare(name: string, dir: string, force = false): unknown
     missing: string[];
     unparsed: string[];
   };
-  const needsWork = force || before.new.length > 0 || before.changed.length > 0 || before.unparsed.length > 0;
+  const needsWork =
+    force || before.new.length > 0 || before.changed.length > 0 || before.unparsed.length > 0;
   const done = needsWork ? (ingest(name, force) as { ingested: number }) : null;
   const docs = (
-    db.prepare(`SELECT count(*) AS n FROM corpus_documents WHERE corpus = ?`).get(name) as { n: number }
+    db.prepare(`SELECT count(*) AS n FROM corpus_documents WHERE corpus = ?`).get(name) as {
+      n: number;
+    }
   ).n;
   return {
     corpus: name,
@@ -1087,9 +1197,11 @@ export function ingest(corpus: string, force = false): unknown {
         manifest.get(f.rel) ??
         PREPROCESS_EXTS.map((e) => manifest.get(`${stem}.${e}`)).find(Boolean) ??
         {};
-      const doc = insDoc.get({ content, sha256: contentSha, family: f.rel.split(sep)[0] ?? "" } as Bind) as
-        | { id: number }
-        | undefined;
+      const doc = insDoc.get({
+        content,
+        sha256: contentSha,
+        family: f.rel.split(sep)[0] ?? "",
+      } as Bind) as { id: number } | undefined;
       if (!doc) die(`ingest: upsert failed for ${f.rel}`);
       insCorpus.run({
         corpus,
@@ -1123,7 +1235,13 @@ export function exportReport(runId: string): unknown {
        WHERE r.run_id = ? AND b.status='active' ORDER BY b.version DESC LIMIT 1`,
     )
     .get(runId) as
-    | { question: string; rubric: string; assumptions: string; done_criteria: string; scope_intent: string }
+    | {
+        question: string;
+        rubric: string;
+        assumptions: string;
+        done_criteria: string;
+        scope_intent: string;
+      }
     | undefined;
   if (!run) die(`export_report: no run/active brief for '${runId}'`);
   const report = db
