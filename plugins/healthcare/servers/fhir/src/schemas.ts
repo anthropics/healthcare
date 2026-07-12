@@ -2,7 +2,7 @@
 // frozen. These literals ARE the wire format. Edit deliberately; add new
 // tools by hand-writing the entry (there is no zod to emit it anymore).
 
-import type { ToolDef } from "../../shared/rpc.js";
+import type { ToolDef } from "../../shared/rpc.mjs";
 
 export const TOOLS: ToolDef[] = [
   {

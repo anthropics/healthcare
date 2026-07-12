@@ -4,7 +4,7 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "rootDir": "..",
-    "strict": true,
+    "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "types": [
@@ -15,10 +15,12 @@
     "lib": [
       "ES2024"
     ],
-    "noEmit": true
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": true
   },
   "include": [
-    "src/**/*",
-    "../shared/**/*"
+    "src/**/*.mjs",
+    "../shared/**/*.mjs"
   ]
 }

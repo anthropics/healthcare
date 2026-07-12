@@ -4,7 +4,7 @@
 
 Answers questions across a corpus of contract documents with verified citations. You ask in plain English ("which of these contracts let the buyer terminate for convenience, and on what notice?"); the skill spawns a background subagent that reformulates the question into a research brief, sweeps the corpus, files cited findings into a local SQLite database, and returns a report where every claim links to a verified quote in a source document.
 
-The engine is a **local MCP server bundled with the plugin** (`servers/documents.mjs`) — it runs on your machine, talks to nothing on the network, and owns the database and document extraction. All reads and writes flow through its typed tools.
+The engine is a **local MCP server that ships with the plugin** (`servers/documents/src/index.mjs`) — it runs on your machine, talks to nothing on the network, and owns the database and document extraction. All reads and writes flow through its typed tools.
 
 ## Prerequisites
 
@@ -65,4 +65,4 @@ The plan and the answer arrive in chat — the answer composed from verified fin
 - `SKILL.md` — the whole flow, run by the session the user talks to: bootstrap, plan (with the one confirmation pause), scope, sweep, triage, and the chat answer. **This is the file to read or edit to understand or change run behavior.**
 - `../../agents/documents-reader.md` — the sweep worker agent: ten spawn in parallel per run, each reading one batch of contracts and writing verified findings. The only subagent in the design.
 - `steps/*.md` — step docs (`reformulate`, `scope`, `sweep`, `citations`, `triage`, `finish`), read by the session at the start of a run. Plain reference files, not registered skills.
-- `../../servers/documents/` — the MCP server source (TypeScript, `node:sqlite`); `bun run bundle` produces the committed `../../servers/documents.mjs` the plugin runs via `.mcp.json`. `schema.sql` lives here — tables, views, triggers; citations verify against `documents.content` at insert time. The server speaks MCP over stdio and takes no arguments.
+- `../../servers/documents/` — the server source (plain runnable `.mjs`, `node:sqlite`, no build step); `.mcp.json` runs `src/index.mjs` directly. `schema.sql` lives here — tables, views, triggers; citations verify against `documents.content` at insert time. Bare invocation speaks MCP over stdio; `src/index.mjs <tool> '<json>'` runs one tool call as a CLI.

@@ -5,16 +5,7 @@
 // To regenerate after adding a tool: hand-write the entry here (there is no
 // zod to emit it anymore), keeping the same shape.
 
-export type ToolDef = {
-  name: string;
-  title?: string;
-  description: string;
-  inputSchema: Record<string, unknown>;
-  annotations?: Record<string, unknown>;
-  [extra: string]: unknown; // the SDK-era capture carries fields like `execution`; keep them verbatim on the wire
-};
-
-export const TOOLS: ToolDef[] = [
+export const TOOLS = [
   {
     "name": "corpus_register",
     "title": "Registering your documents folder",

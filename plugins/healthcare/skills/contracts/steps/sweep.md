@@ -36,22 +36,33 @@ Round 0 is the first sweep. Any later re-sweep (a correction after the answer, a
 
 
 
-Spawn **one `healthcare:documents-reader` per shard, all in a single message, as plain BLOCKING parallel Agent calls — never `run_in_background`**. Blocking is the barrier you need: reconciliation and the answer both wait on every reader, and backgrounded readers have died into the void before — this exact failure has happened. The user sees the spawns as tool activity; that is progress display enough.Each prompt is short, because the prompt file holds the rubric. **Default to the shard_prompt variant below** — it works everywhere. Use the paths variant ONLY when you are certain your contracts tools are local (their names start with `mcp__plugin_healthcare_Contracts_Analyzer__`, no bridge prefix): a wrongly-pathed bridged reader burns five failed Reads plus retries; a local reader on the safe variant pays one extra tool call.
+Spawn **one reader per shard (the agent type comes from the variant below), all in a single message, as plain BLOCKING parallel Agent calls — never `run_in_background`**. Blocking is the barrier you need: reconciliation and the answer both wait on every reader, and backgrounded readers have died into the void before — this exact failure has happened. The user sees the spawns as tool activity; that is progress display enough.Each prompt is short, because the prompt file holds the rubric. **Pick ONE variant by the transport you chose in SKILL.md 1b** — the labels below are exclusive, there is no separate default:
 
-**Paths variant (provably local only)** — list the shard's document paths (from `dump`'s `written[]`) so the reader's first message reads everything in one parallel turn:
+**CLI mode** — spawn `general-purpose` agents, not `healthcare:documents-reader` (the reader agent deliberately has no Bash; a shell goes only where the transport needs one). Use the paths variant with the reader rules file added, plus the CLI line:
+
+```
+In your FIRST message, Read ALL of these in parallel — your role, your instructions, and every document:
+<plugin>/agents/documents-reader.md   (this is your role — follow it exactly)
+<prompt_path>
+<doc path 1>
+…
+No contracts tools are in your list: run each one as `node <engine path> <tool> '<json>'` via Bash — stdout is the result JSON, exit 1 + stderr is the error.
+Never sweep without your rubric.
+```
+
+**MCP, provably local** (tool names start `mcp__plugin_healthcare_Contracts_Analyzer__`, no bridge prefix) — spawn `healthcare:documents-reader` with the paths variant, so the reader's first message reads everything in one parallel turn:
 
 ```
 In your FIRST message, Read ALL of these in parallel — your instructions and every document:
 <prompt_path>
 <doc path 1>
-<doc path 2>
 …
 Then follow those instructions exactly — the worker string, the rubric, and the TURN PLAN.
 If the files won't open, call shard_prompt(run_id="<RUN_ID>", label="<label>") — its TURN PLAN includes the no-filesystem flow.
 Never sweep without your rubric.
 ```
 
-**shard_prompt variant (the default)** — no file paths:
+**MCP, bridged or unsure** — spawn `healthcare:documents-reader` with the shard_prompt variant; a wrongly-pathed bridged reader burns five failed Reads plus retries, while this variant costs one extra tool call:
 
 ```
 Call shard_prompt(run_id="<RUN_ID>", label="<label>") and follow it exactly — the worker string, the rubric, and the TURN PLAN's no-filesystem flow. Do not try to Read file paths; they are on another machine.

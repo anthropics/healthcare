@@ -1,5 +1,5 @@
-PRAGMA foreign_keys = ON;
-PRAGMA journal_mode = WAL;
+-- Connection pragmas live in db.ts: this file runs inside a transaction,
+-- where foreign_keys silently no-ops and a journal_mode change would fail.
 
 -- Content-addressed: identical parsed text = one row, regardless of which corpus it came from.
 -- documents.content is canonical; disk (corpora/ and parsed/) is cache. Citations verify against this table.

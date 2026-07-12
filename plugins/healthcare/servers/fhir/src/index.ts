@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { serve } from "../../shared/rpc.js";
+import { serve } from "../../shared/rpc.mjs";
 import { sweepStaleDocuments } from "./documents.js";
 import { TOOLS } from "./schemas.js";
 import { HANDLERS } from "./tools.js";

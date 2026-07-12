@@ -1,14 +1,13 @@
 {
   "name": "@anthropic-ai/mcp-server-documents",
   "version": "0.0.1",
-  "description": "MCP server for corpus contract Q&A with span-verified citations. Local, no network egress; speaks MCP over stdio.",
+  "description": "Corpus contract Q&A engine with span-verified citations. Local, no network egress.",
   "license": "MIT",
   "author": "Anthropic",
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "tsc",
-    "bundle": "bun build src/index.ts --target=node --loader .sql:text --outfile=../documents.mjs"
+    "check": "tsc"
   },
   "engines": {
     "node": ">=22.13"

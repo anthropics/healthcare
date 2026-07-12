@@ -7,16 +7,14 @@ import { spawnSync } from "node:child_process";
 
 const MAX_BUFFER = 256 * 1024 * 1024;
 
-const pageMarker = (page: number, text: string) => `\n\n=== [page ${page}] ===\n\n${text}`;
+const pageMarker = (page, text) => `\n\n=== [page ${page}] ===\n\n${text}`;
 
-export function resolveLit(): string | undefined {
-  const candidates = [process.env.LITEPARSE_PATH, "lit"].filter((p): p is string => !!p);
+export function resolveLit() {
+  const candidates = [process.env.LITEPARSE_PATH, "lit"].filter((p) => !!p);
   return candidates.find((p) => spawnSync(p, ["--version"], { stdio: "ignore" }).status === 0);
 }
 
-export type Extracted = { text: string; method: "liteparse" | "pdftotext" };
-
-function extractWithLiteparse(lit: string, src: string): Extracted | null {
+function extractWithLiteparse(lit, src) {
   // OCR on by default; retry --no-ocr so text-layer extraction still lands if the OCR path fails.
   // --format json, not text: liteparse 2.x emits no page boundaries in text/markdown output,
   // so page anchors can only be rebuilt from the JSON pages array.
@@ -27,7 +25,7 @@ function extractWithLiteparse(lit: string, src: string): Extracted | null {
     });
     if (r.status !== 0 || !r.stdout.trim()) continue;
     try {
-      const pages: { page: number; text: string }[] = JSON.parse(r.stdout).pages ?? [];
+      const pages = JSON.parse(r.stdout).pages ?? [];
       const text = pages.map((p) => pageMarker(p.page, p.text)).join("");
       if (text.trim()) return { text, method: "liteparse" };
     } catch {
@@ -37,7 +35,7 @@ function extractWithLiteparse(lit: string, src: string): Extracted | null {
   return null;
 }
 
-function extractWithPdftotext(src: string): Extracted | null {
+function extractWithPdftotext(src) {
   const r = spawnSync("pdftotext", ["-layout", src, "-"], {
     encoding: "utf8",
     maxBuffer: MAX_BUFFER,
@@ -50,11 +48,7 @@ function extractWithPdftotext(src: string): Extracted | null {
   return { text, method: "pdftotext" };
 }
 
-export function extractWithMethod(
-  lit: string | undefined,
-  src: string,
-  isPdf = /\.pdf$/i.test(src),
-): Extracted | null {
+export function extractWithMethod(lit, src, isPdf = /\.pdf$/i.test(src)) {
   if (lit) {
     const extracted = extractWithLiteparse(lit, src);
     if (extracted) return extracted;
@@ -63,6 +57,6 @@ export function extractWithMethod(
   return isPdf ? extractWithPdftotext(src) : null;
 }
 
-export function extract(lit: string | undefined, src: string): string | null {
+export function extract(lit, src) {
   return extractWithMethod(lit, src)?.text ?? null;
 }

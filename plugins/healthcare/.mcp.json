@@ -23,7 +23,7 @@
     "Contracts Analyzer": {
       "command": "node",
       "args": [
-        "${CLAUDE_PLUGIN_ROOT}/servers/documents.mjs"
+        "${CLAUDE_PLUGIN_ROOT}/servers/documents/src/index.mjs"
       ]
     },
     "FHIR": {

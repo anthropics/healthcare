@@ -7,12 +7,16 @@
     // which inlines the shared decoders from skills/doc-extract
     "noEmit": true,
     "strict": true,
+    // shared/ ships as plain .mjs with JSDoc types; without allowJs+checkJs
+    // its imports typecheck as any and rpc drift goes unseen until runtime
+    "allowJs": true,
+    "checkJs": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "types": ["node", "fhir"],
     "declaration": false,
     "sourceMap": false
   },
-  "include": ["src/**/*", "../shared/**/*"],
+  "include": ["src/**/*", "../shared/**/*.mjs"],
   "exclude": ["src/**/*.test.ts"]
 }

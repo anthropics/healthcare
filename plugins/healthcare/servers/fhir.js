@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-// ../shared/rpc.ts
+// ../shared/rpc.mjs
 import { createInterface } from "node:readline";
 
-// ../shared/validate.ts
+// ../shared/validate.mjs
 function fail(path, msg) {
   throw new Error(`${path || "arguments"} ${msg}`);
 }
@@ -79,7 +79,7 @@ function checkAndStrip(name, schema, value) {
   return out;
 }
 
-// ../shared/rpc.ts
+// ../shared/rpc.mjs
 var PROTOCOL_VERSIONS = ["2024-11-05", "2025-06-18"];
 function serve(cfg) {
   const toolIndex = new Map(cfg.tools.map((t) => [t.name, t]));

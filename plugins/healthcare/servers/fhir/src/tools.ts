@@ -1,4 +1,4 @@
-import type { Args } from "../../shared/rpc.js";
+import type { Args } from "../../shared/rpc.mjs";
 
 import { clearSession, persistSession, restoreSession } from "./auth/session-file.js";
 import {

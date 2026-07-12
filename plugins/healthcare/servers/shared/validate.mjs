@@ -4,13 +4,13 @@
 // the program. Errors name the path and the rule so a model can correct and
 // resend, which is the whole reason validation exists here.
 
-type S = Record<string, unknown>;
+/** @typedef {Record<string, unknown>} S */
 
-function fail(path: string, msg: string): never {
+function fail(path, msg) {
   throw new Error(`${path || "arguments"} ${msg}`);
 }
 
-const TYPE: Record<string, (v: unknown) => boolean> = {
+const TYPE = {
   string: (v) => typeof v === "string",
   integer: (v) => typeof v === "number" && Number.isInteger(v),
   number: (v) => typeof v === "number",
@@ -20,23 +20,29 @@ const TYPE: Record<string, (v: unknown) => boolean> = {
   null: (v) => v === null,
 };
 
-export function check(schema: S, v: unknown, path = ""): void {
+/**
+ * @param {S} schema
+ * @param {unknown} v
+ * @param {string} [path]
+ * @returns {void}
+ */
+export function check(schema, v, path = "") {
   if (Array.isArray(schema.anyOf)) {
-    const errs: string[] = [];
-    for (const sub of schema.anyOf as S[]) {
+    const errs = [];
+    for (const sub of schema.anyOf) {
       try {
         check(sub, v, path);
         return;
       } catch (e) {
-        errs.push((e as Error).message);
+        errs.push(e.message);
       }
     }
     fail(path, `matches none of the allowed forms (${errs.join(" | ")})`);
   }
   const types = schema.type === undefined ? [] : Array.isArray(schema.type) ? schema.type : [schema.type];
-  if (types.length && !types.some((t) => TYPE[t as string]?.(v))) fail(path, `must be ${types.join(" or ")}`);
+  if (types.length && !types.some((t) => TYPE[t]?.(v))) fail(path, `must be ${types.join(" or ")}`);
   if (Array.isArray(schema.enum) && !schema.enum.includes(v))
-    fail(path, `must be one of: ${(schema.enum as unknown[]).join(", ")}`);
+    fail(path, `must be one of: ${schema.enum.join(", ")}`);
   if (typeof v === "string") {
     if (typeof schema.minLength === "number" && v.length < schema.minLength)
       fail(path, `must be at least ${schema.minLength} character(s)`);
@@ -52,13 +58,13 @@ export function check(schema: S, v: unknown, path = ""): void {
       fail(path, `needs at least ${schema.minItems} item(s)`);
     if (typeof schema.maxItems === "number" && v.length > schema.maxItems)
       fail(path, `allows at most ${schema.maxItems} item(s)`);
-    if (schema.items) v.forEach((x, i) => check(schema.items as S, x, `${path}[${i}]`));
+    if (schema.items) v.forEach((x, i) => check(/** @type {S} */ (schema.items), x, `${path}[${i}]`));
   }
-  if (TYPE.object!(v) && schema.properties) {
-    const obj = v as Record<string, unknown>;
-    for (const k of (schema.required as string[]) ?? [])
+  if (TYPE.object(v) && schema.properties) {
+    const obj = v;
+    for (const k of /** @type {string[]} */ (schema.required) ?? [])
       if (obj[k] === undefined) fail(path, `is missing required field '${k}'`);
-    for (const [k, sub] of Object.entries(schema.properties as Record<string, S>)) {
+    for (const [k, sub] of Object.entries(schema.properties)) {
       if (obj[k] !== undefined) check(sub, obj[k], path ? `${path}.${k}` : k);
     }
   }
@@ -66,15 +72,20 @@ export function check(schema: S, v: unknown, path = ""): void {
 
 /** Validate against an object schema, then return only the schema-declared
  *  properties — unknown keys are dropped (parity with the zod-era stripping,
- *  which handlers rely on when they rest-spread). */
-export function checkAndStrip(name: string, schema: S, value: unknown): Record<string, unknown> {
-  const v = (value ?? {}) as Record<string, unknown>;
+ *  which handlers rely on when they rest-spread).
+ * @param {string} name
+ * @param {S} schema
+ * @param {unknown} value
+ * @returns {Record<string, unknown>}
+ */
+export function checkAndStrip(name, schema, value) {
+  const v = value ?? {};
   try {
     check(schema, v);
   } catch (e) {
-    throw new Error(`${name}: ${(e as Error).message}`);
+    throw new Error(`${name}: ${e.message}`, { cause: e });
   }
-  const out: Record<string, unknown> = {};
-  for (const k of Object.keys((schema.properties as S) ?? {})) if (v[k] !== undefined) out[k] = v[k];
+  const out = /** @type {Record<string, unknown>} */ ({});
+  for (const k of Object.keys(schema.properties ?? {})) if (v[k] !== undefined) out[k] = v[k];
   return out;
 }
