@@ -113,6 +113,9 @@ parse_args <- function(args) {
   if (is.null(defaults$col_param)) stop("--col-param is required")
   if (is.null(defaults$row_values)) stop("--row-values is required")
   if (is.null(defaults$col_values)) stop("--col-values is required")
+  if (!(defaults$design %in% c("superiority", "non-inferiority"))) {
+    stop("--design must be 'superiority' or 'non-inferiority'")
+  }
   defaults
 }
 

@@ -352,6 +352,9 @@ parse_args <- function(args) {
   if (!(defaults$type %in% c("continuous", "binary"))) {
     stop("--type must be 'continuous' or 'binary'")
   }
+  if (!(defaults$design %in% c("superiority", "non-inferiority"))) {
+    stop("--design must be 'superiority' or 'non-inferiority'")
+  }
 
   defaults
 }

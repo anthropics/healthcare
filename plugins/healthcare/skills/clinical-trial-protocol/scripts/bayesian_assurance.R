@@ -5,7 +5,8 @@
 # Computes expected power by averaging statistical power over a prior distribution
 # on the treatment effect size. Uses Monte Carlo simulation with a normal prior.
 # Supports continuous and binary primary endpoints.
-# Drop-in alternative to bayesian_assurance.py — identical CLI and JSON output.
+# Drop-in alternative to bayesian_assurance.py — identical CLI and JSON structure;
+# simulation results match within Monte Carlo tolerance (Python and R use different RNGs).
 #
 
 # Check for jsonlite
@@ -264,6 +265,9 @@ parse_args <- function(args) {
   }
   if (is.null(defaults$n_total)) {
     stop("--n-total is required")
+  }
+  if (!(defaults$design %in% c("superiority", "non-inferiority"))) {
+    stop("--design must be 'superiority' or 'non-inferiority'")
   }
 
   defaults

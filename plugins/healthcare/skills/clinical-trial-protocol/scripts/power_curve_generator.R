@@ -155,6 +155,9 @@ parse_args <- function(args) {
   if (is.null(defaults$type)) stop("--type is required")
   if (is.null(defaults$vary)) stop("--vary is required")
   if (is.null(defaults$min) || is.null(defaults$max)) stop("--min and --max are required")
+  if (!(defaults$design %in% c("superiority", "non-inferiority"))) {
+    stop("--design must be 'superiority' or 'non-inferiority'")
+  }
   defaults
 }
 

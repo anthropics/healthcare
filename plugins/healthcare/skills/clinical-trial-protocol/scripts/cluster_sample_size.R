@@ -421,6 +421,9 @@ parse_args <- function(args) {
   if (is.null(defaults$icc)) {
     stop("--icc is required")
   }
+  if (!(defaults$design %in% c("superiority", "non-inferiority"))) {
+    stop("--design must be 'superiority' or 'non-inferiority'")
+  }
 
   defaults
 }

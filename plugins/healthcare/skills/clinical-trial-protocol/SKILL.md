@@ -154,6 +154,7 @@ pip install "scipy>=1.11.0" "numpy>=1.24.0"
 ```
 
 **Dependencies:**
+- Python >= 3.9 (required by scipy >= 1.11)
 - scipy >= 1.11.0 (statistical calculations)
 - numpy >= 1.24.0 (numerical operations)
 
