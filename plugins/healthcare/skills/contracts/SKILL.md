@@ -61,7 +61,8 @@ In every `…_by` field below (`answered_by`, `ratified_by`), use the human's em
 
    **Any folder of contract files works** — PDF, Word, Excel, PowerPoint, text, markdown, HTML; one file per document. The set's name is the folder's name (lowercased, non-alphanumerics → dashes). Files convert to page-anchored text automatically on first read-in; the folder itself is never written to.
 
-Below, `<STEPS>` is `${CLAUDE_SKILL_DIR}/steps`, and 
+Below, `<STEPS>` is `${CLAUDE_SKILL_DIR}/steps`.
+
 ## The shape of a run: two chat messages, one confirmation
 
 The user sees exactly three things, in order — all in chat, no documents, no files:
@@ -102,7 +103,6 @@ If it reports parse failures (a format the machine can't convert): **extract the
    **Reading** — one line: how many documents, whole or filtered, exhibits included or not.
 
    **Assuming** — bullets, one line each, each something the user could veto.
-   - **Time** — one honest line ("full read of 40 contracts — about four minutes").
 
    If reformulate hit a genuine blocker (an ambiguity the corpus can't settle), ask it HERE, as part of the plan — this pause is the one moment questions are free.
 

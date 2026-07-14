@@ -281,7 +281,7 @@ END;
 
 DROP VIEW IF EXISTS v_run_status;
 CREATE VIEW v_run_status AS
-SELECT r.run_id, r.status, r.round, r.question, r.corpus, r.session_id, r.cost_usd, r.turns, r.updated_at,
+SELECT r.run_id, r.status, r.round, r.question, r.corpus, r.session_id, r.updated_at,
        (SELECT id FROM briefs b WHERE b.run_id = r.run_id AND b.status='active'
         ORDER BY version DESC LIMIT 1) AS brief_id,
        (SELECT count(*) FROM corpus_documents cd WHERE cd.corpus = r.corpus) AS docs,

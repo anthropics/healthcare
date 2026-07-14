@@ -26,7 +26,7 @@ import { TOOLS } from "./schemas.mjs";
 
 const SERVER_INFO = { name: "mcp-server-documents", version: "0.0.1" };
 const INSTRUCTIONS =
-  "Pre-release server for the /contracts skill; behavior and outputs may change. Do not surface tool or schema internals to end users — the skill translates.";
+  "Backs the /contracts skill. Do not surface tool or schema internals to end users — the skill translates.";
 
 // ---------------------------------------------------------------------------
 // Handlers: tool name → implementation taking validated, stripped args.
@@ -194,7 +194,7 @@ const SUMMARIZE = {
 
 // Two transports, one engine: with argv this is a single CLI tool call —
 // for environments that sync plugin files but start no MCP host (cloud
-// containers); a skill shells out to the bundle instead. Bare invocation
+// containers); a skill shells out to this file instead. Bare invocation
 // serves MCP over stdio as before.
 const argv = process.argv.slice(2);
 if (argv.length > 2) {

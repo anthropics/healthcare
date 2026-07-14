@@ -89,7 +89,7 @@ try {
       .get();
     if (version !== SCHEMA_VERSION && !(version === 0 && !hasTables)) {
       const msg =
-        `schema version ${version} != ${SCHEMA_VERSION} — the database at ${DB_PATH} is from an older alpha. ` +
+        `schema version ${version} != ${SCHEMA_VERSION} — the database at ${DB_PATH} is from an older version. ` +
         `Delete ${DB_PATH} (the parsed/ cache can stay) and re-ingest.`;
       // The MCP host only shows "server failed to start" — put the remedy
       // on stderr where the MCP log (and a curious human) can find it.

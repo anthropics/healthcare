@@ -8,9 +8,8 @@ The engine is a **local MCP server that ships with the plugin** (`servers/docume
 
 ## Prerequisites
 
-- **Node.js ≥ 22.13** on your PATH (the server checks at startup and says so plainly if it's missing or too old). Nothing else is installed at runtime — the server is a self-contained bundle.
+- **Node.js ≥ 22.13** on your PATH (the server checks at startup and says so plainly if it's missing or too old). Nothing else is installed at runtime — the server has no dependencies.
 - A `corpora/<name>/` folder of contract documents — **PDF, DOCX, XLSX, PPTX, plain text, markdown, or HTML** (one file per document). This folder is **read-only input** — the skill never writes into it. PDF/DOCX/XLSX/PPTX are converted automatically to page-anchored text on first ingest: via [liteparse](https://www.npmjs.com/package/@llamaindex/liteparse) if you have its `lit` binary on PATH (or `$LITEPARSE_PATH`), else PDFs fall back to `pdftotext -layout` (poppler) and DOCX/XLSX/PPTX are reported as needing liteparse or a `.txt` you supply. Extractions are cached under the data dir, keyed by the source file's content hash. If you've already extracted a document yourself, drop the `.txt` alongside (or instead of) the source — your text takes precedence.
-- Budget: roughly $0.20–0.40 per document for a full-corpus question (narrow lookups much less). The report states what the run cost — nothing waits for approval, so point it at a small folder first if you're cost-sensitive.
 
 ## Quick start
 
@@ -36,14 +35,14 @@ cp your-contracts/* corpora/mycontracts/   # .pdf, .docx, .xlsx, .pptx, .txt, .m
 /contracts which of these have an evergreen renewal clause?
 ```
 
-The skill reads your contracts in on first use and answers in a few sentences — no confirmations, no mid-run questions. Progress shows in the surface's own task tracker while it works; the finished report opens as a document — question, how it was read, judgment calls, then the answer with a quote behind every claim — the full cited report goes to a file (below). After the answer it asks how it was — that feedback (de-identified) goes into an observations log you can share with us.
+The skill reads your contracts in on first use, then shows you a plan — how it read the question, what it will read — and waits for your go. That is the only pause. After you confirm, the reading happens silently and the answer arrives in chat: judgment calls, then the answer with a quote behind every claim. After the answer it asks how it was — that feedback (de-identified) goes into an observations log you can share with us.
 
-## What's local (MVP caveats)
+## What's local
 
 This is **single-user, local-only** today:
 
-- State (db, reports, observations log) lives at `~/.claude/data/healthcare/contracts/` — machine-global so learned knowledge and cost calibration carry across projects, persists across plugin upgrades. Override the parent dir with `$CLAUDE_HEALTHCARE_DATA` (the server appends `/contracts`). The server creates and writes this itself — no sandbox allowlisting needed.
-- The schema is still moving; if you upgrade to a newer version, delete `~/.claude/data/healthcare/contracts/data.sqlite` (the parsed/ cache can stay) and the corpus will be re-ingested automatically on the next `/contracts` (there's no migration).
+- State (db, observations log) lives at `~/.claude/data/healthcare/documents/` — machine-global so learned knowledge carries across projects, persists across plugin upgrades. Override the parent dir with `$CLAUDE_HEALTHCARE_DATA` (the server appends `/documents`). The server creates and writes this itself — no sandbox allowlisting needed.
+- If a plugin upgrade changes the schema, the server says so on startup and names the file to delete: `~/.claude/data/healthcare/documents/data.sqlite` (the `parsed/` cache can stay). The corpus re-ingests automatically on the next `/contracts` — there's no migration.
 - The corpus must be on the **local filesystem**. MCP connectors and other data-access patterns are planned; today it reads files from `corpora/`.
 
 ## Security
@@ -52,7 +51,7 @@ Contract text is untrusted input. The design keeps the blast radius structural, 
 
 - **Paths enter the system in exactly one place**: the `corpus_register` tool. The directory is canonicalized (symlinks resolved) and must exist; every other tool takes names and ids, and internal paths are derived. A quote inside a document can't steer any tool at a filesystem path.
 - **Sweep workers are a registered agent (`documents-reader`) with an enforced tool allowlist**: Read/Grep on their pre-dumped shard files, plus exactly two write tools — `find` (span-verified citation + finding) and `coverage` (read receipt). Workers process the untrusted text; they hold no `sql`, no delete, no path-taking tools.
-- **The server makes no outbound network connections.** Extraction is local (`lit`/`pdftotext` subprocesses); dependencies are bundled at build time.
+- **The server makes no outbound network connections.** Extraction is local (`lit`/`pdftotext` subprocesses); the server has no dependencies to fetch.
 - Exact citations verify against `documents.content` at insert time via schema triggers — a fabricated verbatim quote structurally cannot exist, and citations are immutable after insert. The narrow exception is `judged` citations (non-contiguous evidence like table cells): those are model-attested with a recorded audit reference rather than substring-verified; `citations.kind` records which.
 - **Don't run this on a corpus you don't trust.**
 

@@ -22,6 +22,55 @@ import {
 
 const DEFAULT_SCOPE = "user/*.rs offline_access openid fhirUser";
 
+// The FHIR_BEARER_TOKEN env fallback is deployment configuration: the token
+// belongs to the server the deployment names in FHIR_BASE_URL, so it is
+// attached only when the connect target is that same origin. Without the
+// binding, any connect({base_url}) — including one injected into the
+// conversation — would receive the configured credential on its very first
+// request (the capability probe). An explicitly passed bearer_token argument
+// is the caller's own decision and carries no origin restriction.
+//
+// When the token is withheld, `withheld` says why — for LOCAL surfaces only
+// (tool result text, stderr); it must never be sent to the target server.
+// Exported for tests.
+export function resolveEnvBearerToken(
+  target: URL,
+  env: { FHIR_BASE_URL?: string; FHIR_BEARER_TOKEN?: string } = process.env,
+): { token: string | null; withheld?: string } {
+  const token = env.FHIR_BEARER_TOKEN;
+  if (!token) return { token: null };
+  if (!env.FHIR_BASE_URL) {
+    return {
+      token: null,
+      withheld:
+        "FHIR_BEARER_TOKEN is set but FHIR_BASE_URL is not, so the token is bound to no server and was not sent; set FHIR_BASE_URL to the server the token belongs to, or pass bearer_token explicitly",
+    };
+  }
+  let configured: URL;
+  try {
+    configured = new URL(env.FHIR_BASE_URL);
+  } catch {
+    return {
+      token: null,
+      withheld: "FHIR_BEARER_TOKEN was not sent: FHIR_BASE_URL is not a valid URL",
+    };
+  }
+  // URL.origin is the entire comparison: scheme, host, and port, after the
+  // parser's normalization (hostname case, default-port elision, punycode) —
+  // userinfo, path, and query never participate. Equality on the parsed
+  // origin is what makes crafted targets (victim.example.attacker.com,
+  // victim.example@attacker.com, a path embedding the victim URL, a
+  // trailing-dot host) compare as the foreign origins they are; any
+  // prefix/substring comparison here would be bypassable.
+  if (configured.origin !== target.origin) {
+    return {
+      token: null,
+      withheld: `FHIR_BEARER_TOKEN is bound to ${configured.origin} and was not sent to ${target.origin}; pass bearer_token explicitly to use a credential with a different server`,
+    };
+  }
+  return { token };
+}
+
 let session: FhirSession | null = restoreSession();
 let pending: { baseUrl: URL; cid: string; auth: PendingAuth } | null = null;
 
@@ -35,6 +84,9 @@ async function finishConnect(
   cid: string | undefined,
   t: SmartTokens | null,
   staticToken?: string | null,
+  // why a configured env credential was deliberately not attached — shown to
+  // the local caller so an auth downgrade is visible, never sent upstream
+  authWarning?: string,
 ) {
   let token = staticToken ?? null;
   let authNote = token ? "bearer" : "none";
@@ -71,6 +123,7 @@ async function finishConnect(
       `Software: ${cap.software?.name ?? "?"} ${cap.software?.version ?? ""}\n` +
       `FHIR: ${cap.fhirVersion}\n` +
       `Auth: ${authNote}` +
+      (authWarning ? `\nNOTE: ${authWarning}` : "") +
       persistNote,
   );
 }
@@ -132,8 +185,13 @@ export const HANDLERS: Record<string, (a: Args) => Promise<{ content: { type: "t
       const baseUrl = validateBaseUrl(url);
       const cid = client_id ?? process.env.FHIR_CLIENT_ID;
       // an explicit client_id arg means the caller wants SMART login — don't
-      // let a stale FHIR_BEARER_TOKEN env silently win over it
-      const token = bearer_token ?? (client_id ? null : (process.env.FHIR_BEARER_TOKEN ?? null));
+      // let a stale FHIR_BEARER_TOKEN env silently win over it. The env
+      // fallback itself is origin-bound to FHIR_BASE_URL (see
+      // resolveEnvBearerToken above).
+      let token = bearer_token ?? null;
+      let withheld: string | undefined;
+      if (!token && !client_id) ({ token, withheld } = resolveEnvBearerToken(baseUrl));
+      if (withheld) process.stderr.write(`mcp-server-fhir: ${withheld}\n`);
       const sc = scope ?? DEFAULT_SCOPE;
 
       if (!token && cid) {
@@ -149,17 +207,20 @@ export const HANDLERS: Record<string, (a: Args) => Promise<{ content: { type: "t
             }),
           };
           return text(
-            `SMART login required. Open this URL in your browser, sign in, then copy the FULL address-bar URL after redirect (it will start with http://localhost:53682/callback?...) and pass it to connect_complete:\n\n${pending.auth.authorize_url}`,
+            `SMART login required. Open this URL in your browser, sign in, then copy the FULL address-bar URL after redirect (it will start with http://localhost:53682/callback?...) and pass it to connect_complete:\n\n${pending.auth.authorize_url}` +
+              (withheld ? `\n\nNOTE: ${withheld}` : ""),
           );
         }
         return finishConnect(
           baseUrl,
           cid,
           await smartLaunch({ iss: baseUrl, client_id: cid, scope: sc }),
+          null,
+          withheld,
         );
       }
 
-      return finishConnect(baseUrl, cid, null, token);
+      return finishConnect(baseUrl, cid, null, token, withheld);
     }
   },
 
