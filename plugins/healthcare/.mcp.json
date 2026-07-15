@@ -29,7 +29,7 @@
     "FHIR": {
       "command": "node",
       "args": [
-        "${CLAUDE_PLUGIN_ROOT}/servers/fhir.js"
+        "${CLAUDE_PLUGIN_ROOT}/servers/fhir/src/index.mjs"
       ]
     }
   }

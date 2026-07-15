@@ -8,12 +8,12 @@ Runs as a subprocess on the user's machine: the FHIR API leg is direct between t
 
 ## Install
 
-Ships bundled inside the `healthcare` plugin (`servers/fhir.js`, single file, deps inlined) and is wired via `${CLAUDE_PLUGIN_ROOT}` in the plugin's `.mcp.json` — installing the plugin is the install step. To point it at your EHR, add `env` to that entry:
+Ships inside the `healthcare` plugin and is wired via `${CLAUDE_PLUGIN_ROOT}` in the plugin's `.mcp.json` — installing the plugin is the install step. There is no build step and nothing to install: node runs `src/index.mjs` straight from source, and the runtime has zero dependencies (node builtins only). To point it at your EHR, add `env` to that entry:
 
 ```jsonc
 "fhir": {
   "command": "node",
-  "args": ["${CLAUDE_PLUGIN_ROOT}/servers/fhir.js"],
+  "args": ["${CLAUDE_PLUGIN_ROOT}/servers/fhir/src/index.mjs"],
   "env": {
     "FHIR_BASE_URL": "https://<your-fhir-r4-base>",
     "FHIR_CLIENT_ID": "<your-org's-SMART-client-id>"
@@ -51,9 +51,13 @@ The connection (base URL + access token, ≤1h TTL) is cached to `os.tmpdir()` (
 
 ## Dev
 
+The server itself needs no install — `bun install` only fetches the typecheck and test
+devDependencies (`@medplum/*` stands up a fake FHIR server for the HTTP tests).
+
 ```sh
-bun install
-bun run build    # tsc --noEmit typecheck
-bun run bundle   # → ../../plugins/healthcare/servers/fhir.js
-bun run dev      # tsx stdio
+bun run dev      # node stdio, straight from src/ — no build
+
+bun install      # devDeps, for the two below
+bun test         # unit + security tests
+bun run check    # tsc --noEmit typecheck (JSDoc types over .mjs)
 ```

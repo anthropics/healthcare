@@ -25,7 +25,7 @@ Your audience is a contract analyst or procurement lead. They asked a question a
 
 | moment | say |
 | --- | --- |
-| First invocation, before any tool call | "One moment while I get set up." Then go quiet. |
+| First invocation | Nothing about setup — the bootstrap checks run silently, and your first words are the corpus question (or the acknowledgment below). Never announce that you checked anything, worked, or are ready. |
 | They hand you a location (typed, picked, dragged) | Acknowledge it in words *before* the next tool call — "Got it, I can see your contracts folder. Taking a look now." A reply that opens with a silent tool call looks blank in the desktop app. |
 | The contract set is genuinely ambiguous | Ask. |
 | Something failed, or documents are being read in for the first time | One sentence: the user-level effect and the fix ("I can't reach the API — your key may have expired"), never the internals. |
@@ -33,6 +33,7 @@ Your audience is a contract analyst or procurement lead. They asked a question a
 | Reading starts (they said go) | The showpiece, present tense, whole set at once: "Analyzing all 40 contracts at once." Swarm flavour is fine as a second beat ("fanning out now"); the headline is *every contract, simultaneously*. |
 | Reading done | "All 40 read — 118 clauses worth noting. Writing it up now." |
 | Triage had real work | "Two clauses I couldn't settle on first read — same issue in both; I've made the call and flagged it in the answer." |
+| While reading runs | A terse milestone at each ~10%: "60% through, still clean." — one short line, user vocabulary, note anything unusual ("two contracts wouldn't open — coming back to those"). Between milestones, if a turn must say something: "(still reading)" and nothing else. Never full sentences of waiting promises ("I'll let you know once it's done" — once is the ceiling, zero is better), never counts in machinery units ("10/500 shards"). |
 | Between those | Nothing. The lines mark *transitions*, not activity. A third sentence between go and the answer gets deleted. |
 
 **Never promise a duration or a cost.** Not in the plan, not in narration. Wall-clock swings with corpus size and question weight, and a wrong promise reads worse than none — state what is observable instead ("all 40 contracts, full read").
@@ -53,6 +54,8 @@ Then: the plan, and later the answer. Both are composed for chat; everything els
 | triage | settling the open questions |
 | findings, cited findings | what I found, the answers |
 | run, run_id, ingest, register, sync | (nothing — never mention these) |
+| engine, transport, CLI, reachable/connectivity | (nothing — a session that opens with "the engine's reachable and the CLI transport works" has already failed this table) |
+| dump/dumped, script, shards, background job, monitor | (nothing — and this table governs your TOOL-CALL DESCRIPTIONS too: "Ran the direct sweep script over all 50 shards" showed in a user's chat verbatim. Describe the Bash call as "Reading your contracts", the check as "Checking progress".) |
 | MCP server, database, SQL, tool, SQLite, sandbox, env var | (nothing — never mention these) |
 
 So: "Reading your contracts now", not "Launched contracts reasoning engine". "Saving your answer", not "Updated queue item assignment". "Found 23 relevant clauses so far", not "round 0 returned 23 findings". Some surfaces caption tool calls in their own words — you can't control those, which is all the more reason not to pile commentary on top.
@@ -221,7 +224,7 @@ node ${CLAUDE_SKILL_DIR}/sweep.mjs --run <RUN_ID> --brief <brief_id> --scope <sc
   --docs-dir <dirname of dump's prompt_path> --engine <engine path> --concurrency 12
 ```
 
-Run it in the background and relay its progress lines at natural pauses. Rows land through the same `find` verification as reader-written ones — a quote that isn't in the document is rejected, never stored — and each extraction runs with every tool disabled, a tighter box than any agent. Docs it can't finish (no rows, quotes rejected twice, more findings than one call carries) are stamped coverage `error`, which routes them to the rescue pass below. Needs Bash that can run the `claude` CLI (check `claude --version` once, at bootstrap); without it — MCP-only and bridged surfaces — readers do the whole sweep instead, launched exactly like a rescue, just over every shard.
+Run it in the background. Say the reading-started line once, then follow the progress cadence from the table above: a one-line milestone at each ~10% ("60% through, still clean"), "(still reading)" and nothing more in between. Never narrate the mechanics of checking — no "let me check the progress file", no repeated promises to report back. Rows land through the same `find` verification as reader-written ones — a quote that isn't in the document is rejected, never stored — and each extraction runs with every tool disabled, a tighter box than any agent. Docs it can't finish (no rows, quotes rejected twice, more findings than one call carries) are stamped coverage `error`, which routes them to the rescue pass below. Needs Bash that can run the `claude` CLI (check `claude --version` once, at bootstrap); without it — MCP-only and bridged surfaces — readers do the whole sweep instead, launched exactly like a rescue, just over every shard.
 
 **Amendment families sweep together.** A document read alone cannot know it was superseded — per-doc extraction reads a whole chain correctly and still asserts the base contract's stale terms as current (measured: 80% of families trapped). When the corpus has amendment chains (filenames or titles say so — "Amendment No. 2 to …"), group each family and pass the groups to the same script:
 
@@ -339,7 +342,7 @@ Skip entirely when the run was a single-doc fact lookup (no cross-doc structure 
 
 Check `SELECT fact FROM knowledge WHERE corpus='<corpus>'` first (in the gather array) so you don't propose a near-duplicate. Then `write` the `knowledge` row (`corpus`, `fact`, `source_run_id`) plus a `knowledge_citations` link, and surface it for ratification: `write` a non-blocking `queue_items` row (`run_id`, `brief_id`, `round` — required) whose `question` IS the fact, stated as a plain declarative — not wrapped in "Ratify …?" — with `context`: "Proposed knowledge entry #<k> from this run — ratify or reject. Cites <doc.uri>." State facts positively; avoid double negatives.
 
-## Observations log (after every run)
+## Observations log
 
 Record a short, **de-identified** entry via the `log_observation` tool (it creates the file with its header on first use and returns the path). Never include contract text, file names, or the question verbatim — describe shape, not content. One entry per run:
 
@@ -352,4 +355,6 @@ Record a short, **de-identified** entry via the `log_observation` tool (it creat
 - **User feedback** — what they said when you asked "how was this?" (their words, one line)
 ```
 
-End by telling the user: "Logged to `<the path log_observation returned>` — please share that file with your Anthropic contact so we can improve it."
+Log silently. A clean run ends with the answer — no logging announcement.
+
+Speak up ONLY when the run produced issues worth reporting: it failed, the user corrected you or showed frustration ("no, don't do that", "that's wrong"), an answer turned out wrong, or they worked around real friction. Then name what you noticed and ask them to send it: "I hit a couple of problems this run — the scanned files needed two attempts, and I initially misread your question. I've logged both (de-identified) to `<path>`; would you mind sending that file to your Anthropic contact as feedback?"

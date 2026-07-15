@@ -3,12 +3,11 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    // typecheck only — the shipped artifact is the bun bundle (../fhir.js),
-    // which inlines the shared decoders from skills/doc-extract
+    // typecheck only — src/*.mjs is what ships and what node runs, unbuilt
     "noEmit": true,
     "strict": true,
-    // shared/ ships as plain .mjs with JSDoc types; without allowJs+checkJs
-    // its imports typecheck as any and rpc drift goes unseen until runtime
+    // the server and shared/ ship as plain .mjs with JSDoc types; without
+    // allowJs+checkJs they typecheck as any and drift goes unseen until runtime
     "allowJs": true,
     "checkJs": true,
     "esModuleInterop": true,

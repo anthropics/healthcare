@@ -2,13 +2,14 @@ import { chmodSync, lstatSync, mkdirSync, readFileSync, rmSync, writeFileSync } 
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import type { FhirSession } from "../fhir-client.js";
+/** @typedef {import("../fhir-client.mjs").FhirSession} FhirSession */
 
-interface Persisted {
-  baseUrl: string;
-  token: string | null;
-  expiresAt: number | null;
-}
+/**
+ * @typedef {object} Persisted
+ * @property {string} baseUrl
+ * @property {string | null} token
+ * @property {number | null} expiresAt
+ */
 
 /** Thrown when a path under our tmpdir is not the regular, self-owned
  *  entry we created — an active-attack signal, never a persistence
@@ -19,7 +20,8 @@ export class OwnershipError extends Error {}
 // pre-created symlink in shared tmpdir). uid checks are no-ops on Windows.
 const uid = process.getuid?.() ?? -1;
 
-export function assertOwned(p: string, wantDir: boolean): void {
+/** @param {string} p @param {boolean} wantDir @returns {void} */
+export function assertOwned(p, wantDir) {
   const st = lstatSync(p);
   if (wantDir ? !st.isDirectory() : !st.isFile())
     throw new OwnershipError(`not a regular path: ${p}`);
@@ -28,13 +30,15 @@ export function assertOwned(p: string, wantDir: boolean): void {
 
 // Per-uid so that on shared /tmp another user owning the fixed name is an
 // attack signal, not the normal case.
-export function perUidTmpDir(prefix: string): string {
+/** @param {string} prefix @returns {string} */
+export function perUidTmpDir(prefix) {
   return join(tmpdir(), `${prefix}-${uid >= 0 ? uid : "u"}`);
 }
 
 // Create-or-adopt an owned 0700 dir; mkdir's mode only applies at creation,
 // so a pre-existing dir is re-asserted and re-tightened.
-export function ensureOwnedDir(p: string): void {
+/** @param {string} p @returns {void} */
+export function ensureOwnedDir(p) {
   mkdirSync(p, { recursive: true, mode: 0o700 });
   assertOwned(p, true);
   chmodSync(p, 0o700);
@@ -45,10 +49,12 @@ export function ensureOwnedDir(p: string): void {
 const dir = perUidTmpDir("mcp-server-fhir");
 const file = join(dir, "session.json");
 
-export function persistSession(s: FhirSession, expiresIn?: number): void {
+/** @param {FhirSession} s @param {number} [expiresIn] @returns {void} */
+export function persistSession(s, expiresIn) {
   try {
     ensureOwnedDir(dir);
-    const p: Persisted = {
+    /** @type {Persisted} */
+    const p = {
       baseUrl: s.baseUrl.href,
       token: s.token,
       expiresAt: expiresIn ? Date.now() + (expiresIn - 60) * 1000 : null,
@@ -63,15 +69,16 @@ export function persistSession(s: FhirSession, expiresIn?: number): void {
   }
 }
 
-export function restoreSession(): FhirSession | null {
+/** @returns {FhirSession | null} */
+export function restoreSession() {
   try {
     assertOwned(file, false);
-    const p = JSON.parse(readFileSync(file, "utf-8")) as Persisted;
+    const p = /** @type {Persisted} */ (JSON.parse(readFileSync(file, "utf-8")));
     if (p.expiresAt && p.expiresAt < Date.now()) return null;
     const baseUrl = new URL(p.baseUrl);
     let token = p.token;
     // A session persisted before the env token was origin-bound (see
-    // resolveEnvBearerToken in tools.ts) may carry the FHIR_BEARER_TOKEN
+    // resolveEnvBearerToken in tools.mjs) may carry the FHIR_BEARER_TOKEN
     // credential against a non-configured origin — and static sessions
     // persist without an expiry. Re-apply the binding on restore: if the
     // persisted token IS the env credential and the persisted origin is not
@@ -80,7 +87,8 @@ export function restoreSession(): FhirSession | null {
     // successful connect.
     const envToken = process.env.FHIR_BEARER_TOKEN;
     if (token && envToken && token === envToken) {
-      let configuredOrigin: string | null = null;
+      /** @type {string | null} */
+      let configuredOrigin = null;
       try {
         configuredOrigin = process.env.FHIR_BASE_URL
           ? new URL(process.env.FHIR_BASE_URL).origin
@@ -105,7 +113,8 @@ export function restoreSession(): FhirSession | null {
   }
 }
 
-export function clearSession(): void {
+/** @returns {void} */
+export function clearSession() {
   try {
     rmSync(file);
   } catch {}

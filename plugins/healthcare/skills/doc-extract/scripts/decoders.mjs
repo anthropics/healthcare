@@ -1,15 +1,17 @@
 // Text decoding for clinical document formats — the single copy shared by
-// this skill's extract.ts and the fhir MCP server (which inlines it at bundle
-// time; see servers/fhir/src/documents.ts). Dependency-free on purpose: the
-// previous `rtf-to-text` npm dep was a day-old single-maintainer package at
-// adoption — unacceptable supply-chain surface for clinical content.
+// this skill's extract.ts and the fhir MCP server (servers/fhir/src/documents.mjs
+// imports it directly). Dependency-free on purpose: the previous `rtf-to-text`
+// npm dep was a day-old single-maintainer package at adoption — unacceptable
+// supply-chain surface for clinical content.
 
 // content is untrusted — an out-of-range reference must not throw
-function codePoint(n: number): string {
+/** @param {number} n @returns {string} */
+function codePoint(n) {
   return n >= 0 && n <= 0x10ffff ? String.fromCodePoint(n) : "�";
 }
 
-const NAMED_ENTITIES: Record<string, string> = {
+/** @type {Record<string, string>} */
+const NAMED_ENTITIES = {
   nbsp: " ",
   quot: '"',
   apos: "'",
@@ -19,17 +21,19 @@ const NAMED_ENTITIES: Record<string, string> = {
 };
 
 // single pass — matching &amp; as one entity also prevents double-decoding
-function decodeEntities(s: string): string {
+/** @param {string} s @returns {string} */
+function decodeEntities(s) {
   return s.replace(/&(?:#x([0-9a-f]+)|#(\d+)|(nbsp|quot|apos|lt|gt|amp));/gi, (_, hex, dec, name) =>
     hex
       ? codePoint(parseInt(hex, 16))
       : dec
         ? codePoint(parseInt(dec, 10))
-        : NAMED_ENTITIES[(name as string).toLowerCase()]!,
+        : NAMED_ENTITIES[String(name).toLowerCase()],
   );
 }
 
-export function stripMarkup(body: string): string {
+/** @param {string} body @returns {string} */
+export function stripMarkup(body) {
   return decodeEntities(
     body
       .replace(/<(script|style)[\s\S]*?<\/\1>/gi, "")
@@ -49,7 +53,8 @@ export function stripMarkup(body: string): string {
 // XML base64s the whole PDF; CDA does the same in nonXMLBody), never prose.
 // Linear scan, not a regex — the backtracking engine re-tests per position,
 // which adversarial near-threshold runs make quadratic on untrusted input.
-export function hasEmbeddedBase64(s: string, min = 10_000): boolean {
+/** @param {string} s @param {number} [min] @returns {boolean} */
+export function hasEmbeddedBase64(s, min = 10_000) {
   let run = 0;
   for (let i = 0; i < s.length; i++) {
     const c = s.charCodeAt(i);
@@ -75,11 +80,13 @@ export function hasEmbeddedBase64(s: string, min = 10_000): boolean {
 // dropped; if nothing readable remains — or a non-CDA XML's payload is an
 // embedded binary (vendor report formats that base64 the document) — the
 // document is not decodable as text (null).
-export function decodeXml(body: string): string | null {
+/** @param {string} body @returns {string | null} */
+export function decodeXml(body) {
   // CDA's nonXMLBody replaces the structured narrative entirely — no text here
   if (/<nonXMLBody[\s>]/.test(body)) return null;
   if (/<ClinicalDocument[\s>]/.test(body)) {
-    const parts: string[] = [];
+    /** @type {string[]} */
+    const parts = [];
     for (const m of body.matchAll(/<(title|text)[\s>][\s\S]*?<\/\1>/g)) {
       const el = m[0].slice(m[0].indexOf(">") + 1, m[0].lastIndexOf("<"));
       if (hasEmbeddedBase64(el)) continue;
@@ -101,8 +108,9 @@ const RTF_NEWLINE_WORDS = new Set(["par", "line", "row", "sect", "page"]);
 
 // cp1252's 0x80–0x9F block (curly quotes, dashes, bullet) — RTF's default
 // codepage, where \'93 etc. differ from latin-1 control chars.
+/** @type {Record<number, number>} */
 // prettier-ignore
-const CP1252_HIGH: Record<number, number> = {
+const CP1252_HIGH = {
   0x80: 0x20ac, 0x82: 0x201a, 0x83: 0x0192, 0x84: 0x201e, 0x85: 0x2026,
   0x86: 0x2020, 0x87: 0x2021, 0x88: 0x02c6, 0x89: 0x2030, 0x8a: 0x0160,
   0x8b: 0x2039, 0x8c: 0x0152, 0x8e: 0x017d, 0x91: 0x2018, 0x92: 0x2019,
@@ -116,7 +124,8 @@ const CP1252_HIGH: Record<number, number> = {
 const RTF_WORD = /\\([a-z]+)(-?\d+)? ?/y;
 
 // index of the next structural char at or after `from`, or body.length
-function nextStructural(body: string, from: number): number {
+/** @param {string} body @param {number} from @returns {number} */
+function nextStructural(body, from) {
   for (let j = from; j < body.length; j++) {
     const c = body[j];
     if (c === "{" || c === "}" || c === "\\") return j;
@@ -127,14 +136,15 @@ function nextStructural(body: string, from: number): number {
 // Minimal RTF-to-text: tracks group nesting, drops non-content destination
 // groups, maps the paragraph/tab control words to whitespace, and decodes
 // \'xx / \uN escapes. Not a full RTF parser — good enough for EHR note bodies.
-export function decodeRtf(body: string): string {
+/** @param {string} body @returns {string} */
+export function decodeRtf(body) {
   let out = "";
   let i = 0;
   let skipDepth = 0; // >0 while inside a dropped destination group
   let depth = 0;
   let ucSkip = 1; // \ucN: fallback chars to swallow after \uN
   while (i < body.length) {
-    const c = body[i]!;
+    const c = body[i];
     if (c === "{") {
       depth++;
       if (skipDepth === 0) {
@@ -191,7 +201,7 @@ export function decodeRtf(body: string): string {
         } else if (name === "uc" && arg) {
           ucSkip = Math.max(0, parseInt(arg, 10));
         } else if (skipDepth === 0) {
-          if (RTF_NEWLINE_WORDS.has(name!)) out += "\n";
+          if (RTF_NEWLINE_WORDS.has(name)) out += "\n";
           else if (name === "tab" || name === "cell") out += "\t";
           else if (name === "u" && arg) {
             const cp = parseInt(arg, 10);
@@ -199,7 +209,7 @@ export function decodeRtf(body: string): string {
             // swallow the ucSkip fallback chars that follow \uN (plain or \'xx)
             for (let n = 0; n < ucSkip; n++) {
               if (/^\\'[0-9a-f]{2}/i.test(body.slice(i, i + 4))) i += 4;
-              else if (body[i] && !"\\{}".includes(body[i]!)) i++;
+              else if (body[i] && !"\\{}".includes(body[i])) i++;
               else break;
             }
           }

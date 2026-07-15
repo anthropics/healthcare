@@ -1,23 +1,27 @@
 import { isIP } from "node:net";
 
-export interface FhirSession {
-  baseUrl: URL;
-  token: string | null;
-}
+/**
+ * @typedef {object} FhirSession
+ * @property {URL} baseUrl
+ * @property {string | null} token
+ */
 
 const FHIR_ID_RE = /^[A-Za-z0-9\-.]{1,64}$/;
-export function validateFhirId(id: string, kind: string): string {
+/** @param {string} id @param {string} kind @returns {string} */
+export function validateFhirId(id, kind) {
   if (!FHIR_ID_RE.test(id)) throw new Error(`Invalid ${kind} id`);
   return id;
 }
 
 const FHIR_TYPE_RE = /^[A-Z][A-Za-z]{1,63}$/;
-export function validateResourceType(t: string): string {
+/** @param {string} t @returns {string} */
+export function validateResourceType(t) {
   if (!FHIR_TYPE_RE.test(t)) throw new Error(`Invalid FHIR resource type: ${t}`);
   return t;
 }
 
-function scrub(e: unknown): Error {
+/** @param {unknown} e @returns {Error} */
+function scrub(e) {
   // undici buries the useful detail ("unexpected redirect", DNS failure) in
   // cause; without it the user sees a bare "fetch failed"
   const cause = e instanceof Error && e.cause instanceof Error ? e.cause.message : "";
@@ -36,7 +40,8 @@ const METADATA_HOST_RE =
 // TODO(PSR): full SSRF defense belongs at the socket — a custom `lookup` on the
 // HTTP agent that rejects private IPs at connect time. A pre-flight dns.resolve
 // is TOCTOU-vulnerable to the rebinding it's meant to stop.
-export function validateBaseUrl(raw: string): URL {
+/** @param {string} raw @returns {URL} */
+export function validateBaseUrl(raw) {
   const u = new URL(raw.replace(/\/+$/, ""));
   const host = u.hostname
     .replace(/^\[|\]$/g, "")
@@ -56,7 +61,8 @@ export function validateBaseUrl(raw: string): URL {
 
 // Any URL pulled from a FHIR resource (attachment.url, Bundle link) must stay on
 // the connected server's origin — blocks SSRF via attacker-controlled references.
-export function resolveSameOrigin(session: FhirSession, ref: string): URL {
+/** @param {FhirSession} session @param {string} ref @returns {URL} */
+export function resolveSameOrigin(session, ref) {
   const resolved = new URL(ref, baseHref(session) + "/");
   if (resolved.origin !== session.baseUrl.origin) {
     throw new Error(`refusing to follow off-origin reference (${resolved.origin})`);
@@ -76,11 +82,13 @@ const RECOVERABLE_BINARY_RE = /\/Binary\/([A-Za-z0-9][A-Za-z0-9.-]{0,63})(?:[/?#
 // off-origin host and never widens the allowed origin: the re-fetch URL is
 // built only from the connected base plus the id validated above, and goes
 // back through resolveSameOrigin.
-export function resolveAttachmentRef(session: FhirSession, ref: string): URL {
+/** @param {FhirSession} session @param {string} ref @returns {URL} */
+export function resolveAttachmentRef(session, ref) {
   try {
     return resolveSameOrigin(session, ref);
   } catch (refusal) {
-    let pathname: string;
+    /** @type {string} */
+    let pathname;
     try {
       pathname = new URL(ref, baseHref(session) + "/").pathname;
     } catch {
@@ -92,22 +100,26 @@ export function resolveAttachmentRef(session: FhirSession, ref: string): URL {
   }
 }
 
-// Every FHIR request goes through here so the transport invariants live in
-// one place: the bearer header, error scrubbing, and redirect: "error" —
-// resource-derived URLs (fhirGetRaw/fhirGetBytes) are same-origin-pinned by
-// resolveSameOrigin, and following any redirect (or replaying a write at a
-// Location) would bypass that pin.
-async function fhirFetch(
-  session: FhirSession,
-  url: URL,
-  accept: string,
-  // body is JSON.stringify'd under the default application/fhir+json; a
-  // caller-provided contentType sends body verbatim (the form encoding
-  // POST _search requires)
-  write?: { method: "POST" | "PUT"; body: unknown; contentType?: string },
-): Promise<Response> {
+/**
+ * Every FHIR request goes through here so the transport invariants live in
+ * one place: the bearer header, error scrubbing, and redirect: "error" —
+ * resource-derived URLs (fhirGetRaw/fhirGetBytes) are same-origin-pinned by
+ * resolveSameOrigin, and following any redirect (or replaying a write at a
+ * Location) would bypass that pin.
+ *
+ * @param {FhirSession} session
+ * @param {URL} url
+ * @param {string} accept
+ * @param {{ method: "POST" | "PUT", body: unknown, contentType?: string }} [write]
+ *   body is JSON.stringify'd under the default application/fhir+json; a
+ *   caller-provided contentType sends body verbatim (the form encoding
+ *   POST _search requires)
+ * @returns {Promise<Response>}
+ */
+async function fhirFetch(session, url, accept, write) {
   const method = write?.method ?? "GET";
-  let res: Response;
+  /** @type {Response} */
+  let res;
   try {
     res = await fetch(url, {
       method,
@@ -117,7 +129,11 @@ async function fhirFetch(
         ...(write ? { "Content-Type": write.contentType ?? "application/fhir+json" } : {}),
         ...(session.token ? { Authorization: `Bearer ${session.token}` } : {}),
       },
-      body: write ? (write.contentType ? String(write.body) : JSON.stringify(write.body)) : undefined,
+      body: write
+        ? write.contentType
+          ? String(write.body)
+          : JSON.stringify(write.body)
+        : undefined,
     });
   } catch (e) {
     throw scrub(e);
@@ -133,50 +149,61 @@ async function fhirFetch(
   return res;
 }
 
-async function request<T>(
-  session: FhirSession,
-  url: URL,
-  accept: string,
-): Promise<{ body: T; contentType: string }> {
+/**
+ * @template T
+ * @param {FhirSession} session
+ * @param {URL} url
+ * @param {string} accept
+ * @returns {Promise<{ body: T, contentType: string }>}
+ */
+async function request(session, url, accept) {
   const res = await fhirFetch(session, url, accept);
   const contentType = res.headers.get("content-type") ?? "";
-  const body = (accept.includes("json") ? await res.json() : await res.text()) as T;
+  const body = /** @type {T} */ (accept.includes("json") ? await res.json() : await res.text());
   return { body, contentType };
 }
 
-export async function fhirGetBytes(
-  session: FhirSession,
-  ref: string,
-  accept: string,
-  opts?: RefOpts,
-): Promise<Buffer> {
+/**
+ * @param {FhirSession} session
+ * @param {string} ref
+ * @param {string} accept
+ * @param {RefOpts} [opts]
+ * @returns {Promise<Buffer>}
+ */
+export async function fhirGetBytes(session, ref, accept, opts) {
   const res = await fhirFetch(session, resolveRef(session, ref, opts), accept);
   return Buffer.from(await res.arrayBuffer());
 }
 
-export async function fhirGet<T>(
-  session: FhirSession,
-  path: string,
-  params?: Record<string, string | string[] | undefined>,
-): Promise<T> {
+/**
+ * @template T
+ * @param {FhirSession} session
+ * @param {string} path
+ * @param {Record<string, string | string[] | undefined>} [params]
+ * @returns {Promise<T>}
+ */
+export async function fhirGet(session, path, params) {
   const url = new URL(`${baseHref(session)}/${path}`);
   for (const [k, v] of Object.entries(params ?? {})) {
     for (const x of Array.isArray(v) ? v : v ? [v] : []) url.searchParams.append(k, x);
   }
-  const { body } = await request<T>(session, url, "application/fhir+json");
-  return body;
+  const { body } = await request(session, url, "application/fhir+json");
+  return /** @type {T} */ (body);
 }
 
 /** Search via POST {type}/_search with a form-encoded body (FHIR R4
  *  §3.1.0.10). Search parameters never enter the request URL, which proxy
  *  and server access logs record — required for searches whose parameters
  *  are direct patient identifiers (name, birthdate, MRN), and the safe
- *  default for any search whose parameters are caller-arbitrary. */
-export async function fhirSearch<T>(
-  session: FhirSession,
-  type: string,
-  params?: Record<string, string | string[] | undefined>,
-): Promise<T> {
+ *  default for any search whose parameters are caller-arbitrary.
+ *
+ * @template T
+ * @param {FhirSession} session
+ * @param {string} type
+ * @param {Record<string, string | string[] | undefined>} [params]
+ * @returns {Promise<T>}
+ */
+export async function fhirSearch(session, type, params) {
   const url = new URL(`${baseHref(session)}/${type}/_search`);
   const form = new URLSearchParams();
   for (const [k, v] of Object.entries(params ?? {})) {
@@ -187,41 +214,48 @@ export async function fhirSearch<T>(
     body: form.toString(),
     contentType: "application/x-www-form-urlencoded",
   });
-  return (await res.json()) as T;
+  return /** @type {T} */ (await res.json());
 }
 
 // URL.href re-adds a trailing slash for path-less origins; joining with "/"
 // would yield "//metadata", which most servers 404.
-export function baseHref(session: FhirSession): string {
+/** @param {FhirSession} session @returns {string} */
+export function baseHref(session) {
   return session.baseUrl.href.replace(/\/+$/, "");
 }
 
-export async function fhirWrite<T>(
-  session: FhirSession,
-  method: "POST" | "PUT",
-  path: string,
-  body: unknown,
-): Promise<T> {
+/**
+ * @template T
+ * @param {FhirSession} session
+ * @param {"POST" | "PUT"} method
+ * @param {string} path
+ * @param {unknown} body
+ * @returns {Promise<T>}
+ */
+export async function fhirWrite(session, method, path, body) {
   const url = new URL(`${baseHref(session)}/${path}`);
   const res = await fhirFetch(session, url, "application/fhir+json", { method, body });
-  return (await res.json()) as T;
+  return /** @type {T} */ (await res.json());
 }
 
 // recoverBinaryRef is for attachment.url specifically — other resource-derived
 // refs (Bundle links) have no Binary-id fallback semantics and stay strict.
-type RefOpts = { recoverBinaryRef?: boolean };
+/** @typedef {{ recoverBinaryRef?: boolean }} RefOpts */
 
-function resolveRef(session: FhirSession, ref: string, opts?: RefOpts): URL {
+/** @param {FhirSession} session @param {string} ref @param {RefOpts} [opts] @returns {URL} */
+function resolveRef(session, ref, opts) {
   return opts?.recoverBinaryRef
     ? resolveAttachmentRef(session, ref)
     : resolveSameOrigin(session, ref);
 }
 
-export async function fhirGetRaw(
-  session: FhirSession,
-  ref: string,
-  accept: string,
-  opts?: RefOpts,
-) {
-  return request<string>(session, resolveRef(session, ref, opts), accept);
+/**
+ * @param {FhirSession} session
+ * @param {string} ref
+ * @param {string} accept
+ * @param {RefOpts} [opts]
+ * @returns {Promise<{ body: string, contentType: string }>}
+ */
+export async function fhirGetRaw(session, ref, accept, opts) {
+  return request(session, resolveRef(session, ref, opts), accept);
 }

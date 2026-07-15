@@ -2,7 +2,7 @@ import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
-import { decodeRtf, decodeXml } from "./decoders.js";
+import { decodeRtf, decodeXml } from "./decoders.mjs";
 
 const SKILL_ROOT = dirname(dirname(new URL(import.meta.url).pathname));
 
@@ -42,7 +42,9 @@ export function resolveLit(roots: string[] = []): string | undefined {
     ...[SKILL_ROOT, ...roots].map((r) => join(r, "node_modules", ".bin", "lit")),
     "lit",
   ];
-  return candidates.find((p) => spawnSync(p, ["--version"], { stdio: "ignore", env: CHILD_ENV }).status === 0);
+  return candidates.find(
+    (p) => spawnSync(p, ["--version"], { stdio: "ignore", env: CHILD_ENV }).status === 0,
+  );
 }
 
 export type Extracted = { text: string; method: "liteparse" | "pdftotext" };

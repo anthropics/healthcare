@@ -2,28 +2,31 @@ import { spawn } from "node:child_process";
 import { createHash, randomBytes } from "node:crypto";
 import { createServer } from "node:http";
 
-import { validateBaseUrl } from "../fhir-client.js";
+import { validateBaseUrl } from "../fhir-client.mjs";
 
-export interface SmartConfig {
-  authorization_endpoint: string;
-  token_endpoint: string;
-  scopes_supported?: string[];
-  capabilities?: string[];
-}
+/**
+ * @typedef {object} SmartConfig
+ * @property {string} authorization_endpoint
+ * @property {string} token_endpoint
+ * @property {string[]} [scopes_supported]
+ * @property {string[]} [capabilities]
+ */
 
-export interface SmartTokens {
-  access_token: string;
-  refresh_token?: string;
-  expires_in?: number;
-  scope?: string;
-  patient?: string;
-  fhirUser?: string;
-  id_token?: string;
-}
+/**
+ * @typedef {object} SmartTokens
+ * @property {string} access_token
+ * @property {string} [refresh_token]
+ * @property {number} [expires_in]
+ * @property {string} [scope]
+ * @property {string} [patient]
+ * @property {string} [fhirUser]
+ * @property {string} [id_token]
+ */
 
-const REDIRECT_PORTS = [53682, 53683] as const;
+const REDIRECT_PORTS = [53682, 53683];
 
-function b64url(buf: Buffer): string {
+/** @param {Buffer} buf @returns {string} */
+function b64url(buf) {
   return buf.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
@@ -33,7 +36,8 @@ export function makePkce() {
   return { verifier, challenge };
 }
 
-export async function discover(iss: URL): Promise<SmartConfig> {
+/** @param {URL} iss @returns {Promise<SmartConfig>} */
+export async function discover(iss) {
   const res = await fetch(
     new URL(".well-known/smart-configuration", iss.href.replace(/\/+$/, "") + "/"),
     {
@@ -44,7 +48,7 @@ export async function discover(iss: URL): Promise<SmartConfig> {
     },
   );
   if (!res.ok) throw new Error(`SMART discovery failed: ${res.status}`);
-  const cfg = (await res.json()) as SmartConfig;
+  const cfg = /** @type {SmartConfig} */ (await res.json());
   validateBaseUrl(cfg.authorization_endpoint);
   validateBaseUrl(cfg.token_endpoint);
   return cfg;
@@ -53,27 +57,27 @@ export async function discover(iss: URL): Promise<SmartConfig> {
 // SMART scope v2 (`.rs`/`.cruds`) falls back to v1 (`.read`/`.write`) when the
 // server doesn't advertise permission-v2 — keeps one default scope string
 // portable across Epic (v1+v2) and Cerner/athenahealth (historically v1).
-export function negotiateScope(cfg: SmartConfig, scope: string): string {
+/** @param {SmartConfig} cfg @param {string} scope @returns {string} */
+export function negotiateScope(cfg, scope) {
   if (cfg.capabilities?.includes("permission-v2")) return scope;
-  return scope.replace(/([A-Za-z*]+\/[A-Za-z*]+)\.([cruds]+)\b/g, (_, res: string, ops: string) => {
-    const out: string[] = [];
-    if (/[rs]/.test(ops)) out.push(`${res}.read`);
-    if (/[cud]/.test(ops)) out.push(`${res}.write`);
-    return out.join(" ");
-  });
+  return scope.replace(
+    /([A-Za-z*]+\/[A-Za-z*]+)\.([cruds]+)\b/g,
+    (_, /** @type {string} */ res, /** @type {string} */ ops) => {
+      /** @type {string[]} */
+      const out = [];
+      if (/[rs]/.test(ops)) out.push(`${res}.read`);
+      if (/[cud]/.test(ops)) out.push(`${res}.write`);
+      return out.join(" ");
+    },
+  );
 }
 
-export function buildAuthorizeUrl(
-  cfg: SmartConfig,
-  p: {
-    iss: URL;
-    client_id: string;
-    scope: string;
-    redirect_uri: string;
-    state: string;
-    challenge: string;
-  },
-): URL {
+/**
+ * @param {SmartConfig} cfg
+ * @param {{ iss: URL, client_id: string, scope: string, redirect_uri: string, state: string, challenge: string }} p
+ * @returns {URL}
+ */
+export function buildAuthorizeUrl(cfg, p) {
   const u = new URL(cfg.authorization_endpoint);
   u.searchParams.set("response_type", "code");
   u.searchParams.set("client_id", p.client_id);
@@ -86,7 +90,8 @@ export function buildAuthorizeUrl(
   return u;
 }
 
-function openBrowser(url: string) {
+/** @param {string} url */
+function openBrowser(url) {
   const cmd =
     process.platform === "darwin"
       ? ["open", url]
@@ -94,26 +99,31 @@ function openBrowser(url: string) {
         ? ["rundll32", "url.dll,FileProtocolHandler", url]
         : ["xdg-open", url];
   try {
-    const child = spawn(cmd[0]!, cmd.slice(1), { stdio: "ignore", detached: true });
+    const child = spawn(cmd[0], cmd.slice(1), { stdio: "ignore", detached: true });
     child.on("error", () => {}); // ENOENT arrives async; unhandled it kills the process
     child.unref();
   } catch {}
 }
 
-interface CallbackServer {
-  redirect_uri: string;
-  waitForUrl: () => Promise<string>;
-  close: () => void;
-}
+/**
+ * @typedef {object} CallbackServer
+ * @property {string} redirect_uri
+ * @property {() => Promise<string>} waitForUrl
+ * @property {() => void} close
+ */
 
-async function bindCallback(): Promise<CallbackServer> {
-  let lastErr: unknown;
+/** @returns {Promise<CallbackServer>} */
+async function bindCallback() {
+  /** @type {unknown} */
+  let lastErr;
   for (const port of REDIRECT_PORTS) {
     const redirect_uri = `http://localhost:${port}/callback`;
     try {
-      return await new Promise<CallbackServer>((resolveBind, rejectBind) => {
-        let resolveUrl: (u: string) => void;
-        const urlP = new Promise<string>((res) => (resolveUrl = res));
+      return await new Promise((resolveBind, rejectBind) => {
+        /** @type {(u: string) => void} */
+        let resolveUrl;
+        /** @type {Promise<string>} */
+        const urlP = new Promise((res) => (resolveUrl = res));
         const srv = createServer((req, res) => {
           const u = new URL(req.url ?? "/", redirect_uri);
           if (u.pathname !== "/callback") {
@@ -138,7 +148,8 @@ async function bindCallback(): Promise<CallbackServer> {
   throw new Error(`could not bind redirect port ${REDIRECT_PORTS.join("/")}: ${lastErr}`);
 }
 
-async function tokenRequest(cfg: SmartConfig, body: Record<string, string>): Promise<SmartTokens> {
+/** @param {SmartConfig} cfg @param {Record<string, string>} body @returns {Promise<SmartTokens>} */
+async function tokenRequest(cfg, body) {
   const res = await fetch(cfg.token_endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
@@ -149,20 +160,20 @@ async function tokenRequest(cfg: SmartConfig, body: Record<string, string>): Pro
     redirect: "error",
   });
   if (!res.ok) throw new Error(`token endpoint ${res.status}: ${(await res.text()).slice(0, 300)}`);
-  return (await res.json()) as SmartTokens;
+  return /** @type {SmartTokens} */ (await res.json());
 }
 
-export interface PendingAuth {
-  authorize_url: string;
-  complete: (callbackUrl: string) => Promise<SmartTokens>;
-}
+/**
+ * @typedef {object} PendingAuth
+ * @property {string} authorize_url
+ * @property {(callbackUrl: string) => Promise<SmartTokens>} complete
+ */
 
-export async function smartBegin(opts: {
-  iss: URL;
-  client_id: string;
-  scope: string;
-  redirect_uri: string;
-}): Promise<PendingAuth> {
+/**
+ * @param {{ iss: URL, client_id: string, scope: string, redirect_uri: string }} opts
+ * @returns {Promise<PendingAuth>}
+ */
+export async function smartBegin(opts) {
   const cfg = await discover(opts.iss);
   const scope = negotiateScope(cfg, opts.scope);
   const { verifier, challenge } = makePkce();
@@ -170,7 +181,7 @@ export async function smartBegin(opts: {
   const authUrl = buildAuthorizeUrl(cfg, { ...opts, scope, state, challenge });
   return {
     authorize_url: authUrl.href,
-    complete: async (callbackUrl: string) => {
+    complete: async (callbackUrl) => {
       const u = new URL(callbackUrl, opts.redirect_uri);
       const err = u.searchParams.get("error");
       if (err)
@@ -189,18 +200,19 @@ export async function smartBegin(opts: {
   };
 }
 
-export function isHeadless(): boolean {
+/** @returns {boolean} */
+export function isHeadless() {
   if (process.env.FHIR_AUTH_MODE === "manual") return true;
   if (process.env.COWORK_VSOCK_ADDR) return true;
   if (process.platform === "darwin" || process.platform === "win32") return false;
   return !process.env.DISPLAY;
 }
 
-export async function smartLaunch(opts: {
-  iss: URL;
-  client_id: string;
-  scope: string;
-}): Promise<SmartTokens> {
+/**
+ * @param {{ iss: URL, client_id: string, scope: string }} opts
+ * @returns {Promise<SmartTokens>}
+ */
+export async function smartLaunch(opts) {
   const cb = await bindCallback();
   try {
     const pending = await smartBegin({ ...opts, redirect_uri: cb.redirect_uri });
@@ -212,10 +224,12 @@ export async function smartLaunch(opts: {
   }
 }
 
-export async function smartRefresh(
-  cfg: SmartConfig,
-  client_id: string,
-  refresh_token: string,
-): Promise<SmartTokens> {
+/**
+ * @param {SmartConfig} cfg
+ * @param {string} client_id
+ * @param {string} refresh_token
+ * @returns {Promise<SmartTokens>}
+ */
+export async function smartRefresh(cfg, client_id, refresh_token) {
   return tokenRequest(cfg, { grant_type: "refresh_token", refresh_token, client_id });
 }

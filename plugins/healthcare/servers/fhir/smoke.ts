@@ -1,5 +1,5 @@
-import { getDocumentContent } from "./src/documents.js";
-import { validateBaseUrl, fhirGet } from "./src/fhir-client.js";
+import { getDocumentContent } from "./src/documents.mjs";
+import { validateBaseUrl, fhirGet } from "./src/fhir-client.mjs";
 
 const session = {
   baseUrl: validateBaseUrl("https://launch.smarthealthit.org/v/r4/fhir"),

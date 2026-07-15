@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import { serve } from "../../shared/rpc.mjs";
-import { sweepStaleDocuments } from "./documents.js";
-import { TOOLS } from "./schemas.js";
-import { HANDLERS } from "./tools.js";
+import { sweepStaleDocuments } from "./documents.mjs";
+import { TOOLS } from "./schemas.mjs";
+import { HANDLERS } from "./tools.mjs";
 
 sweepStaleDocuments();
 serve({

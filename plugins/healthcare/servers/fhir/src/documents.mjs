@@ -2,20 +2,26 @@ import { lstatSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-// single shared copy of the format decoders — the bundler inlines it, so the
-// shipped fhir.js stays a self-contained single file
-import { decodeRtf, decodeXml, stripMarkup } from "../../../skills/doc-extract/scripts/decoders.js";
-import { assertOwned, ensureOwnedDir, perUidTmpDir } from "./auth/session-file.js";
-import type { FhirSession } from "./fhir-client.js";
-import { fhirGet, fhirGetBytes, fhirGetRaw, validateFhirId } from "./fhir-client.js";
+// single shared copy of the format decoders — imported directly from the
+// doc-extract skill, which ships in this same plugin
+import {
+  decodeRtf,
+  decodeXml,
+  stripMarkup,
+} from "../../../skills/doc-extract/scripts/decoders.mjs";
+import { assertOwned, ensureOwnedDir, perUidTmpDir } from "./auth/session-file.mjs";
+import { fhirGet, fhirGetBytes, fhirGetRaw, validateFhirId } from "./fhir-client.mjs";
 
-export interface DocumentEnvelope {
-  id: string;
-  content_type: string | null;
-  text: string | null;
-  reason?: string;
-  untrusted: true;
-}
+/** @typedef {import("./fhir-client.mjs").FhirSession} FhirSession */
+
+/**
+ * @typedef {object} DocumentEnvelope
+ * @property {string} id
+ * @property {string | null} content_type
+ * @property {string | null} text
+ * @property {string} [reason]
+ * @property {true} untrusted
+ */
 
 // One registry decides how every attachment content type is handled:
 // `inline` decodes to text in-process (no disk, no extractor deps) — returning
@@ -26,12 +32,14 @@ export interface DocumentEnvelope {
 // server, is the authority on what it can parse, so save never refuses on type.
 // Extensions here must stay recognizable by doc-extract's EXT_TO_KIND table
 // (skills/doc-extract/scripts/extract.ts).
-interface TypeHandling {
-  ext: string;
-  inline?: (body: string) => string | null;
-}
+/**
+ * @typedef {object} TypeHandling
+ * @property {string} ext
+ * @property {(body: string) => string | null} [inline]
+ */
 
-const CONTENT_TYPES: Record<string, TypeHandling> = {
+/** @type {Record<string, TypeHandling>} */
+const CONTENT_TYPES = {
   "text/plain": { ext: ".txt", inline: (b) => b },
   "text/markdown": { ext: ".md", inline: (b) => b },
   "text/html": { ext: ".html", inline: stripMarkup },
@@ -58,27 +66,34 @@ const MAX_INLINE_CHARS = 1_000_000;
 // Refuse to buffer arbitrarily large binaries in the MCP server process.
 const MAX_SAVE_BYTES = 100 * 1024 * 1024;
 
-function normalizeType(contentType: string | undefined): string {
-  return (contentType ?? "").split(";")[0]!.trim().toLowerCase();
+/** @param {string | undefined} contentType @returns {string} */
+function normalizeType(contentType) {
+  return (contentType ?? "").split(";")[0].trim().toLowerCase();
 }
 
-function attachmentList(docRef: fhir4.DocumentReference): fhir4.Attachment[] {
-  return (docRef.content ?? []).map((c) => c.attachment).filter((a): a is fhir4.Attachment => !!a);
+/** @param {fhir4.DocumentReference} docRef @returns {fhir4.Attachment[]} */
+function attachmentList(docRef) {
+  return (docRef.content ?? [])
+    .map((c) => c.attachment)
+    .filter(/** @returns {a is fhir4.Attachment} */ (a) => !!a);
 }
 
 // a metadata-only stub (hash/title, no data or url) can't be fetched
-function retrievable(a: fhir4.Attachment): boolean {
+/** @param {fhir4.Attachment} a @returns {boolean} */
+function retrievable(a) {
   return !!(a.data || a.url);
 }
 
-function inlineFor(a: fhir4.Attachment) {
+/** @param {fhir4.Attachment} a */
+function inlineFor(a) {
   return CONTENT_TYPES[normalizeType(a.contentType)]?.inline;
 }
 
 // Multi-rendition DocumentReferences (Epic notes ship HTML + RTF [+ scan]):
 // save_document_for_extraction exists to recover what inline decoding can't
 // handle, so it prefers the retrievable binary rendition.
-function pickBinaryAttachment(docRef: fhir4.DocumentReference): fhir4.Attachment | undefined {
+/** @param {fhir4.DocumentReference} docRef @returns {fhir4.Attachment | undefined} */
+function pickBinaryAttachment(docRef) {
   const atts = attachmentList(docRef);
   const fetchable = atts.filter(retrievable);
   // the atts[0] tail can be an unretrievable stub — callers still want its
@@ -86,12 +101,16 @@ function pickBinaryAttachment(docRef: fhir4.DocumentReference): fhir4.Attachment
   return fetchable.find((a) => !inlineFor(a)) ?? fetchable[0] ?? atts[0];
 }
 
-export async function getDocumentContent(
-  session: FhirSession,
-  docRefId: string,
-): Promise<DocumentEnvelope> {
+/**
+ * @param {FhirSession} session
+ * @param {string} docRefId
+ * @returns {Promise<DocumentEnvelope>}
+ */
+export async function getDocumentContent(session, docRefId) {
   validateFhirId(docRefId, "DocumentReference");
-  const docRef = await fhirGet<fhir4.DocumentReference>(session, `DocumentReference/${docRefId}`);
+  const docRef = /** @type {fhir4.DocumentReference} */ (
+    await fhirGet(session, `DocumentReference/${docRefId}`)
+  );
   const atts = attachmentList(docRef);
 
   // try every retrievable inline-decodable rendition in order — a CDA that
@@ -104,9 +123,14 @@ export async function getDocumentContent(
     try {
       // attachment.url may be rewritten off-origin by the EHR (Medplum signed
       // storage URLs) — recoverBinaryRef re-fetches same-origin Binary/{id}
+      // retrievable(att) above guarantees data or url
       const raw = att.data
         ? Buffer.from(att.data, "base64").toString("utf-8")
-        : (await fhirGetRaw(session, att.url!, contentType, { recoverBinaryRef: true })).body;
+        : (
+            await fhirGetRaw(session, /** @type {string} */ (att.url), contentType, {
+              recoverBinaryRef: true,
+            })
+          ).body;
       const text = decode(raw);
       if (text !== null && text.length <= MAX_INLINE_CHARS) {
         return { id: docRefId, content_type: contentType, text, untrusted: true };
@@ -133,13 +157,14 @@ export async function getDocumentContent(
   };
 }
 
-export interface SavedDocument {
-  id: string;
-  content_type: string | null;
-  path: string | null;
-  bytes: number;
-  reason?: string;
-}
+/**
+ * @typedef {object} SavedDocument
+ * @property {string} id
+ * @property {string | null} content_type
+ * @property {string | null} path
+ * @property {number} bytes
+ * @property {string} [reason]
+ */
 
 // One owned 0700 parent per uid, unpredictable mkdtemp dirs inside it: the
 // parent is ownership-asserted (pre-creation by another user is refused),
@@ -151,7 +176,8 @@ const docsBase = perUidTmpDir("mcp-fhir-docs");
 // instance (same uid, e.g. two CLI sessions) from sweeping a live save.
 const STALE_AFTER_MS = 15 * 60 * 1000;
 
-export function sweepStaleDocuments(): void {
+/** @returns {void} */
+export function sweepStaleDocuments() {
   // earlier layouts: mcp-server-fhir/ (docs + old session file) and
   // mcp-fhir-doc-* mkdtemp dirs directly under tmpdir (never released)
   try {
@@ -184,7 +210,8 @@ export function sweepStaleDocuments(): void {
 // Extraction tooling keys off the extension, so the temp file must carry one.
 // Unknown/mislabeled types (application/octet-stream, vendor types) get a
 // magic-byte sniff, then a sanitized subtype-derived extension, worst case .bin.
-function sniffExtension(buf: Buffer): string | undefined {
+/** @param {Buffer} buf @returns {string | undefined} */
+function sniffExtension(buf) {
   const head = buf.subarray(0, 8).toString("latin1");
   if (head.startsWith("%PDF")) return ".pdf";
   if (head.startsWith("{\\rtf")) return ".rtf";
@@ -199,7 +226,8 @@ function sniffExtension(buf: Buffer): string | undefined {
   return undefined;
 }
 
-function extensionFor(contentType: string, buf?: Buffer): string {
+/** @param {string} contentType @param {Buffer} [buf] @returns {string} */
+function extensionFor(contentType, buf) {
   const known = CONTENT_TYPES[contentType]?.ext;
   if (known) return known;
   const sniffed = buf && sniffExtension(buf);
@@ -214,18 +242,23 @@ function extensionFor(contentType: string, buf?: Buffer): string {
 // Writes the attachment to a server-chosen tmpdir path (0600) so an external
 // extractor can read it. The caller deletes the file's parent dir when done;
 // the startup sweep only backstops crashes.
-export async function saveDocumentForExtraction(
-  session: FhirSession,
-  docRefId: string,
-): Promise<SavedDocument> {
+/**
+ * @param {FhirSession} session
+ * @param {string} docRefId
+ * @returns {Promise<SavedDocument>}
+ */
+export async function saveDocumentForExtraction(session, docRefId) {
   validateFhirId(docRefId, "DocumentReference");
-  const docRef = await fhirGet<fhir4.DocumentReference>(session, `DocumentReference/${docRefId}`);
+  const docRef = /** @type {fhir4.DocumentReference} */ (
+    await fhirGet(session, `DocumentReference/${docRefId}`)
+  );
   const att = pickBinaryAttachment(docRef);
   if (!att)
     return { id: docRefId, content_type: null, path: null, bytes: 0, reason: "no_attachment" };
 
   const contentType = normalizeType(att.contentType);
-  const fail = (reason: string, bytes = 0): SavedDocument => ({
+  /** @param {string} reason @param {number} [bytes] @returns {SavedDocument} */
+  const fail = (reason, bytes = 0) => ({
     id: docRefId,
     content_type: contentType,
     path: null,
@@ -236,7 +269,8 @@ export async function saveDocumentForExtraction(
   const declared = att.size ?? 0;
   if (declared > MAX_SAVE_BYTES) return fail("attachment_too_large", declared);
 
-  let buf: Buffer;
+  /** @type {Buffer} */
+  let buf;
   if (att.data) {
     buf = Buffer.from(att.data, "base64");
   } else if (att.url) {

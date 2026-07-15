@@ -2,9 +2,10 @@
 // frozen. These literals ARE the wire format. Edit deliberately; add new
 // tools by hand-writing the entry (there is no zod to emit it anymore).
 
-import type { ToolDef } from "../../shared/rpc.mjs";
+/** @typedef {import("../../shared/rpc.mjs").ToolDef} ToolDef */
 
-export const TOOLS: ToolDef[] = [
+/** @type {ToolDef[]} */
+export const TOOLS = [
   {
     "name": "connect",
     "description": "Connect to a FHIR R4 server. Must be called before any other tool. With client_id (or FHIR_CLIENT_ID env), runs a SMART-on-FHIR standalone login in the user's browser; with bearer_token (or neither), connects directly. Call with no arguments when FHIR_BASE_URL and FHIR_CLIENT_ID are pre-configured.",
