@@ -6,6 +6,35 @@ import { decodeRtf, decodeXml } from "./decoders.js";
 
 const SKILL_ROOT = dirname(dirname(new URL(import.meta.url).pathname));
 
+// Allowlist, not the full environment: the extractors parse untrusted
+// document bytes and `lit` is a third-party binary — neither needs the API
+// keys or tokens the caller was launched with. (Same allowlist as the
+// contracts server's bundled copy, servers/documents/src/extract.mjs.)
+const CHILD_ENV = Object.fromEntries(
+  [
+    "PATH",
+    "HOME",
+    "USERPROFILE",
+    "TMPDIR",
+    "TMP",
+    "TEMP",
+    "SYSTEMROOT",
+    "COMSPEC",
+    "XDG_DATA_HOME",
+    "XDG_CACHE_HOME",
+    "TESSDATA_PREFIX",
+    "LITEPARSE_PATH",
+    "HTTP_PROXY",
+    "HTTPS_PROXY",
+    "NO_PROXY",
+    "http_proxy",
+    "https_proxy",
+    "no_proxy",
+  ]
+    .filter((k) => process.env[k] !== undefined)
+    .map((k) => [k, process.env[k]]),
+);
+
 export function resolveLit(roots: string[] = []): string | undefined {
   // Prefer the liteparse `lit` bin that `bun install` drops in node_modules
   // (this skill's, then any caller-supplied roots), then PATH.
@@ -13,7 +42,7 @@ export function resolveLit(roots: string[] = []): string | undefined {
     ...[SKILL_ROOT, ...roots].map((r) => join(r, "node_modules", ".bin", "lit")),
     "lit",
   ];
-  return candidates.find((p) => spawnSync(p, ["--version"], { stdio: "ignore" }).status === 0);
+  return candidates.find((p) => spawnSync(p, ["--version"], { stdio: "ignore", env: CHILD_ENV }).status === 0);
 }
 
 export type Extracted = { text: string; method: "liteparse" | "pdftotext" };
@@ -34,6 +63,7 @@ export function extractWithMethod(
         {
           encoding: "utf8",
           maxBuffer: 256 * 1024 * 1024,
+          env: CHILD_ENV,
         },
       );
       if (r.status !== 0 || !r.stdout.trim()) continue;
@@ -52,6 +82,7 @@ export function extractWithMethod(
   const r = spawnSync("pdftotext", ["-layout", src, "-"], {
     encoding: "utf8",
     maxBuffer: 256 * 1024 * 1024,
+    env: CHILD_ENV,
   });
   if (r.status !== 0) return null;
   return {

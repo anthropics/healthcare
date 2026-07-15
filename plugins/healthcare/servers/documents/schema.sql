@@ -223,6 +223,10 @@ BEGIN
   SELECT RAISE(ABORT, 'queue: self_resolved requires answered_by (set to ''agent'')');
 END;
 
+-- UNUSED since the answer moved into chat: nothing writes these three tables
+-- (0 rows across every run), and the export tool that read them is gone. They
+-- stay only because dropping a table needs a user_version bump, which makes
+-- every user delete their database — fold that into the next breaking change.
 CREATE TABLE IF NOT EXISTS reports (
   id         INTEGER PRIMARY KEY,
   run_id     TEXT    NOT NULL REFERENCES runs(run_id) ON DELETE CASCADE,
@@ -281,23 +285,17 @@ END;
 
 DROP VIEW IF EXISTS v_run_status;
 CREATE VIEW v_run_status AS
-SELECT r.run_id, r.status, r.round, r.question, r.corpus, r.session_id, r.cost_usd, r.turns, r.updated_at,
+SELECT r.run_id, r.status, r.round, r.question, r.corpus, r.session_id, r.updated_at,
        (SELECT id FROM briefs b WHERE b.run_id = r.run_id AND b.status='active'
         ORDER BY version DESC LIMIT 1) AS brief_id,
        (SELECT count(*) FROM corpus_documents cd WHERE cd.corpus = r.corpus) AS docs,
        (SELECT count(*) FROM findings f WHERE f.run_id = r.run_id) AS findings,
        (SELECT count(*) FROM queue_items q WHERE q.run_id = r.run_id AND q.status='open') AS open_queue,
        (SELECT count(*) FROM queue_items q WHERE q.run_id = r.run_id AND q.status='open' AND q.blocking=1) AS blocking_queue,
-       (SELECT count(*) FROM reports p WHERE p.run_id = r.run_id) AS reports,
-       (SELECT count(*) FROM v_uncited_claims uc WHERE uc.run_id = r.run_id) AS uncited_claims,
        (SELECT count(*) FROM v_uncited_findings uf WHERE uf.run_id = r.run_id) AS uncited_findings
 FROM runs r;
 
 DROP VIEW IF EXISTS v_uncited_claims;
-CREATE VIEW v_uncited_claims AS
-SELECT rc.id AS claim_id, rc.report_id, r.run_id, rc.claim
-FROM report_claims rc JOIN reports r ON r.id = rc.report_id
-WHERE NOT EXISTS (SELECT 1 FROM claim_citations cc WHERE cc.claim_id = rc.id);
 
 DROP VIEW IF EXISTS v_uncited_findings;
 CREATE VIEW v_uncited_findings AS
@@ -320,7 +318,8 @@ FROM scope_documents sd
 JOIN scopes s ON s.id = sd.scope_id
 JOIN runs r ON r.run_id = s.run_id
 JOIN corpus_documents cd ON cd.doc_id = sd.doc_id AND cd.corpus = r.corpus
-WHERE NOT EXISTS (
+WHERE (cd.parse_status IS NULL OR cd.parse_status = 'ok')  -- unreadable docs go to the triage visual pass, not to a rescue reader
+AND NOT EXISTS (
   SELECT 1 FROM shard_coverage sc
   WHERE sc.scope_id = sd.scope_id AND sc.doc_id = sd.doc_id AND sc.status = 'read'
 );

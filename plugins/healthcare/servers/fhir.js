@@ -70,7 +70,7 @@ function checkAndStrip(name, schema, value) {
   try {
     check(schema, v);
   } catch (e) {
-    throw new Error(`${name}: ${e.message}`);
+    throw new Error(`${name}: ${e.message}`, { cause: e });
   }
   const out = {};
   for (const k of Object.keys(schema.properties ?? {}))
@@ -425,7 +425,23 @@ function restoreSession() {
     const p = JSON.parse(readFileSync(file, "utf-8"));
     if (p.expiresAt && p.expiresAt < Date.now())
       return null;
-    return { baseUrl: new URL(p.baseUrl), token: p.token };
+    const baseUrl = new URL(p.baseUrl);
+    let token = p.token;
+    const envToken = process.env.FHIR_BEARER_TOKEN;
+    if (token && envToken && token === envToken) {
+      let configuredOrigin = null;
+      try {
+        configuredOrigin = process.env.FHIR_BASE_URL ? new URL(process.env.FHIR_BASE_URL).origin : null;
+      } catch {
+        configuredOrigin = null;
+      }
+      if (configuredOrigin !== baseUrl.origin) {
+        token = null;
+        process.stderr.write(`mcp-server-fhir: restored session for ${baseUrl.origin} carried the FHIR_BEARER_TOKEN env credential, which is bound to ${configuredOrigin ?? "no configured server (FHIR_BASE_URL unset)"} — token dropped from the restored session
+`);
+      }
+    }
+    return { baseUrl, token };
   } catch (e) {
     if (e instanceof OwnershipError)
       process.stderr.write(`mcp-server-fhir: ignoring session file: ${e.message}
@@ -1440,6 +1456,33 @@ async function pickTokenStore() {
 
 // src/tools.ts
 var DEFAULT_SCOPE = "user/*.rs offline_access openid fhirUser";
+function resolveEnvBearerToken(target, env = process.env) {
+  const token = env.FHIR_BEARER_TOKEN;
+  if (!token)
+    return { token: null };
+  if (!env.FHIR_BASE_URL) {
+    return {
+      token: null,
+      withheld: "FHIR_BEARER_TOKEN is set but FHIR_BASE_URL is not, so the token is bound to no server and was not sent; set FHIR_BASE_URL to the server the token belongs to, or pass bearer_token explicitly"
+    };
+  }
+  let configured;
+  try {
+    configured = new URL(env.FHIR_BASE_URL);
+  } catch {
+    return {
+      token: null,
+      withheld: "FHIR_BEARER_TOKEN was not sent: FHIR_BASE_URL is not a valid URL"
+    };
+  }
+  if (configured.origin !== target.origin) {
+    return {
+      token: null,
+      withheld: `FHIR_BEARER_TOKEN is bound to ${configured.origin} and was not sent to ${target.origin}; pass bearer_token explicitly to use a credential with a different server`
+    };
+  }
+  return { token };
+}
 var session = restoreSession();
 var pending = null;
 function requireSession() {
@@ -1447,7 +1490,7 @@ function requireSession() {
     throw new Error("Not connected. Call `connect` first.");
   return session;
 }
-async function finishConnect(baseUrl, cid, t, staticToken) {
+async function finishConnect(baseUrl, cid, t, staticToken, authWarning) {
   let token = staticToken ?? null;
   let authNote = token ? "bearer" : "none";
   if (t) {
@@ -1476,7 +1519,8 @@ WARNING: session not persisted (${e instanceof Error ? e.message : e}) — someo
   return text(`Connected to ${baseUrl.href}
 ` + `Software: ${cap.software?.name ?? "?"} ${cap.software?.version ?? ""}
 ` + `FHIR: ${cap.fhirVersion}
-` + `Auth: ${authNote}` + persistNote);
+` + `Auth: ${authNote}` + (authWarning ? `
+NOTE: ${authWarning}` : "") + persistNote);
 }
 function text(s) {
   return { content: [{ type: "text", text: s }] };
@@ -1510,7 +1554,13 @@ var HANDLERS = {
         throw new Error("base_url not provided and FHIR_BASE_URL is not set");
       const baseUrl = validateBaseUrl(url);
       const cid = client_id ?? process.env.FHIR_CLIENT_ID;
-      const token = bearer_token ?? (client_id ? null : process.env.FHIR_BEARER_TOKEN ?? null);
+      let token = bearer_token ?? null;
+      let withheld;
+      if (!token && !client_id)
+        ({ token, withheld } = resolveEnvBearerToken(baseUrl));
+      if (withheld)
+        process.stderr.write(`mcp-server-fhir: ${withheld}
+`);
       const sc = scope ?? DEFAULT_SCOPE;
       if (!token && cid) {
         if (isHeadless()) {
@@ -1526,11 +1576,13 @@ var HANDLERS = {
           };
           return text(`SMART login required. Open this URL in your browser, sign in, then copy the FULL address-bar URL after redirect (it will start with http://localhost:53682/callback?...) and pass it to connect_complete:
 
-${pending.auth.authorize_url}`);
+${pending.auth.authorize_url}` + (withheld ? `
+
+NOTE: ${withheld}` : ""));
         }
-        return finishConnect(baseUrl, cid, await smartLaunch({ iss: baseUrl, client_id: cid, scope: sc }));
+        return finishConnect(baseUrl, cid, await smartLaunch({ iss: baseUrl, client_id: cid, scope: sc }), null, withheld);
       }
-      return finishConnect(baseUrl, cid, null, token);
+      return finishConnect(baseUrl, cid, null, token, withheld);
     }
   },
   connect_complete: async (a) => {

@@ -68,7 +68,34 @@ export function restoreSession(): FhirSession | null {
     assertOwned(file, false);
     const p = JSON.parse(readFileSync(file, "utf-8")) as Persisted;
     if (p.expiresAt && p.expiresAt < Date.now()) return null;
-    return { baseUrl: new URL(p.baseUrl), token: p.token };
+    const baseUrl = new URL(p.baseUrl);
+    let token = p.token;
+    // A session persisted before the env token was origin-bound (see
+    // resolveEnvBearerToken in tools.ts) may carry the FHIR_BEARER_TOKEN
+    // credential against a non-configured origin — and static sessions
+    // persist without an expiry. Re-apply the binding on restore: if the
+    // persisted token IS the env credential and the persisted origin is not
+    // FHIR_BASE_URL's origin, drop the token. The session itself survives,
+    // unauthenticated; the file is left as-is and is overwritten by the next
+    // successful connect.
+    const envToken = process.env.FHIR_BEARER_TOKEN;
+    if (token && envToken && token === envToken) {
+      let configuredOrigin: string | null = null;
+      try {
+        configuredOrigin = process.env.FHIR_BASE_URL
+          ? new URL(process.env.FHIR_BASE_URL).origin
+          : null;
+      } catch {
+        configuredOrigin = null;
+      }
+      if (configuredOrigin !== baseUrl.origin) {
+        token = null;
+        process.stderr.write(
+          `mcp-server-fhir: restored session for ${baseUrl.origin} carried the FHIR_BEARER_TOKEN env credential, which is bound to ${configuredOrigin ?? "no configured server (FHIR_BASE_URL unset)"} — token dropped from the restored session\n`,
+        );
+      }
+    }
+    return { baseUrl, token };
   } catch (e) {
     // can't rethrow here (module load would crash), but the signal must not
     // vanish — the write path throws, so the read path at least reports

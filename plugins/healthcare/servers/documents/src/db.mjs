@@ -89,7 +89,7 @@ try {
       .get();
     if (version !== SCHEMA_VERSION && !(version === 0 && !hasTables)) {
       const msg =
-        `schema version ${version} != ${SCHEMA_VERSION} — the database at ${DB_PATH} is from an older alpha. ` +
+        `schema version ${version} != ${SCHEMA_VERSION} — the database at ${DB_PATH} is from an older version. ` +
         `Delete ${DB_PATH} (the parsed/ cache can stay) and re-ingest.`;
       // The MCP host only shows "server failed to start" — put the remedy
       // on stderr where the MCP log (and a curious human) can find it.
@@ -105,6 +105,19 @@ try {
       if (!cols.some((c) => c.name === col))
         db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${decl}`);
     }
+    // Rows ingested before parse_status existed carry extraction placeholders
+    // under a NULL status: v_coverage_gaps counts them as readable, but dump /
+    // doc_text / cite all refuse placeholder content — permanent phantom gaps
+    // no reader can ever clear. Backfill the status so the view excludes them.
+    // Prefixes mirror ingest.mjs CACHE_MARK verbatim (every marker that has
+    // ever meant failed/empty); ingest.mjs imports this module, so the
+    // constant can't be imported from there without a cycle.
+    db.exec(`UPDATE corpus_documents SET parse_status = 'failed'
+      WHERE parse_status IS NULL AND doc_id IN (
+        SELECT id FROM documents
+        WHERE content LIKE '[extraction failed%'
+           OR content LIKE '[no text extracted%'
+           OR content LIKE '[image-only%')`);
   });
 } catch (e) {
   if (isBusy(e))
@@ -233,9 +246,6 @@ export const writeSchemas = {
     answered_at: nstr,
   }),
   queue_citations: row(["queue_item_id", "citation_id"], { queue_item_id: int, citation_id: int }),
-  reports: row(["run_id", "brief_id", "body"], { run_id: str, brief_id: int, body: str }),
-  report_claims: row(["report_id", "claim"], { report_id: int, claim: str }),
-  claim_citations: row(["claim_id", "citation_id"], { claim_id: int, citation_id: int }),
   knowledge: row(["corpus", "fact"], {
     corpus: str,
     fact: str,

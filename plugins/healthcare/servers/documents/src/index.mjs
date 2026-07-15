@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 import "./requirements.mjs";
+import { readFileSync } from "node:fs";
+
 import { runOnce, serve } from "../../shared/rpc.mjs";
 import * as engine from "./engine.mjs";
 import { TOOLS } from "./schemas.mjs";
@@ -8,6 +10,9 @@ import { TOOLS } from "./schemas.mjs";
 // Entry point — one engine, two transports, chosen by the caller's surface:
 //
 //   node src/index.mjs <tool> '<json>'   CLI: one tool call, JSON on stdout.
+//   node src/index.mjs <tool> -           same, JSON read from stdin — use a
+//                                         quoted heredoc for payloads carrying
+//                                         document text (no shell escaping).
 //                                        First choice wherever the shell and
 //                                        the data dir share a machine (a
 //                                        terminal, a cloud container).
@@ -26,7 +31,7 @@ import { TOOLS } from "./schemas.mjs";
 
 const SERVER_INFO = { name: "mcp-server-documents", version: "0.0.1" };
 const INSTRUCTIONS =
-  "Pre-release server for the /contracts skill; behavior and outputs may change. Do not surface tool or schema internals to end users — the skill translates.";
+  "Backs the /contracts skill. Do not surface tool or schema internals to end users — the skill translates.";
 
 // ---------------------------------------------------------------------------
 // Handlers: tool name → implementation taking validated, stripped args.
@@ -41,28 +46,35 @@ const HANDLERS = {
   corpus_sync: (a) => engine.sync(a.corpus),
 
   find: (a) => {
-    const rows = a.rows;
-    if ((rows === undefined) === (a.quote === undefined))
-      engine.die(`find: pass exactly one of rows or the single-finding fields`);
-    if (rows) {
-      const ctx = {
-        run_id: a.run_id,
-        brief_id: a.brief_id,
-        round: a.round,
-        worker: a.worker,
-      };
-      return engine.findMany(
-        ctx,
-        rows.map((r) => engine.checkFindRow(r)),
-      );
+    // Dispatch on rows alone — the engine owns citation vocabulary and its
+    // single-form errors. The batch branch rejects stray single-form keys so a
+    // finding meant as one more row can't be silently dropped.
+    if (a.rows !== undefined) {
+      const ctx = { run_id: a.run_id, brief_id: a.brief_id, round: a.round, worker: a.worker };
+      const extras = Object.keys(a).filter((k) => !(k in ctx) && k !== "rows");
+      if (extras.length)
+        engine.die(
+          `find: rows and single-finding fields don't mix — drop ${extras.join(", ")} or make them a row`,
+        );
+      // Rows validate inside findMany's per-row savepoint, so a schema-invalid
+      // row rejects with its index instead of failing the batch.
+      return engine.findMany(ctx, a.rows);
     }
     return engine.find(engine.checkFind(a));
   },
 
   coverage: (a) => {
-    const rows = a.rows;
-    const { rows: _drop, ...one } = a;
-    return engine.coverage(rows ? undefined : one, rows);
+    if (a.rows !== undefined) {
+      // Every non-rows key is a single-form stamp field; mixing them would
+      // silently drop the single stamp.
+      const extras = Object.keys(a).filter((k) => k !== "rows");
+      if (extras.length)
+        engine.die(
+          `coverage: rows and single-stamp fields don't mix — drop ${extras.join(", ")} or make them a row`,
+        );
+      return engine.coverage(undefined, a.rows);
+    }
+    return engine.coverage(a, undefined);
   },
 
   cite: (a) => {
@@ -135,7 +147,6 @@ const HANDLERS = {
 
   shard_prompt: (a) => engine.shardPrompt(a.run_id, a.label),
   drop: (a) => engine.drop(a.run_ids ?? [], a.prefix),
-  export_report: (a) => engine.exportReport(a.run_id),
   log_observation: (a) => engine.logObservation(a.entry),
 };
 
@@ -154,15 +165,20 @@ const SUMMARIZE = {
   },
   doc_search: (r, a) => {
     const pats = Array.isArray(a.pattern) ? a.pattern : [String(a.pattern)];
-    const count = (x) => n(x?.docs_matched);
-    if (pats.length === 1)
-      return `"${pats[0]}" — found in ${count(r)} document${count(r) === 1 ? "" : "s"}.`;
+    // Truncation goes in the sentence, not just a flag — the reply line is
+    // what gets read, and a capped list silently becomes an incomplete scope.
+    const count = (x) =>
+      x?.truncated
+        ? `${n(x.docs_matched)} documents (ONLY ${n(x.docs_returned)} returned — narrow the pattern)`
+        : `${n(x?.docs_matched)} document${n(x?.docs_matched) === 1 ? "" : "s"}`;
+    if (pats.length === 1) return `"${pats[0]}" — found in ${count(r)}.`;
     const keyed = r;
     return `Searched ${pats.length} phrasings — ${pats.map((p) => `"${p}" in ${count(keyed[p])}`).join(", ")}.`;
   },
   find: (r) => {
     const x = r;
-    if (x.id !== undefined) return `Saved 1 finding with its quote verified.`;
+    if (x.finding_id !== undefined)
+      return `Saved 1 finding, ${n(x.cites?.length)} citation${x.cites?.length === 1 ? "" : "s"} verified.`;
     const ins = Array.isArray(x.inserted) ? x.inserted.length : 0;
     const rej = Array.isArray(x.rejected) ? x.rejected.length : 0;
     return rej
@@ -194,12 +210,12 @@ const SUMMARIZE = {
 
 // Two transports, one engine: with argv this is a single CLI tool call —
 // for environments that sync plugin files but start no MCP host (cloud
-// containers); a skill shells out to the bundle instead. Bare invocation
+// containers); a skill shells out to this file instead. Bare invocation
 // serves MCP over stdio as before.
 const argv = process.argv.slice(2);
 if (argv.length > 2) {
   process.stderr.write(
-    `mcp-server-documents: expected <tool> ['<json-args>'], got ${argv.length} arguments — batch by passing rows/docs/updates arrays inside the one JSON argument\n`,
+    `mcp-server-documents: expected <tool> ['<json-args>' | -], got ${argv.length} arguments — batch by passing rows/docs/updates arrays inside the one JSON argument\n`,
   );
   process.exit(1);
 }
@@ -207,9 +223,20 @@ const [tool, json] = argv;
 if (tool !== undefined) {
   try {
     let args = {};
-    if (json !== undefined) {
+    // `-` reads the JSON from stdin: payloads carrying document text (quotes,
+    // has fragments) go through a quoted heredoc untouched instead of running
+    // the shell-escaping gauntlet of an inline single-quoted argument.
+    let raw = json;
+    if (json === "-") {
+      if (process.stdin.isTTY)
+        throw new Error(
+          `'-' expects the JSON on stdin — pipe it or use a quoted heredoc (<<'EOF' … EOF)`,
+        );
+      raw = readFileSync(0, "utf8");
+    }
+    if (raw !== undefined) {
       try {
-        args = JSON.parse(json);
+        args = JSON.parse(raw);
       } catch (e) {
         throw new Error(`args must be one JSON object: ${String(e.message)}`, {
           cause: e,

@@ -12,7 +12,9 @@
   "engines": {
     "node": ">=22.13"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@llamaindex/liteparse": "2.0.8"
+  },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "typescript": "^5.6.0"

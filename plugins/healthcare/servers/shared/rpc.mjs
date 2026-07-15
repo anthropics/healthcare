@@ -66,6 +66,7 @@ export async function runOnce(cfg, name, rawArgs) {
  * @returns {void}
  */
 export function serve(cfg) {
+  let queue = Promise.resolve();
   const toolIndex = new Map(cfg.tools.map((t) => [t.name, t]));
 
   const send = (msg) => void process.stdout.write(JSON.stringify(msg) + "\n");
@@ -80,7 +81,11 @@ export function serve(cfg) {
       const result = await cfg.handlers[name](args);
       // Handlers may return ready-made MCP content (the fhir server's text()/
       // json() helpers do); pass those through untouched.
-      if (result && typeof result === "object" && Array.isArray(/** @type {{content?: unknown}} */ (result).content))
+      if (
+        result &&
+        typeof result === "object" &&
+        Array.isArray(/** @type {{content?: unknown}} */ (result).content)
+      )
         return /** @type {{content: Content, isError?: boolean}} */ (result);
       let summary;
       try {
@@ -137,6 +142,17 @@ export function serve(cfg) {
     }
   }
 
+  // EPIPE lands here as an async 'error' event, not as a throw the dispatch
+  // queue can catch. It means the host died: exit rather than keep executing
+  // side-effecting calls nobody can observe. Anything else stays fatal.
+  process.stdout.on("error", (/** @type {NodeJS.ErrnoException} */ e) => {
+    process.stderr.write(
+      `${cfg.serverInfo.name}: stdout write failed: ${String(e?.message ?? e)}\n`,
+    );
+    if (e?.code === "EPIPE") process.exit(1);
+    throw e;
+  });
+
   const rl = createInterface({ input: process.stdin, terminal: false });
   rl.on("line", (line) => {
     const trimmed = line.trim();
@@ -156,7 +172,21 @@ export function serve(cfg) {
       );
       return;
     }
-    void dispatch(msg);
+    // Serialize: handlers used to be uniformly synchronous, so the event loop
+    // was the mutex. Extraction now awaits, and a second frame arriving mid-
+    // ingest would run two ingests over one corpus — same cache paths, racing
+    // upserts. One request at a time is what callers already observed.
+    // dispatch replies to its own errors; what lands here is a failed send —
+    // stdout is broken. EPIPE means the host died: keep-going would execute
+    // side-effecting calls nobody can observe, so exit instead.
+    queue = queue
+      .then(() => dispatch(msg))
+      .catch((e) => {
+        process.stderr.write(
+          `${cfg.serverInfo.name}: dispatch failed: ${String(e?.message ?? e)}\n`,
+        );
+        if (e?.code === "EPIPE") process.exit(1);
+      });
   });
   rl.on("close", () => process.exit(0));
 
