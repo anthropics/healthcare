@@ -1,0 +1,9 @@
+# Every change requires approval from a healthcare vertical maintainer.
+#
+# This file lives under .github/ deliberately. A copy at the repo root was
+# added in #56 and silently deleted by the plugin sync in #55: the sync mirrors
+# upstream over the tracked tree, but it never touches .github/.
+#
+# The -ant suffixes are intentional; the bare names are different accounts.
+
+* @jmm-ant @mihilmy @burtony-ant @ant-natelee
