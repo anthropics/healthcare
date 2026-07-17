@@ -463,10 +463,8 @@ async function ingestCsv(tmp, table, db, types) {
     return null;
   } catch (e) {
     if (!/Invalid unicode|not utf-8/i.test(String(e))) throw e;
-    await run("sh", [
-      "-c",
-      `iconv -f latin1 -t UTF-8 '${lit(tmp)}' > '${lit(tmp)}.u8' && mv '${lit(tmp)}.u8' '${lit(tmp)}'`,
-    ]);
+    const content = await readFile(tmp, "latin1");
+    await writeFile(tmp, content, "utf8");
     await ddl(sql, { db });
     return "latin1";
   }

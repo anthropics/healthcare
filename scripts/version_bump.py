@@ -150,7 +150,7 @@ def changed_plugins(base: str, staged_only: bool) -> list[Path]:
     for pj in all_plugin_jsons():
         root_rel = Path(rel(plugin_root(pj)))
         if any(
-            c == root_rel or root_rel in c.parents or str(c).startswith(f"{root_rel}/")
+            c == root_rel or root_rel in c.parents
             for c in changed
         ):
             hits.append(pj)

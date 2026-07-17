@@ -220,7 +220,8 @@ def test_search():
     print(f"Created FHIR API project: {project_dir}")
     print(f"\nNext steps:")
     print(f"  cd {project_dir}")
-    print(f"  python -m venv venv && source venv/bin/activate")
+    activate_cmd = "venv\\Scripts\\activate" if sys.platform == "win32" else "source venv/bin/activate"
+    print(f"  python -m venv venv && {activate_cmd}")
     print(f"  pip install -r requirements.txt")
     print(f"  uvicorn app.main:app --reload")
     print(f"\nOpen http://localhost:8000/docs for API docs")

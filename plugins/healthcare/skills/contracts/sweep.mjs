@@ -25,8 +25,8 @@
  * pass (v_coverage_gaps → agentic readers) picks them up.
  */
 import { spawn } from "node:child_process";
-import { readFileSync, readdirSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
+import { join, delimiter } from "node:path";
 
 function die(m) {
   console.error(m);
@@ -207,6 +207,16 @@ function noteSpawnOutcome(failed, detail) {
 // One spawn per prompt, tools disabled. Returns {rows, error}; exit codes and
 // stderr surface in error so no caller can mistake an auth failure for an
 // empty extraction.
+function resolveClaude() {
+  if (process.platform !== "win32") return "claude";
+  const paths = (process.env.PATH ?? "").split(delimiter);
+  for (const dir of paths) {
+    if (existsSync(join(dir, "claude.cmd"))) return "claude.cmd";
+    if (existsSync(join(dir, "claude.exe"))) return "claude.exe";
+  }
+  return "claude";
+}
+
 function runClaude(promptText) {
   const argv = ["-p", "--disallowed-tools", "*"];
   if (args.model) argv.push("--model", args.model);
@@ -214,7 +224,8 @@ function runClaude(promptText) {
   // the spawned session — strip them.
   const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith("ANTHROPIC_")));
   return new Promise((resolve) => {
-    const p = spawn("claude", argv, { env });
+    const cmd = resolveClaude();
+    const p = spawn(cmd, argv, { env, shell: process.platform === "win32" && cmd.endsWith(".cmd") });
     let out = "";
     let err = "";
     p.stdout.on("data", (d) => (out += d));

@@ -1,10 +1,11 @@
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { decodeRtf, decodeXml } from "./decoders.mjs";
 
-const SKILL_ROOT = dirname(dirname(new URL(import.meta.url).pathname));
+const SKILL_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 
 // Allowlist, not the full environment: the extractors parse untrusted
 // document bytes and `lit` is a third-party binary — neither needs the API
@@ -38,12 +39,14 @@ const CHILD_ENV = Object.fromEntries(
 export function resolveLit(roots: string[] = []): string | undefined {
   // Prefer the liteparse `lit` bin that `bun install` drops in node_modules
   // (this skill's, then any caller-supplied roots), then PATH.
+  const isWin = process.platform === "win32";
+  const binName = isWin ? "lit.cmd" : "lit";
   const candidates = [
-    ...[SKILL_ROOT, ...roots].map((r) => join(r, "node_modules", ".bin", "lit")),
-    "lit",
+    ...[SKILL_ROOT, ...roots].map((r) => join(r, "node_modules", ".bin", binName)),
+    binName,
   ];
   return candidates.find(
-    (p) => spawnSync(p, ["--version"], { stdio: "ignore", env: CHILD_ENV }).status === 0,
+    (p) => spawnSync(p, ["--version"], { stdio: "ignore", env: CHILD_ENV, shell: isWin && p.endsWith(".cmd") }).status === 0,
   );
 }
 
@@ -59,6 +62,7 @@ export function extractWithMethod(
     // --format json, not text: liteparse 2.x emits no page boundaries in text/markdown output,
     // so page anchors can only be rebuilt from the JSON pages array.
     for (const extra of [[], ["--no-ocr"]]) {
+      const isWin = process.platform === "win32";
       const r = spawnSync(
         lit,
         ["parse", src, "--format", "json", "--max-pages", "2000", ...extra],
@@ -66,6 +70,7 @@ export function extractWithMethod(
           encoding: "utf8",
           maxBuffer: 256 * 1024 * 1024,
           env: CHILD_ENV,
+          shell: isWin && lit.endsWith(".cmd"),
         },
       );
       if (r.status !== 0 || !r.stdout.trim()) continue;
