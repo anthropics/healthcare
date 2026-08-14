@@ -14,15 +14,45 @@
       "displayName": "Claude for Healthcare",
       "source": "./plugins/healthcare",
       "description": "Prior auth, ICD-10-CM medical coding, clinical trial protocols, FHIR development — with CMS Coverage, ICD-10, NPI Registry, Clinical Trials, and PubMed connected",
+      "classification": {
+        "object_acted_on": [
+          "files-documents",
+          "papers-articles"
+        ],
+        "industry": "health-life-sciences",
+        "subject": "medicine"
+      },
       "category": "healthcare",
-      "tags": ["healthcare", "payer", "provider", "pharma", "prior-auth", "medical-coding", "fhir", "clinical-trials"]
+      "tags": [
+        "healthcare",
+        "payer",
+        "provider",
+        "pharma",
+        "prior-auth",
+        "medical-coding",
+        "fhir",
+        "clinical-trials"
+      ]
     },
     {
       "name": "clinical-trial-protocol",
       "source": "./",
       "description": "Deprecated — install healthcare@healthcare instead. Generate FDA/NIH-compliant clinical trial protocols for medical devices or drugs",
+      "classification": {
+        "object_acted_on": [
+          "files-documents"
+        ],
+        "industry": "health-life-sciences",
+        "subject": "medicine"
+      },
       "category": "healthcare",
-      "tags": ["clinical-trials", "fda", "protocol", "regulatory", "deprecated"],
+      "tags": [
+        "clinical-trials",
+        "fda",
+        "protocol",
+        "regulatory",
+        "deprecated"
+      ],
       "strict": false,
       "skills": [
         "./plugins/healthcare/skills/clinical-trial-protocol"
@@ -32,8 +62,21 @@
       "name": "prior-auth-review",
       "source": "./",
       "description": "Deprecated — install healthcare@healthcare instead. Automate payer review of prior authorization requests with clinical documentation synthesis",
+      "classification": {
+        "object_acted_on": [
+          "files-documents"
+        ],
+        "industry": "health-life-sciences",
+        "subject": "medicine"
+      },
       "category": "healthcare",
-      "tags": ["prior-auth", "insurance", "medical-necessity", "cms", "deprecated"],
+      "tags": [
+        "prior-auth",
+        "insurance",
+        "medical-necessity",
+        "cms",
+        "deprecated"
+      ],
       "strict": false,
       "skills": [
         "./plugins/healthcare/skills/prior-auth"
@@ -43,8 +86,23 @@
       "name": "fhir-developer",
       "source": "./",
       "description": "Deprecated — install healthcare@healthcare instead. FHIR API development guide for building healthcare endpoints with R4 resources and SMART authorization",
+      "classification": {
+        "object_acted_on": [
+          "apis",
+          "code"
+        ],
+        "work_department": "engineering",
+        "industry": "health-life-sciences"
+      },
       "category": "healthcare",
-      "tags": ["fhir", "hl7", "api", "interoperability", "smart-on-fhir", "deprecated"],
+      "tags": [
+        "fhir",
+        "hl7",
+        "api",
+        "interoperability",
+        "smart-on-fhir",
+        "deprecated"
+      ],
       "strict": false,
       "skills": [
         "./plugins/healthcare/skills/fhir-developer"
@@ -54,29 +112,86 @@
       "name": "cms-coverage",
       "source": "./plugins/healthcare",
       "description": "Deprecated — install healthcare@healthcare instead. Access the CMS Coverage Database",
+      "classification": {
+        "object_acted_on": [
+          "reference-docs"
+        ],
+        "industry": "health-life-sciences",
+        "subject": "medicine"
+      },
       "category": "healthcare",
-      "tags": ["medicare", "coverage", "cms", "policy", "ncd", "lcd", "deprecated"]
+      "tags": [
+        "medicare",
+        "coverage",
+        "cms",
+        "policy",
+        "ncd",
+        "lcd",
+        "deprecated"
+      ]
     },
     {
       "name": "npi-registry",
       "source": "./plugins/healthcare",
       "description": "Deprecated — install healthcare@healthcare instead. Access US National Provider Identifier (NPI) Registry",
+      "classification": {
+        "object_acted_on": [
+          "reference-docs"
+        ],
+        "industry": "health-life-sciences",
+        "subject": "medicine"
+      },
       "category": "healthcare",
-      "tags": ["npi", "provider", "registry", "hipaa", "deprecated"]
+      "tags": [
+        "npi",
+        "provider",
+        "registry",
+        "hipaa",
+        "deprecated"
+      ]
     },
     {
       "name": "pubmed",
       "source": "./plugins/healthcare",
       "description": "Deprecated — install healthcare@healthcare instead. Search biomedical literature from PubMed",
+      "classification": {
+        "object_acted_on": [
+          "papers-articles"
+        ],
+        "industry": "health-life-sciences",
+        "life_area": "research",
+        "subject": "medicine"
+      },
       "category": "healthcare",
-      "tags": ["pubmed", "literature", "research", "medical", "pmc", "deprecated"]
+      "tags": [
+        "pubmed",
+        "literature",
+        "research",
+        "medical",
+        "pmc",
+        "deprecated"
+      ]
     },
     {
       "name": "icd10-codes",
       "source": "./plugins/healthcare",
       "description": "Deprecated — install healthcare@healthcare instead. Access ICD-10-CM and ICD-10-PCS code sets",
+      "classification": {
+        "object_acted_on": [
+          "reference-docs"
+        ],
+        "industry": "health-life-sciences",
+        "subject": "medicine"
+      },
       "category": "healthcare",
-      "tags": ["icd-10", "diagnosis", "procedure", "billing", "medical-coding", "deprecated"]
+      "tags": [
+        "icd-10",
+        "diagnosis",
+        "procedure",
+        "billing",
+        "medical-coding",
+        "deprecated"
+      ]
     }
   ]
 }
