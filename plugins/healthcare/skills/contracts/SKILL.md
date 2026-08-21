@@ -103,10 +103,10 @@ Between those two messages: no documents, no files, and only the transition line
 ## Run
 
 1. **Prepare the set.** The folder is known from bootstrap step 3; the name is its folder name. Then:
-   - `corpus_prepare` (`name`, `dir`: the user's folder) — registers, syncs, and ingests in one call. Returns `{documents, already_current, ingested?, missing?}`.
+   - `corpus_prepare` (`name`, `dir`: the user's folder) — registers, syncs, and ingests in one call. Returns `{documents, already_current, ingested?, missing?, excluded?}` — `excluded` lists entries the scan refused (symlinks are never followed; copy the real files into the folder to ingest them).
 `corpus_prepare` doesn't announce parse failures — check for them: `sql`: `SELECT uri FROM v_corpus_documents WHERE corpus='<name>' AND parse_status IN ('empty','failed')` (the reformulate inputs batch runs this anyway; empty docs with `needs_ocr` are the liteparse case from bootstrap, not this one). For a format the machine can't convert: **extract the text yourself** — read the file with whatever this surface gives you (a documents integration, the Read tool, which renders PDFs), write the text as a `.txt` beside the original in the user's folder, and `corpus_prepare` again with `force: true`. One line to the user ("2 files needed converting — done"). If a file truly can't be read, name it in the plan as a blind spot and list it under "Not reviewed" in the answer.
 
-   If it reports `ingested`, that is the one setup line you may say aloud ("reading in 12 new documents"). If it reports `missing`, mention it. Otherwise stay silent.
+   If it reports `ingested`, that is the one setup line you may say aloud ("reading in 12 new documents"). If it reports `missing`, mention it. If it reports `excluded`, tell the user those entries were refused (symlinks are never followed — copy the real files into the folder and re-run), and list them under "Not reviewed" in the answer like any other blind spot. Otherwise stay silent.
 
 
 2. **Check for prior work — and never reuse it blind.** Before creating a run: `sql`: `SELECT run_id, question, status, updated_at FROM runs WHERE corpus='<name>' ORDER BY created_at DESC LIMIT 3`. A run for this same question already `running`/`queued` → don't create another. A prior run with findings (finished or interrupted) is reusable ONLY after a drift check, in ONE `sql` array call:

@@ -29,7 +29,7 @@ export const TOOLS = [
     name: "corpus_register",
     title: "Registering your documents folder",
     description:
-      "Register a corpus: give a name to a local folder of documents (pdf/docx/xlsx/pptx sources, txt/md/html direct text). The ONLY tool that accepts a filesystem path; the path is canonicalized and must be an existing directory. Re-registering a name updates its root. Never give to sweep workers.",
+      "Register a corpus: give a name to a local folder of documents (pdf/docx/xlsx/pptx sources, txt/md/html direct text). The ONLY tool that accepts a filesystem path; the path is canonicalized and must be an existing directory. Symlinks inside the folder are never followed — they come back in excluded; copy the real files in to ingest them. Re-registering a name updates its root. Never give to sweep workers.",
     properties: {
       name: {
         type: "string",
@@ -46,7 +46,7 @@ export const TOOLS = [
     name: "corpus_prepare",
     title: "Getting your documents ready",
     description:
-      "Register a folder of documents, check what changed, and read in anything new — in one call. Use this instead of corpus_register + corpus_sync + ingest, which is three model turns to say the same thing. Returns {documents, already_current, ingested?, missing?}. The ONLY tool besides corpus_register that accepts a filesystem path.",
+      "Register a folder of documents, check what changed, and read in anything new — in one call. Use this instead of corpus_register + corpus_sync + ingest, which is three model turns to say the same thing. Returns {documents, already_current, ingested?, missing?, excluded?} — excluded lists entries the scan refused (symlinks are never followed; copy the real files in to ingest them). The ONLY tool besides corpus_register that accepts a filesystem path.",
     properties: {
       name: {
         type: "string",
@@ -67,7 +67,7 @@ export const TOOLS = [
     name: "ingest",
     title: "Reading in your documents",
     description:
-      "Extract text from every source file in a registered corpus (liteparse if installed, pdftotext fallback for PDFs) and load it into the database. Idempotent; re-run after files change. force re-extracts cached files. Never give to sweep workers.",
+      "Extract text from every source file in a registered corpus (liteparse if installed, pdftotext fallback for PDFs) and load it into the database. Idempotent; re-run after files change. force re-extracts cached files. Entries the scan refused (symlinks, non-regular files) are listed in excluded. Never give to sweep workers.",
     properties: {
       corpus: {
         type: "string",
@@ -82,7 +82,7 @@ export const TOOLS = [
     name: "corpus_sync",
     title: "Checking your documents for changes",
     description:
-      "Read-only diff of a registered corpus folder vs the database: which files are new, changed, missing, or unparsed. Run before answering to know whether an ingest is needed.",
+      "Read-only diff of a registered corpus folder vs the database: which files are new, changed, missing, or unparsed — plus excluded, entries the scan refused (symlinks are never followed). Run before answering to know whether an ingest is needed.",
     properties: {
       corpus: {
         type: "string",

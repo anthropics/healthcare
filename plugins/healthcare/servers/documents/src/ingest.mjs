@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import {
   closeSync,
   existsSync,
+  lstatSync,
   mkdirSync,
   openSync,
   readFileSync,
@@ -21,9 +22,13 @@ import { extract, resolveLit } from "./extract.mjs";
 // PLUMBING: bytes on disk → documents.content. Nothing here knows what a
 // contract is.
 //
-// The ONLY place a filesystem path enters the system. registerRoot's
-// realpathSync + isDirectory are what make corpusRoot() safe for every
-// readFileSync below — keep both, and keep the throw.
+// The ONLY place filesystem paths enter the system, guarded at two layers:
+// registerRoot realpaths the root and requires a real directory (so
+// corpusRoot() hands back a canonical path), and scanCorpus lstat-classifies
+// every entry under it, never following symlinks (its policy note has the
+// why). Every readFileSync below reads a path scanCorpus emitted, a
+// MANIFEST.jsonl that passed the same lstat check, or a cache file under our
+// own data dir (parsedPath) — keep all of it, and keep the throw.
 
 /** Validate a directory and upsert the corpus row; returns the resolved root. No scan. */
 function registerRoot(name, dir) {
@@ -45,12 +50,14 @@ function registerRoot(name, dir) {
 /** Register (or re-root) a corpus at a directory. */
 export function corpusRegister(name, dir, files) {
   const root = registerRoot(name, dir);
-  files ??= scanCorpus(root);
+  let excluded = [];
+  if (!files) ({ files, excluded } = scanCorpus(root));
   return {
     corpus: name,
     root,
     sources: files.filter((f) => f.kind === "source").length,
     text_files: files.filter((f) => f.kind === "text").length,
+    ...(excluded.length ? { excluded } : {}),
   };
 }
 
@@ -142,13 +149,46 @@ function cachedStatus(path) {
 // Walk a corpus dir once and classify every file. User-supplied text (.txt/.md/.html)
 // for a basename overrides any sibling source file of the same stem — the user's
 // extraction is preferred over ours.
+//
+// Symlinks are never followed — not as directories, not as files. Receiving a
+// folder is the normal way a corpus arrives, and a link inside one can name
+// any path this process can read (another corpus, a credentials file) while
+// classification runs on the entry's NAME — nothing about the target would be
+// checked before readFileSync pulled its content into the database. lstat,
+// which never dereferences, decides what each entry is; links and anything
+// else that isn't a regular file or directory (a FIFO would hang readFileSync)
+// go in `excluded`, unread, and every result that triggers a scan carries that
+// list. The boundary is the link itself: a hard link IS a regular file and
+// passes (delivery is hard — zip carries none, tar sanitizes targets, and
+// protected_hardlinks limits local creation), and the root is read-only input
+// — nothing re-checks entries that mutate mid-ingest. To ingest a link's
+// target, copy the real file into the corpus — the documented receive flow
+// (`cp received/*.pdf corpora/deal/`) does exactly that.
 function scanCorpus(dir) {
   const all = [];
+  const excluded = [];
   const walk = (d) => {
     for (const e of readdirSync(d, { withFileTypes: true })) {
       const p = join(d, e.name);
-      if (e.isDirectory()) walk(p);
-      else if (e.name !== "MANIFEST.jsonl")
+      let st;
+      try {
+        st = lstatSync(p);
+      } catch {
+        // Deleted or renamed between readdir and lstat. Pre-fix, a transient
+        // entry was harmless (classified from the dirent alone) — keep that
+        // tolerance: record it, don't abort the scan.
+        const rel = relative(dir, p);
+        excluded.push(`${rel} (vanished during scan)`);
+        process.stderr.write(`scan: EXCLUDE ${rel} — vanished during scan\n`);
+        continue;
+      }
+      if (st.isDirectory()) walk(p);
+      else if (!st.isFile()) {
+        const rel = relative(dir, p);
+        const why = st.isSymbolicLink() ? "symlink — not followed" : "not a regular file";
+        excluded.push(`${rel} (${why})`);
+        process.stderr.write(`scan: EXCLUDE ${rel} — ${why}\n`);
+      } else if (e.name !== "MANIFEST.jsonl")
         all.push({ path: p, rel: relative(dir, p), name: e.name });
     }
   };
@@ -171,7 +211,7 @@ function scanCorpus(dir) {
       out.push({ path: f.path, rel: f.rel, kind: "text", srcSha: null });
     }
   }
-  return out;
+  return { files: out, excluded };
 }
 
 // The corpus root is read-only input. Parsed text lands in <DATA>/parsed/<sha[:2]>/<sha>.txt,
@@ -333,7 +373,7 @@ export async function corpusPrepare(name, dir, force = false) {
   // register/sync/ingest — scanning in each step tripled the cost on
   // multi-GB corpora.
   const root = registerRoot(name, dir);
-  const files = scanCorpus(root);
+  const { files, excluded } = scanCorpus(root);
   const before = sync(name, files);
   // Empty/failed extractions are cached as placeholder files, so they are
   // invisible to new/changed/unparsed — without this check, installing
@@ -364,13 +404,15 @@ export async function corpusPrepare(name, dir, force = false) {
     already_current: !needsWork,
     ...(done ? { ingested: done.ingested } : {}),
     ...(before.missing.length ? { missing: before.missing } : {}),
+    ...(excluded.length ? { excluded } : {}),
   };
 }
 
 /** Compare disk state under the corpus root to the DB (read-only). */
 export function sync(corpus, files) {
   const dir = corpusRoot(corpus);
-  files ??= scanCorpus(dir);
+  let excluded = [];
+  if (!files) ({ files, excluded } = scanCorpus(dir));
   const dbDocs = new Map(
     db
       .prepare(`SELECT uri, sha256, source_sha256 FROM v_corpus_documents WHERE corpus = ?`)
@@ -398,13 +440,24 @@ export function sync(corpus, files) {
     }
   }
   const missing = [...dbDocs.keys()].filter((u) => !seen.has(u));
-  return { corpus, root: dir, current, new: fresh, changed, missing, unparsed };
+  return {
+    corpus,
+    root: dir,
+    current,
+    new: fresh,
+    changed,
+    missing,
+    unparsed,
+    ...(excluded.length ? { excluded } : {}),
+  };
 }
 
 function loadManifest(dir) {
   const manifest = new Map();
+  // Same lstat rule as the scan: a symlinked MANIFEST.jsonl in a received
+  // folder is attacker-named metadata — read it only as a regular file.
   for (const mf of [join(dir, "MANIFEST.jsonl"), join(dir, "..", "MANIFEST.jsonl")])
-    if (existsSync(mf))
+    if (existsSync(mf) && lstatSync(mf).isFile())
       for (const line of readFileSync(mf, "utf8").split("\n").filter(Boolean)) {
         const m = JSON.parse(line);
         manifest.set(m.file, m);
@@ -420,7 +473,8 @@ function loadManifest(dir) {
 // would break that, and must call forgetDocs().
 export async function ingest(corpus, force = false, files) {
   const dir = corpusRoot(corpus);
-  files ??= scanCorpus(dir);
+  let excluded = [];
+  if (!files) ({ files, excluded } = scanCorpus(dir));
   const { status, ...pre } = await preprocessFiles(files, force);
   const now = new Date().toISOString();
   db.prepare(
@@ -483,5 +537,12 @@ export async function ingest(corpus, force = false, files) {
       n++;
     }
   });
-  return { preprocess: pre, ingested: n, corpus, root: dir, warnings };
+  return {
+    preprocess: pre,
+    ingested: n,
+    corpus,
+    root: dir,
+    warnings,
+    ...(excluded.length ? { excluded } : {}),
+  };
 }
