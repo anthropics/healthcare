@@ -159,9 +159,20 @@ const n = (v) => (typeof v === "number" ? v : 0);
 const SUMMARIZE = {
   corpus_prepare: (r) => {
     const x = r;
+    // Exclusions go in the sentence, not just the JSON — a refused symlink is
+    // a document the user thinks is in the corpus and isn't. The copy-in hint
+    // only fits the symlink case; other reasons (FIFO, vanished) keep theirs
+    // in the per-entry text.
+    const exArr = Array.isArray(x.excluded) ? x.excluded : [];
+    const hint = exArr.some((e) => e.includes("symlink"))
+      ? " (symlinks are never followed — copy the real files in)"
+      : "";
+    const ex = exArr.length
+      ? ` ${exArr.length} entr${exArr.length === 1 ? "y" : "ies"} excluded${hint}.`
+      : "";
     return x.already_current
-      ? `${n(x.documents)} documents ready — nothing new to read in.`
-      : `${n(x.documents)} documents — read in ${n(x.ingested)} new or changed.`;
+      ? `${n(x.documents)} documents ready — nothing new to read in.${ex}`
+      : `${n(x.documents)} documents — read in ${n(x.ingested)} new or changed.${ex}`;
   },
   doc_search: (r, a) => {
     const pats = Array.isArray(a.pattern) ? a.pattern : [String(a.pattern)];
