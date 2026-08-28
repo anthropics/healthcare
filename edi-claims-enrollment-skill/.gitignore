@@ -1,0 +1,9 @@
+# Runtime artifacts — created during a review session, never commit
+waypoints/
+outputs/
+
+# Adopter-filled config (template stays committed)
+config/payer-config.yaml
+
+# macOS
+.DS_Store
