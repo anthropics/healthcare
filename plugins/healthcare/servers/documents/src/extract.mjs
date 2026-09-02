@@ -51,8 +51,9 @@ CHILD_ENV.OMP_THREAD_LIMIT = "2";
 CHILD_ENV.TOKIO_WORKER_THREADS = "2";
 let niceMissing = false;
 const run = async (cmd, args, opts = {}) => {
-  const o = { ...opts, env: CHILD_ENV };
-  if (process.platform === "win32" || niceMissing) return pexec(cmd, args, o);
+  const isWin = process.platform === "win32";
+  const o = { ...opts, env: CHILD_ENV, shell: isWin && cmd.endsWith(".cmd") };
+  if (isWin || niceMissing) return pexec(cmd, args, o);
   try {
     return await pexec("nice", ["-n", "10", cmd, ...args], o);
   } catch (e) {
@@ -95,17 +96,21 @@ const pageMarker = (page, text) => `\n\n=== [page ${page}] ===\n\n${text}`;
 // falling back to pdftotext when lit is missing matters: pdftotext cannot
 // OCR, so a scanned contract extracts to nothing, gets filed "empty", and
 // drops out of the answer while the user is told it "didn't scan readably".
-const litCandidates = () => [
-  process.env.LITEPARSE_PATH,
-  // The server's own dependency (npm install here) — the canonical location.
-  fileURLToPath(new URL("../node_modules/.bin/lit", import.meta.url)),
-  "lit",
-];
+const litCandidates = () => {
+  const binName = process.platform === "win32" ? "lit.cmd" : "lit";
+  return [
+    process.env.LITEPARSE_PATH,
+    // The server's own dependency (npm install here) — the canonical location.
+    fileURLToPath(new URL(`../node_modules/.bin/${binName}`, import.meta.url)),
+    binName,
+  ];
+};
 
 export function resolveLit() {
+  const isWin = process.platform === "win32";
   return litCandidates()
     .filter((p) => !!p)
-    .find((p) => spawnSync(p, ["--version"], { stdio: "ignore" }).status === 0);
+    .find((p) => spawnSync(p, ["--version"], { stdio: "ignore", shell: isWin && p.endsWith(".cmd") }).status === 0);
 }
 
 async function extractWithLiteparse(lit, src) {

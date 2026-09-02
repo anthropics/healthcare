@@ -1,6 +1,7 @@
 import { mkdirSync, existsSync, renameSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join } from "node:path";
+import { homedir } from "node:os";
 
 const schemaSql = readFileSync(new URL("../schema.sql", import.meta.url), "utf8");
 
@@ -12,7 +13,7 @@ const schemaSql = readFileSync(new URL("../schema.sql", import.meta.url), "utf8"
 // each component appends its own name (see plugins/healthcare/CLAUDE.md).
 const DATA_ROOT =
   process.env.CLAUDE_HEALTHCARE_DATA ??
-  join(process.env.HOME ?? ".", ".claude", "data", "healthcare");
+  join(homedir(), ".claude", "data", "healthcare");
 // Data lived under "contracts" before the engine went generic; migrate once.
 const LEGACY_DATA = join(DATA_ROOT, "contracts");
 export const DATA = join(DATA_ROOT, "documents");
