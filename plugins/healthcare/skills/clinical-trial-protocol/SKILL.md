@@ -79,8 +79,32 @@ references/
 
 ```
 scripts/
-└── sample_size_calculator.py   # Statistical power analysis (validated)
+├── sample_size_calculator.py       # Sample size for t-test / z-test (Python)
+├── sample_size_calculator.R        # Sample size for t-test / z-test (R)
+├── power_curve_generator.py        # Power curves across parameter sweeps (Python)
+├── power_curve_generator.R         # Power curves across parameter sweeps (R)
+├── sensitivity_table_generator.py  # 2D sensitivity tables (Python)
+├── sensitivity_table_generator.R   # 2D sensitivity tables (R)
+├── equivalence_sample_size.py      # TOST equivalence sizing (Python)
+├── equivalence_sample_size.R       # TOST equivalence sizing (R)
+├── cluster_sample_size.py          # Cluster randomized trial sizing (Python)
+├── cluster_sample_size.R           # Cluster randomized trial sizing (R)
+├── survival_sample_size.py         # Time-to-event Schoenfeld sizing (Python)
+├── survival_sample_size.R          # Time-to-event Schoenfeld sizing (R)
+├── bayesian_assurance.py           # Bayesian assurance / expected power (Python)
+├── bayesian_assurance.R            # Bayesian assurance / expected power (R)
+├── adaptive_design_oc.py           # Adaptive design operating characteristics (Python)
+├── adaptive_design_oc.R            # Adaptive design operating characteristics (R)
+├── multiplicity_adjustment.py      # Bonferroni/Holm/Hochberg p-value adjustment (Python)
+├── multiplicity_adjustment.R       # Bonferroni/Holm/Hochberg p-value adjustment (R)
+├── stratified_randomization.py     # Permuted block randomization planner (Python)
+├── stratified_randomization.R      # Permuted block randomization planner (R)
+└── tests/                          # Python/R parity tests
 ```
+
+Each calculator is implemented in both Python and R with the same CLI flags and JSON output — use whichever runtime is available (run any script with `--help` for its full set of options). The `scripts/tests/` directory contains one parity test per calculator; to run them, both runtimes must be installed, then from the skill root run e.g. `python scripts/tests/test_sample_size_parity.py`.
+
+The sample size calculator is invoked as part of Step 4 (see `references/04-protocol-operations.md`); the remaining calculators are used as needed for specialized designs (equivalence, cluster, survival, adaptive) and for justifying assumptions in the statistical section (power curves, sensitivity tables, Bayesian assurance, multiplicity adjustment, randomization plans).
 
 ## Prerequisites
 
@@ -120,16 +144,24 @@ max_results - Default 25, max 100
 
 **Purpose:** Reference template for protocol structure and content guidance. The system automatically detects available templates and uses them dynamically.
 
-### 4. Python Dependencies (Required for Step 2)
+### 4. Statistical Calculator Dependencies (Required for Step 4)
+
+**Option A: Python (default)**
 
 **Installation:**
 ```bash
-pip install -r requirements.txt
+pip install "scipy>=1.11.0" "numpy>=1.24.0"
 ```
 
 **Dependencies:**
+- Python >= 3.9 (required by scipy >= 1.11)
 - scipy >= 1.11.0 (statistical calculations)
 - numpy >= 1.24.0 (numerical operations)
+
+**Option B: R (alternative)**
+
+- R >= 4.0 with `jsonlite` package
+- Install: `Rscript -e "install.packages('jsonlite')"`
 
 **Purpose:** Accurate statistical sample size calculations for clinical protocols
 
