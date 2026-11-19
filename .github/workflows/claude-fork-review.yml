@@ -43,7 +43,7 @@ jobs:
         run: |
           gh pr comment "$PR_NUMBER" --repo "$REPO" --body "Thanks for the contribution! Because this PR comes from a fork, the automatic Claude code review can't run on it (GitHub withholds the credentials it needs from fork-triggered workflows).
 
-          A maintainer can run the same review on demand from the **Actions → Claude Fork Review** workflow (or \`gh workflow run claude-fork-review.yml -f pr_number=$PR_NUMBER\`). Maintainers can also mention \`@claude\` in a comment to ask questions about the changes interactively."
+          A maintainer can run the same review on demand from the **Actions → Claude Fork Review** workflow (or \`gh workflow run claude-fork-review.yml -f pr_number=$PR_NUMBER\`)."
 
   claude-review:
     if: github.event_name == 'workflow_dispatch'
