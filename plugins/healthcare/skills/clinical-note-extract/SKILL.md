@@ -37,6 +37,8 @@ Workflow({
 })
 ```
 
+The workflow returns `{records: [{id, record}], failed: [{id, error}], n, ok}`. A `record` is either the extraction or a refusal `{_refusal: true, _reason}`. Every note in `failed` (worker error, or a malformed record) must be named in the step 4 report — never treat a missing record as "nothing found".
+
 Workers have no tools — they return only what they read (`value`, `span`, `presence`/`temporality`/`experiencer`, `null_reason`, `unit`). All checks happen in step 3. Because note text rides inline in `args`, the workflow path tops out at a few dozen notes per call. For larger corpora, run `bun <this skill dir>/scripts/batch.ts <notes-dir> <schema.json> records.jsonl` instead — it reads files in trusted code and spawns one tool-disabled extraction per note with the same rules, then resume at step 3 over the resulting `records.jsonl`.
 
 ### Step 3 — Validate
