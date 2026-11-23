@@ -1,0 +1,77 @@
+# EDI Claims & Enrollment Skill — Payer Configuration Template
+#
+# Fill in values for your organization before deploying.
+# This file governs payer-specific thresholds and escalation policy.
+# Universal X12/HIPAA structural rules are in references/validation-rules.md
+# and are NOT configurable here.
+
+# ── Timely Filing ──────────────────────────────────────────────────────────────
+timely_filing:
+  standard_days: 365          # Days from date of service to claim receipt
+  # Add exceptions per contract or service type as needed
+  exceptions:
+    # - condition: "COBRA continuation"
+    #   days: 90
+    # - condition: "Coordination of benefits (COB) secondary claims"
+    #   days: 180
+
+# ── Retroactive Enrollment ─────────────────────────────────────────────────────
+retro_enrollment:
+  warning_threshold_days: 90  # Warn if effective date > N days in the past
+  max_allowed_days: 0         # Hard reject if > N days (0 = no hard limit)
+  escalation:
+    # Contacts are looked up from escalation_contacts below
+    days_0_to_90:    []
+    days_90_to_180:  ["enrollment_team"]
+    days_over_180:   ["enrollment_team", "compliance", "manager"]
+
+# ── Retroactive Termination ────────────────────────────────────────────────────
+retro_termination:
+  requires_human_review: true
+  claim_recovery_threshold_days: 0  # Require claim recovery analysis if retro > N days
+
+# ── Enrollment Correction Window ───────────────────────────────────────────────
+enrollment_correction:
+  no_escalation_window_days: 30  # Changes within this window need no escalation
+
+# ── Claims — High-Dollar Thresholds ───────────────────────────────────────────
+high_dollar_claims:
+  flag_threshold: 10000       # Flag for senior review above this charge amount
+  escalation_threshold: 50000 # Escalate to manager above this amount
+
+# ── Claims — Duplicate Detection ──────────────────────────────────────────────
+duplicate_detection:
+  # Fields used to detect potential duplicates
+  match_fields: ["member_id", "billing_npi", "service_date", "procedure_code"]
+  lookback_days: 365
+
+# ── Network ────────────────────────────────────────────────────────────────────
+network:
+  hmo_epo_pcp_required: true  # HMO/EPO plans require PCP assignment
+  oon_review_required: true   # Out-of-network claims require human review
+
+# ── Prior Authorization ────────────────────────────────────────────────────────
+prior_auth:
+  # Enumerate service categories that require PA for your plans.
+  # Leave empty to rely entirely on manual review.
+  required_service_categories: []
+  # Examples:
+  #   - "inpatient_admission"
+  #   - "outpatient_surgery"
+  #   - "specialty_drugs"
+  #   - "durable_medical_equipment"
+
+# ── Escalation Contacts ────────────────────────────────────────────────────────
+# These are used in error messages and review summaries.
+escalation_contacts:
+  enrollment_team: ""         # e.g. enrollment@example.org
+  compliance:      ""         # e.g. compliance@example.org
+  manager:         ""         # e.g. supervisor@example.org
+  siu:             ""         # Special Investigations Unit
+  clinical:        ""         # Clinical review team
+
+# ── Output Settings ────────────────────────────────────────────────────────────
+output:
+  phi_in_summaries: false     # If false, use IDs only (not names/SSNs) in summaries
+  waypoint_dir: "waypoints"
+  output_dir: "outputs"
